@@ -1,53 +1,69 @@
 <template>
-    <div class="library-container">
-        <LeftSidebar/>
-      <aside class="sidebar2">
-        <nav>
-          <ul>
-            <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
-              <img :src="`/src/assets/sidebar/${menuItem.icon}`" :alt="menuItem.title" class="sidebar-icon">
-              <div class="menuitem-grid">
-                <h4>{{ menuItem.title }}</h4>
-                <p class="menuitem-count">{{ menuItem.count }}</p>
-              </div>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-      <div class="main-content">
-        <header class="header">
-          <h1 class="library-title">내 서재</h1>
-          <h2 class="booklist-title">독서중인 도서목록</h2>
-        </header>
-        <section class="book-list">
-          <article class="book-item" v-for="(book, index) in books" :key="index">
-            <img :src="`/src/assets/icons/${book.coverImage}`" alt="Book Cover" class="book-cover"
-            @mousemove="showTooltip($event)" @mouseleave="hideTooltip" />
-            <div class="book-details">
-              <div class="title-grid">
-                <h3 class="book-title">{{ book.title }}</h3>
-                <p class="book-author">{{ book.author }}</p>
-              </div>
-              <div class="progress-grid">
-                <p class="book-progress">{{ book.progress }}%</p>
-                <p class="book-remaining">{{ book.remainingDays }}일 남음</p>
-              </div>
+  <div class="library-container">
+    <LeftSidebar />
+
+    <aside class="sidebar2">
+      <nav>
+        <ul>
+          <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
+            <img
+              :src="`/src/assets/sidebar/${menuItem.icon}`"
+              :alt="menuItem.title"
+              class="sidebar-icon"
+            />
+            <div class="menuitem-grid">
+              <h4>{{ menuItem.title }}</h4>
+              <p class="menuitem-count">{{ menuItem.count }}</p>
             </div>
-            <div v-if="book.isFavorite" class="favorite-icon">
-              <img src="@/assets/icons/like.png" alt="Favorite">
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <header class="header">
+        <h1 class="library-title">내 서재</h1>
+        <h2 class="booklist-title">독서중인 도서목록</h2>
+      </header>
+
+      <section class="book-list">
+        <article class="book-item" v-for="(book, index) in books" :key="index">
+          <img
+            :src="`/src/assets/icons/${book.coverImage}`"
+            alt="Book Cover"
+            class="book-cover"
+            @click="openModal(book)"
+          />
+          <div class="book-details">
+            <div class="title-grid">
+              <h3 class="book-title">{{ book.title }}</h3>
+              <p class="book-author">{{ book.author }}</p>
             </div>
-          </article>
-          <div v-if="tooltip.show" class="tooltip" :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
-            {{ tooltip.text }}
+            <div class="progress-grid">
+              <p class="book-progress">{{ book.progress }}%</p>
+              <p class="book-remaining">{{ book.remainingDays }}일 남음</p>
+            </div>
           </div>
-        </section>
-      </div>
+          <div v-if="book.isFavorite" class="favorite-icon">
+            <img src="@/assets/icons/like.png" alt="Favorite" />
+          </div>
+        </article>
+      </section>
     </div>
-  </template>
+
+    <!-- 모달 컴포넌트 -->
+    <BookDetailModal
+      v-if="isModalVisible"
+      :book="selectedBook"
+      @close="closeModal"
+    />
+  </div>
+</template>
   
   <script setup>
   import { ref, reactive } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
+  import BookDetailModal from './BookDetailModal.vue';
   
   // 사이드바 메뉴 아이템들 데이터
   const menuItems = ref([
@@ -84,6 +100,22 @@ const showTooltip = (event) => {
 const hideTooltip = () => {
   tooltip.show = false;
 };
+
+
+// 모달 상태 및 선택된 책 데이터
+const isModalVisible = ref(false);
+const selectedBook = ref({});
+
+// 모달 열기
+const openModal = (book) => {
+  selectedBook.value = book; // 선택된 책 데이터 설정
+  isModalVisible.value = true; // 모달 표시
+};
+
+// 모달 닫기
+const closeModal = () => {
+  isModalVisible.value = false; // 모달 숨김
+};
   </script>
   
   <style scoped>
@@ -119,7 +151,7 @@ const hideTooltip = () => {
   }
   
   .main-content {
-    width: 70%;
+    width: 60%;
     padding: 20px 0px;
   }
   
@@ -144,7 +176,7 @@ const hideTooltip = () => {
   .book-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4개의 열을 동일한 크기로 */
-    gap: 20px; /* 아이템 간 간격 */
+    gap: 25px;
     justify-items: start;
   }
   
