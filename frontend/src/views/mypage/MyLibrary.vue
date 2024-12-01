@@ -1,14 +1,14 @@
 <template>
     <div class="library-container">
         <LeftSidebar/>
-      <aside class="sidebar">
+      <aside class="sidebar2">
         <nav>
           <ul>
             <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
               <img :src="`/src/assets/sidebar/${menuItem.icon}`" :alt="menuItem.title" class="sidebar-icon">
-              <div>
+              <div class="menuitem-grid">
                 <h4>{{ menuItem.title }}</h4>
-                <p>{{ menuItem.count }}</p>
+                <p class="menuitem-count">{{ menuItem.count }}</p>
               </div>
             </li>
           </ul>
@@ -21,24 +21,32 @@
         </header>
         <section class="book-list">
           <article class="book-item" v-for="(book, index) in books" :key="index">
-            <img :src="`/src/assets/icons/${book.coverImage}`" alt="Book Cover" class="book-cover" />
+            <img :src="`/src/assets/icons/${book.coverImage}`" alt="Book Cover" class="book-cover"
+            @mousemove="showTooltip($event)" @mouseleave="hideTooltip" />
             <div class="book-details">
-              <h3 class="book-title">{{ book.title }}</h3>
-              <p class="book-author">{{ book.author }}</p>
-              <p class="book-progress">{{ book.progress }}%</p>
-              <p class="book-remaining">{{ book.remainingDays }}일 남음</p>
+              <div class="title-grid">
+                <h3 class="book-title">{{ book.title }}</h3>
+                <p class="book-author">{{ book.author }}</p>
+              </div>
+              <div class="progress-grid">
+                <p class="book-progress">{{ book.progress }}%</p>
+                <p class="book-remaining">{{ book.remainingDays }}일 남음</p>
+              </div>
             </div>
             <div v-if="book.isFavorite" class="favorite-icon">
               <img src="@/assets/icons/like.png" alt="Favorite">
             </div>
           </article>
+          <div v-if="tooltip.show" class="tooltip" :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
+            {{ tooltip.text }}
+          </div>
         </section>
       </div>
     </div>
   </template>
   
   <script setup>
-  import { ref } from 'vue';
+  import { ref, reactive } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   
   // 사이드바 메뉴 아이템들 데이터
@@ -55,6 +63,27 @@
     { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: false },
     { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: false }
   ]);
+
+  // 툴팁 상태 관리
+  const tooltip = reactive({
+    show: false,
+    text: "상세보기",
+    x: 0,
+    y: 0,
+  });
+
+  // 툴팁 표시 함수
+const showTooltip = (event) => {
+  tooltip.show = true;
+  // tooltip.text = text;
+  tooltip.x = event.pageX + 10; // 마우스 위치 오른쪽으로 10px
+  tooltip.y = event.pageY + 10; // 마우스 위치 아래로 10px
+};
+
+// 툴팁 숨김 함수
+const hideTooltip = () => {
+  tooltip.show = false;
+};
   </script>
   
   <style scoped>
@@ -64,26 +93,34 @@
     height: 100vh;
   }
   
-  .sidebar {
-    width: 20%;
+  .sidebar2 {
+    width: 250px;
     padding: 10px;
   }
   
   .sidebar-item {
     display: flex;
     align-items: center;
-    padding: 10px 0;
+    padding: 10px 0px;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+  }
+
+  .sidebar-item:hover {
+  cursor: pointer;
+  background-color: rgba(214, 214, 214, 0.6);
+  border-radius: 5px;
   }
   
   .sidebar-icon {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     margin-right: 10px;
   }
   
   .main-content {
-    width: 80%;
-    padding: 20px;
+    width: 70%;
+    padding: 20px 0px;
   }
   
   .header {
@@ -93,35 +130,37 @@
   }
   
   .library-title {
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 600;
-    margin-bottom: 10px;
+    text-align: center;
+    margin-bottom: 40px;
   }
   
   .booklist-title {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 400;
   }
   
   .book-list {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4개의 열을 동일한 크기로 */
+    gap: 20px; /* 아이템 간 간격 */
+    justify-items: start;
   }
   
   .book-item {
-    width: 230px;
+    width: fit-content;
     position: relative;
     padding: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+  }
+  
+  .book-item:hover {
+    cursor: pointer;
   }
   
   .book-cover {
     width: 100%;
-    height: 300px;
     object-fit: cover;
-    border-radius: 5px;
   }
   
   .book-details {
@@ -129,14 +168,14 @@
   }
   
   .book-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #1f1f1f;
     margin-bottom: 5px;
   }
   
   .book-author {
-    font-size: 15px;
+    font-size: 13px;
     color: #707070;
     margin-bottom: 5px;
   }
@@ -154,8 +193,8 @@
   
   .favorite-icon {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 17px;
+    right: 15px;
     width: 24px;
     height: 24px;
   }
@@ -164,5 +203,36 @@
     width: 100%;
     height: 100%;
   }
+
+  .title-grid {
+    min-height: 50px;
+  }
+
+  .progress-grid {
+    display: flex;
+    gap: 10px;
+  }
   
+  .menuitem-count {
+    color: #383838;
+    font-size: 14px;
+  }
+
+  .menuitem-grid {
+    display: flex;
+    gap: 3px;
+    flex-flow: column;
+  }
+
+  .tooltip {
+  position: absolute;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
 </style>

@@ -11,9 +11,12 @@
   background: #fffdf1;
   padding: 10px;
   display: flex;
-  justify-items: center;
   flex-flow: column;
   gap: 25px;
+}
+
+.bookshelf-icon, .playlist-icon {
+    width: 45px;
 }
 
 .bookshelf-icon:hover {

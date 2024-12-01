@@ -92,7 +92,7 @@ const deleteSong = (id) => {
 }
 
 .sidebar2 {
-  width: 20%;
+  width: 250px;
   padding: 10px 20px;
 }
 
@@ -293,7 +293,7 @@ text-align: center;
 .pli-header {
     font-weight: bold;
     font-size: 25px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     text-align: center;
 }
 </style>
