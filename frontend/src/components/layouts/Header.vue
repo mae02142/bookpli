@@ -1,11 +1,7 @@
-<script setup lang="ts">
-import router from '@/router';
-</script>
-
 <template>
     <header class="header">
       <div class="left-section">
-        <div class="logo">bookpli</div>
+        <div class="logo" @click="goHome">bookpli</div>
         <nav class="nav">
             <router-link to="/mypage/mylibrary">
             <span class="nav-item">My서재</span>
@@ -20,10 +16,23 @@ import router from '@/router';
         <input type="text" class="search-input" placeholder="Q">
       </div>
       <router-link to="/auth/login">
-          <button class="login-button">LOGIN</button>
-      </router-link>
+      <div class="log-button">
+        <img src="@/assets/icons/logout.png">
+        <span>LOGIN</span>
+      </div>
+    </router-link>
+
     </header>
   </template>
+
+<script setup>
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+function goHome() {
+  router.push({ path: '/' });
+}
+</script>
   
   <style scoped>
   .header {
@@ -43,10 +52,13 @@ import router from '@/router';
   }
   
   .logo {
-    font-family: "JacquesFrancois-Regular", sans-serif;
     font-size: 35px;
     color: #000000;
     margin-right: 20px;
+  }
+
+  .logo:hover {
+    cursor: pointer;
   }
   
   .nav {
@@ -55,7 +67,6 @@ import router from '@/router';
   }
   
   .nav-item {
-    font-family: "Corbel-Regular", sans-serif;
     font-size: 18px;
     color: #000000;
     font-weight: bold;
@@ -66,7 +77,7 @@ import router from '@/router';
     left: 50%;
     transform: translateX(-50%); /* 수평 중앙 정렬 */
     width: 400px;
-    height: 50px;
+    height: 40px;
     display: flex;
     align-items: center;
     background: #eaeaea;
@@ -83,21 +94,18 @@ import router from '@/router';
     height: 40px;
     border: none;
     background: transparent;
-    font-size: 20px;
+    font-size: 17px;
     outline: none;
     padding: 0px 10px;
   }
   
-  .login-button {
-    background: #f5f5dc;
-    border: none;
-    border-radius: 17px;
-    width: 130px;
-    height: 50px;
-    font-family: "Corbel-Regular", sans-serif;
-    font-size: 20px;
-    color: #000000;
+  .log-button {
+    display: flex;
+    font-size: 16px;
     cursor: pointer;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
   }
   </style>
   

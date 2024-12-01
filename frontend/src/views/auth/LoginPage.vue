@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-      <div class="sidebar">
+      <div class="login-sidebar">
         <img class="book-image" src="@/assets/logos/mascot.png" />
         <div class="brand-name">Bookpli.</div>
       </div>
@@ -42,7 +42,7 @@ function goHome() {
     height: 100vh;
     width: 100%;
   }
-  .sidebar {
+  .login-sidebar {
     background: #fffdf1;
     width: 50%;
     display: flex;
@@ -57,7 +57,6 @@ function goHome() {
   }
   .brand-name {
     color: #000000;
-    font-family: "HighTowerText-Regular", sans-serif;
     font-size: 60px;
     font-weight: 400;
     margin-top: -50px;
@@ -78,7 +77,6 @@ function goHome() {
   }
   .home-text {
     color: #000;
-    font-family: "Inter-Regular", sans-serif;
     font-size: 20px;
     font-weight: 400;
   }
@@ -98,13 +96,11 @@ function goHome() {
   }
   .title {
     color: #000000;
-    font-family: "Inter-SemiBold", sans-serif;
     font-size: 25px;
     font-weight: 600;
   }
   .subtitle {
     color: #5a5a5a;
-    font-family: "Inter-Regular", sans-serif;
     font-size: 15px;
     font-weight: 400;
   }
@@ -125,13 +121,11 @@ function goHome() {
   }
   .spotify-login {
     color: #000000;
-    font-family: "Inter-Medium", sans-serif;
     font-size: 24px;
     font-weight: 500;
   }
   .login-note {
     color: #d000ff;
-    font-family: "Inter-Regular", sans-serif;
     font-size: 15px;
     font-weight: 400;
     align-self: center;
