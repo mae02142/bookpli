@@ -4,7 +4,8 @@
         <label class="switch">
             <input type="checkbox" v-model="isMusicSection" />
             <span class="slider">
-                <span class="slider-label">{{ isMusicSection ? "Music" : "Books" }}</span>
+                <span class="slider-label left-label" v-show="isMusicSection">Music</span>
+                <span class="slider-label right-label" v-show="!isMusicSection">Book</span>
             </span>
         </label>
     </div>
@@ -23,7 +24,7 @@ import { ref } from "vue";
 import bookSection from "@/components/bookSection.vue";
 import musicSection from "@/components/musicSection.vue";
 
-const isMusicSection = ref(false); // Default to 'Book Page'
+const isMusicSection = ref(false); 
 </script>
 
 <style scoped>
@@ -33,66 +34,74 @@ const isMusicSection = ref(false); // Default to 'Book Page'
     align-items: center;
     justify-content: center;
     margin: 20px 0;
-    gap: 10px;
 }
 
 /* Toggle Switch Styles */
 .switch {
     position: relative;
     display: inline-block;
-    width: 80px;
-    height: 35px;
+    width: 150px;
+    height: 40px;
 }
 
 .switch input {
     opacity: 0;
-    width: 0;
-    height: 0;
+    width: 150px;
+    height: 40px;
+    position: absolute;
+    cursor: pointer;
 }
 
 .slider {
     position: absolute;
-    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 35px;
+    border-radius: 5px;
+    transition: background-color 0.4s;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-    color: Black;
+    color: black;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 25px;
-    width: 25px;
-    left: 5px;
-    bottom: 5px;
+    height: 34px;
+    width: 70px;
+    left: 3px;
+    bottom: 3px;
     background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
+    border-radius: 3px;
+    transition: transform 0.4s;
 }
 
 input:checked + .slider {
-    background-color: #007bff;
+    background-color: #f4f4b1;
 }
 
 input:checked + .slider:before {
-    transform: translateX(45px);
+    transform: translateX(75px);
 }
 
-/* Page Label on Slider */
 .slider-label {
     position: absolute;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: bold;
-    pointer-events: none;
+    z-index: 3;
 }
+
+.left-label {
+    left: 20px;
+
+}
+
+.right-label {
+    right: 20px;
+
+}
+
 </style>
