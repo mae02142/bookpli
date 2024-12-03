@@ -115,7 +115,7 @@ const handleLogin = async () => {
     border-radius: 5px;
     padding: 15px;
     gap: 10px;
-    width: -webkit-fill-available;
+    width: 100%;
     justify-content: center;
   }
   .spotify-logo {
