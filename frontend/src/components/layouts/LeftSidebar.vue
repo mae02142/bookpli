@@ -2,8 +2,24 @@
     <div class="sidebar">
         <img class="bookshelf-icon" src="@/assets/sidebar/bookshelf.png">
         <img class="playlist-icon" src="@/assets/sidebar/playlist.png">
+        <img class="bookclub-icon" src="@/assets/sidebar/bookclub.png">
+        <img class="user-icon" src="@/assets/sidebar/usericon.png" @click="openModal">
+        <UserInfoModal v-if="modalState.isUserInfoModalOpen" @close="closeModal" />
     </div>
 </template>
+
+<script setup>
+import { modalState, openUserInfoModal, closeUserInfoModal } from "@/stores/modalState.js";
+import UserInfoModal from "@/views/mypage/UserInfoModal.vue";
+
+const openModal = () => {
+  openUserInfoModal();
+};
+
+const closeModal = () => {
+  closeUserInfoModal();
+};
+</script>
 
 <style scoped>
 .sidebar {

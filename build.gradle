@@ -24,19 +24,33 @@ repositories {
 }
 
 dependencies {
+	// Spring Boot 기본 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // 추가
+
+	// MySQL DB 연결
 	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// 개발 도구
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// 테스트
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation 'io.github.cdimascio:dotenv-java:2.2.4'
+	implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+
 }
+
+
 
 tasks.named('test') {
 	useJUnitPlatform()

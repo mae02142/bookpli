@@ -41,7 +41,7 @@ function goHome() {
     justify-content: space-between;
     background: #ffffff;
     height: 75px;
-    padding: 0 25px;
+    margin: 0 25px;
     box-sizing: border-box;
     position: relative; /* 부모 요소에서 정렬할 때 유용 */
   }
@@ -64,6 +64,8 @@ function goHome() {
   .nav {
     display: flex;
     gap: 20px;
+    margin-left: 30px;
+    align-self: flex-end;
   }
   
   .nav-item {

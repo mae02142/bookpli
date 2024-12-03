@@ -25,6 +25,7 @@ const router = createRouter({
         },
       ],
     },
+
     {
       path: "/review",
       children: [
@@ -55,6 +56,40 @@ const router = createRouter({
         },
       ]
     },
+
+
+    {
+      path: "/miniroom",
+      children: [
+        {
+          path: "book",
+          component: () => import("@/views/miniroom/BookDetail.vue"),
+        },
+        {
+          path: "minihome",
+          component: () => import("@/views/miniroom/MiniHome.vue"),
+        },
+        {
+          path: "goal",
+          component: () => import("@/views/miniroom/ReadingGoal.vue"),
+        },
+      ],
+    },
+
+    {
+      path: "/main",
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/main/mainPage.vue")
+        },
+        {
+          path: "music",
+          component: () => import("@/components/musicSection.vue")
+        },
+      ]
+    }
+
   ],
 });
 

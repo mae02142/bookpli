@@ -1,0 +1,235 @@
+<template>
+<div>
+    <div class="book-details">
+        <div class="book-cover-section">
+            <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
+        </div>
+    <div class="book-info-section">
+        <div>
+            <h1 class="book-title">{{ book.title }}</h1>
+            <span class="book-meta">
+                출판일: {{ book.publicationDate }}
+                쪽수: {{ book.pages }}쪽
+                ISBN: {{ book.isbn }}
+            </span>
+            <span class="book-meta">
+                출판사: {{ book.publisher }}
+                지은이: {{ book.author }}
+                옮긴이: {{ book.translator }}
+            </span>
+            <div>
+                <h2 class="book-intro-header">책소개</h2>
+                <p class="book-intro">{{ book.introduction }}</p> 
+                보기
+            </div>
+        </div>
+    </div>
+</div> 
+
+<div class="recommendations">
+    <div class="line-separator"></div>    
+    <div class="tabs">
+        <button class="tab">추천도서</button>
+        <button class="tab">리뷰</button>
+    </div>
+    <div class="line-separator"></div>
+
+    <div class="recommendation-covers">
+        <img
+        v-for="(cover, index) in recommendations"
+        :key="index"
+        class="recommendation-cover"
+        :src="cover"
+        alt="Recommendation Cover"
+        />
+    </div>
+</div>
+</div>
+</template>
+
+<script setup>
+import { ref } from "vue";
+
+const book = ref({
+title: "불안의 서",
+introduction: "지상에서 가장 슬픈 책, 페소아가 전하는 슬픈 상상력",
+cover: "image-120.png",
+publicationDate: "2014-03-27",
+pages: 808,
+isbn: "9788996997962",
+publisher: "봄날의 책",
+author: "페르난두 페소아",
+translator: "배수아",
+});
+
+const viewReviews = () => {
+alert("리뷰 보기 클릭됨!");
+};
+</script>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #ffffff;
+    font-family: "Inter", sans-serif;
+}
+
+.book-details {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 1200px;
+    align-items: flex-start;
+}
+
+.book-cover-section {
+    background: rgba(245, 245, 220, 0.6);
+    border-radius: 35px;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.book-cover {
+    width: 100%;
+    max-width: 281px;
+    height: auto;
+    object-fit: cover;
+}
+
+.book-info-section {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    padding: 20px;
+    flex: 2;
+}
+
+.book-title {
+    font-family: "Inter-Bold", sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.book-subtitle {
+    font-family: "Inter-Bold", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+    margin-top: 20px;
+}
+
+.book-meta {
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    font-family: "Inter-Regular", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #000000;
+    margin: 10px 0;
+}
+
+.book-intro-header {
+    font-size: 20px;
+    font-weight: 400;
+    color: #000000;
+    margin-top: 30px;
+}
+
+.book-intro {
+    font-family: "Inter-Regular", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.recommendations {
+    margin: 40px auto;
+    width: 90%;
+    max-width: 1200px;
+}
+
+.recommendations-title {
+    font-size: 24px;
+    font-weight: 400;
+    color: #000000;
+    margin-bottom: 20px;
+}
+
+.recommendation-covers {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.recommendation-cover {
+    width: 182px;
+    height: 280px;
+    object-fit: cover;
+}
+
+.line-separator {
+    border-top: 1px solid #000000;
+    width: 100%;
+}
+
+.reviews {
+    margin: 20px auto;
+    text-align: center;
+}
+
+.reviews-title {
+    font-size: 24px;
+    font-weight: 400;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.review-button {
+    display: inline-block;
+    font-family: "Inter-Regular", sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #3e322a;
+    text-align: center;
+    border: 1px solid #3e322a;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+img{
+    width: 281px;
+    height: 383;
+}
+
+.tabs {
+    display: flex;
+    justify-content: flex-start;
+    margin: 20px auto;
+    gap: 20px;
+}
+
+.tab {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+</style>
