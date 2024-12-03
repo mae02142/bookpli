@@ -1,5 +1,5 @@
 <template>
-<div class="modal-wrap" v-if="modelValue" @click="closeModal">
+<div class="modal-wrap" v-show="modelValue" @click="closeModal">
     <div class="modal-content" @click.stop>
         <div class="modal-items">
             <header class="header">
@@ -30,10 +30,12 @@ import {ref} from "vue";
                 default : false,
             },
         },
-        emits : ["update:modelValue"],
+        emits: ['update:modelValue'],
         setup(_,{emit}) {
             const closeModal = () =>{ //모달 닫기
+                console.log("모달창을 닫습니다.");
                 emit("update:modelValue", false);
+                console.log("emit 실행 완료");
             }
             const uploadImg = ref(false);
             const fileInput = ref(null); //input file 참조

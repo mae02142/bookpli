@@ -18,8 +18,8 @@
       <div class="add-post"  @click="addPost = true">
             <p class="description">책에 대한 이야기를 나눠보세요</p>
             <img class="add-icon" src="@/assets/icons/add.png" alt="추가 아이콘" />
-        <PostForm v-model="addPost" />
       </div>
+          <PostForm :modelValue="addPost" @update:modelValue="addPost = $event" />
              <!-- 게시글 리스트 -->
       <section class="post-content">
         <article class="post-article" v-for="item, index in post" :key="index">
@@ -39,7 +39,8 @@
             <div style="position: relative;">
                 <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
                 <div v-show="showBtn[index]" class="dropdown">
-                    <button class="show-btn">수정</button>
+                    <button @click="item.deleteCheck= true" class="show-btn">수정</button>
+                    <EditPost v-model="item.deleteCheck" :editId="index" @edit-post="EditPost" />
                     <hr class="btn-line">
                     <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                     <!-- 삭제 컴포넌트 -->
@@ -54,17 +55,19 @@
   </template>
   
   <script>
-  import { ref, watchEffect } from "vue";
+  import { ref } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
   import RemovePost from "./RemovePost.vue";
   import PostForm from "./PostForm.vue";
+  import EditPost from "./EditPost.vue";
 
   
   export default {
     components: {
         RemovePost,
         PostForm,
+        EditPost,
     },
     setup() {
       const title = ref("크리스마스로 불리는 소년");  

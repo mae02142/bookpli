@@ -19,11 +19,12 @@
       <!-- 구분선 -->
       <hr class="divider" />
   
-      <!-- 게시글 추가 -->
-      <div class="add-post">
-        <p class="description">책에 대한 이야기를 나눠보세요</p>
-        <img class="add-icon" src="@/assets/icons/add.png" alt="추가 아이콘" />
-      </div>
+    <!-- 게시글 추가 -->
+    <div class="add-post"  @click="addPost = true">
+            <p class="description">책에 대한 이야기를 나눠보세요</p>
+            <img class="add-icon" src="@/assets/icons/add.png" alt="추가 아이콘" />
+    </div>
+      <PostForm :modelValue="addPost" @update:modelValue="addPost = $event" />
   
       <!-- 내용 -->
      <section class="post-section">
@@ -56,7 +57,11 @@
   import { ref } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
+  import PostForm from "./PostForm.vue";
   export default {
+    components : {
+      PostForm,
+    },  
     setup() {
       const community = ref({
         title: "크리스마스로 불리는 소년",
@@ -84,6 +89,9 @@
             likes: {changeLike: dislike},
         },
     ]);
+    const addPost = ref(false);
+      // 부모에서 modelValue 값이 업데이트 될 때 호출되는 함수
+
     const checkLike = (index) => {
         let currentLike = posts.value[index];
         if(currentLike.likes.changeLike == dislike){
@@ -101,6 +109,7 @@
         checkLike,
         community,
         posts,
+        addPost,
        };
     },
   };
@@ -150,22 +159,7 @@
     border: none;
     border-top: 1px solid #ccc;
   }
-  
-  .add-post {
-    display: flex;
-    flex-direction: row;
-    gap:20px;
-    padding: 10px;
-    align-items: end;
-    justify-content: end;
-    margin-bottom: 20px;
-  }
-  
-  .description {
-    font-size: 15px;
-    color : #909090;
-  }
-  
+    
   .post-container {
     margin-top: 20px;
   }
@@ -187,6 +181,25 @@
     cursor: pointer;
 
   }
+  /* 게시글 등록 */
+  .add-post {
+    display: flex;
+    flex-direction: row;
+    gap:20px;
+    padding: 10px;
+    align-items: end;
+    justify-content: end;
+    margin-bottom: 20px;
+  }
+  .add-post:hover {
+    cursor: pointer;
+  }
+  
+  .description {
+    font-size: 15px;
+    color : #909090;
+  }
+
     /* 게시글 부분 */
   .post-section {
     width: 60%;
