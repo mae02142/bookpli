@@ -29,21 +29,21 @@
     <div class="music-player">
         <h3 class="music-title">play music</h3>
         <p class="more-wrapper music-more">
-            <img src="../assets/images/add.png" class="sm-images"/>더보기
+            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
         </p>
         <div class="current-track">
-        <img class="track-cover" src="../assets/images/music2.png">    
+        <img class="track-cover" src="../../assets/test/music2.png">    
             <div class="track-details">
                 <p class="track-title">첫 눈
-                    <img src="../assets/images/좋아요.png" class="sm-images"/>
+                    <img src="../../assets/icons/empty_like.png" class="sm-images"/>
                 </p>
                 <p>엑소</p>
                 <progress class="music-progress" value="30" max="100"></progress>
             </div>
             <div class="controls">
-                <img class="control-button" src="../assets/images/이전노래.png" alt="Play" />
-                <img class="control-button" src="../assets/images/재생버튼.png" alt="Skip to Start" />
-                <img class="control-button" src="../assets/images/이후노래.png" alt="End" />
+                <img class="control-button" src="../../assets/icons/previous.png" alt="Play" />
+                <img class="control-button" src="../../assets/icons/play.png" alt="Skip to Start" />
+                <img class="control-button" src="../../assets/icons/next.png" alt="End" />
             </div>
         </div>
     </div>
@@ -71,25 +71,22 @@
                 <div class="goal-progress" :style="{ width: (book.totalPages / 400) * 100 + '%' }"></div>
                 <!-- 현재 Progress Bar (초록색) -->
                 <div class="current-progress" :style="{ width: book.progress + '%' }"></div>
-                
                 <div class="progress-info">
                     <span class="progress-percentage">{{ book.progress }}%</span>
                     <span class="page-info">p.{{ book.currentPage }}/{{ book.totalPages }}
-                        <img src="../assets/images/책갈피.png" class="sm-images"/>
+                        <img src="../../assets/icons/bookmark2.png" class="sm-images"/>
                     </span>
                 </div>
             </div>  
             </div>
-        </ul>  
-
-        
+        </ul>          
 </div>
 
 <h3 class="title-header">내가 읽고 있는 책</h3>    
 <div class="book-section section">
     <div class="book-covers">
         <div class="book-item">
-            <img class="book-cover" src="../assets/images/book1.jpg"/>
+            <img class="book-cover" src="../../assets/test/book1.jpg"/>
             <p class="book-info">
                 <span class="book-icon">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
@@ -97,7 +94,7 @@
             </p>
         </div>
         <div class="book-item">
-            <img class="book-cover" src="../assets/images/book2.jpg" />
+            <img class="book-cover" src="../../assets/test/book2.jpg" />
             <p class="book-info">
                 <span class="book-icon">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
@@ -105,7 +102,7 @@
             </p>
         </div>
         <div class="book-item">    
-            <img class="book-cover" src="../assets/images/book3.jpg"/>
+            <img class="book-cover" src="../../assets/test/book3.jpg"/>
             <p class="book-info">
                 <span class="book-icon">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
@@ -117,18 +114,18 @@
 </div>
 <h3 class="title-header">내가 담아놓은 책</h3>
 <p class="more-wrapper book-more">
-    <img src="../assets/images/add.png" class="sm-images"/>더보기
+    <img src="../../assets/icons/add.png" class="sm-images"/>더보기
 </p>
 <div class="book-section section">
 <div class="book-covers">
     <div class="book-item">
-        <img class="book-cover" src="../assets/images/book4.jpg" alt="Book 1" />
+        <img class="book-cover" src="../../assets/test/book4.jpg" alt="Book 1" />
     </div>
     <div class="book-item">    
-        <img class="book-cover" src="../assets/images/book5.jpg" alt="Book 2" />
+        <img class="book-cover" src="../../assets/test/book5.jpg" alt="Book 2" />
     </div>
     <div class="book-item">    
-        <img class="book-cover" src="../assets/images/book6.jpg" alt="Book 3" /> 
+        <img class="book-cover" src="../../assets/test/book6.jpg" alt="Book 3" /> 
     </div>
 </div>
 </div>
@@ -214,6 +211,7 @@ flex-direction: column;
 .stats-card {
     display: flex;
     gap: 15px;
+    margin-right: 15px;
 }
 
 .most-read-month,
@@ -230,11 +228,6 @@ flex-direction: column;
 .right-section{
     margin-left: 15px;
 }
-
-/* .section {
-padding: 10px 0;
-} */
-
 
 .reading-stats-box {
 height: 200px; 
@@ -256,7 +249,7 @@ border-radius: 8px;
 
 .music-player,
 .book-section {
-  margin-top: 20px; 
+    margin-top: 20px;       
 }
 
 .music-player {
@@ -513,6 +506,7 @@ font-size: 20px;
 font-weight: 400;
 color: #000000;
 margin-top: 15px;
+margin-bottom: 25px;
 position: relative;
 }
 

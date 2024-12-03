@@ -5,10 +5,10 @@
 
     <!-- Book Section -->
     <div class="book-section">
-    <img class="book-cover" src="../assets/images/book1.jpg" alt="Book Cover" />
+    <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
     <div class="book-info">페르난두 페소아(808p)</div>
     <div class="reading-status">
-        <img class="bookmark" src="../assets/images/책갈피.png" alt="Bookmark" />
+        <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
         <span class="reading-status-text">읽고 있는 책</span>
     </div>
     </div>
@@ -23,11 +23,11 @@
         <div class="date-header">독서기간</div>
             <div class="date-row">
                 <span class="date-label">시작일
-                    <img src="../assets/images/달력.png">
+                    <img src="../../assets/icons/calendar.png">
                     <span class="date-value">{{ startDate }}</span>
                 </span>
                 <span class="date-label">종료일
-                    <img src="../assets/images/달력.png">
+                    <img src="../../assets/icons/calendar.png">
                     <span class="date-value">{{ endDate }}</span>
                 </span>
             </div>
@@ -39,7 +39,7 @@
     <div class="progress-bar">
         <div class="progress-bar-fill"></div>
     </div>
-    <span class="progress-percentage">25%</span>
+    <p class="progress-percentage">25%</p>
     </div>
 
     <!-- Confirm Button -->
@@ -67,13 +67,11 @@ margin: 0;
 padding: 0;
 }
 
-/* Body */
 body {
 background: #ffffff;
 font-family: "Inter", sans-serif;
 }
 
-/* Title Section */
 .title {
 font-size: 48px;
 font-weight: 700;
@@ -82,7 +80,6 @@ text-align: center;
 margin: 20px 0;
 }
 
-/* Book Section */
 .book-section {
 display: flex;
 flex-direction: column;
@@ -171,7 +168,6 @@ font-size: 28px;
 color: #000000;
 }
 
-/* Reading Progress Section */
 .progress-section {
 margin: 40px auto;
 width: 80%;
@@ -195,10 +191,13 @@ max-width: 800px;
 .progress-bar-fill {
     height: 100%;
     background: #fffdf1;
-    width: 25%; /* Dynamic progress width */
+    width: 25%; 
 }
 
-/* Confirm Button */
+.progress-percentage {
+    font-size: 25px;
+}
+
 .confirm-button {
     display: block;
     margin: 40px auto;
@@ -212,17 +211,16 @@ max-width: 800px;
 }
 
 .date-label {
-    display: inline-flex; /* 텍스트와 이미지를 같은 줄에 배치 */
-    align-items: center; /* 텍스트와 이미지를 수직 가운데 정렬 */
+    display: inline-flex;
+    align-items: center; 
     font-size: 28px;
     color: #000000;
-    gap: 8px; /* 텍스트와 이미지 사이 간격 */
+    gap: 8px; 
 }
 
 .date-label img {
-  width: 1.2em; /* 폰트 크기에 비례하여 이미지 크기 설정 */
-  height: 1.2em; /* 정사각형 비율 유지 */
-  cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+    width: 1.2em; 
+    height: 1.2em; 
+    cursor: pointer; 
 }
-
 </style>

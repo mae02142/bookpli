@@ -25,6 +25,23 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/miniroom",
+      children: [
+        {
+          path: "book",
+          component: () => import("@/views/miniroom/BookDetail.vue"),
+        },
+        {
+          path: "minihome",
+          component: () => import("@/views/miniroom/MiniHome.vue"),
+        },
+        {
+          path: "goal",
+          component: () => import("@/views/miniroom/ReadingGoal.vue"),
+        },
+      ],
+    },
   ],
 });
 

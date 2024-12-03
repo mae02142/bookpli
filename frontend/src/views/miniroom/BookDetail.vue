@@ -2,7 +2,7 @@
 <div>
     <div class="book-details">
         <div class="book-cover-section">
-            <img class="book-cover" src="../assets/images/book1.jpg" alt="Book Cover" />
+            <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
         </div>
     <div class="book-info-section">
         <div>
@@ -26,8 +26,7 @@
     </div>
 </div> 
 
-    <!-- Recommendations Section -->
-    <div class="recommendations">
+<div class="recommendations">
     <div class="line-separator"></div>    
     <div class="tabs">
         <button class="tab">추천도서</button>
@@ -44,14 +43,13 @@
         alt="Recommendation Cover"
         />
     </div>
-    </div>
+</div>
 </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 
-// Book Data
 const book = ref({
 title: "불안의 서",
 introduction: "지상에서 가장 슬픈 책, 페소아가 전하는 슬픈 상상력",
@@ -62,7 +60,6 @@ isbn: "9788996997962",
 publisher: "봄날의 책",
 author: "페르난두 페소아",
 translator: "배수아",
-
 });
 
 const viewReviews = () => {
@@ -77,24 +74,21 @@ alert("리뷰 보기 클릭됨!");
     padding: 0;
 }
 
-/* Body */
 body {
     background: #ffffff;
     font-family: "Inter", sans-serif;
 }
 
-/* Book Details Container */
 .book-details {
     display: flex;
-    flex-direction: row; /* 가로 배치 */
+    flex-direction: row;
     gap: 20px;
     margin: 20px auto;
     width: 90%;
     max-width: 1200px;
-    align-items: flex-start; /* 세로 정렬 */
+    align-items: flex-start;
 }
 
-/* Left Section (Book Cover) */
 .book-cover-section {
     background: rgba(245, 245, 220, 0.6);
     border-radius: 35px;
@@ -112,7 +106,6 @@ body {
     object-fit: cover;
 }
 
-/* Right Section (Details) */
 .book-info-section {
     background: #ffffff;
     border: 1px solid #cccccc;
@@ -138,9 +131,9 @@ body {
 }
 
 .book-meta {
-    display: flex; /* 가로 정렬 */
-    flex-wrap: wrap; /* 내용이 길 경우 줄바꿈 허용 */
-    gap: 10px; /* 값들 사이의 간격 설정 */
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
     font-family: "Inter-Regular", sans-serif;
     font-size: 20px;
     font-weight: 400;
@@ -163,7 +156,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Recommendations Section */
 .recommendations {
     margin: 40px auto;
     width: 90%;
@@ -189,13 +181,11 @@ body {
     object-fit: cover;
 }
 
-/* Line Separator */
 .line-separator {
     border-top: 1px solid #000000;
     width: 100%;
 }
 
-/* Reviews Section */
 .reviews {
     margin: 20px auto;
     text-align: center;
@@ -221,10 +211,12 @@ body {
     cursor: pointer;
     margin-top: 20px;
 }
+
 img{
     width: 281px;
     height: 383;
 }
+
 .tabs {
     display: flex;
     justify-content: flex-start;
@@ -240,6 +232,4 @@ img{
     padding: 5px 10px;
     cursor: pointer;
 }
-
-
 </style>
