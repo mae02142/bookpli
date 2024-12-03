@@ -64,6 +64,8 @@ function goHome() {
   .nav {
     display: flex;
     gap: 20px;
+    margin-left: 30px;
+    align-self: flex-end;
   }
   
   .nav-item {
