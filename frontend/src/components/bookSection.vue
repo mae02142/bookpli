@@ -5,9 +5,9 @@
         <h1 class="section-title">추천 도서</h1>
         <hr>
         <div class="book-list">
-            <div v-for="book in recommendedBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
+            <div v-for="book in books" :key="book.id" class="book-item" style="padding-top: 50px;">
                 <div class="image-container">
-                    <img :src="book.image" :alt="book.title" class="book-image" />
+                    <img :src="book.cover" :alt="book.title" class="book-image" />
                     <button class="add-btn" style="">+</button>
                 </div>
                 <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
@@ -37,7 +37,7 @@
         <div class="ranking" style="padding-top: 30px;">
             <h3 class="ranking-title">해외</h3>
             <table class="ranking-table">
-                <tr class="ranking-tr" v-for="book in internationalRankings" :key="book.rank" 
+                <tr class="ranking-tr" v-for="book in internationalRankings" :key="book.rank"
                 style="vertical-align: middle;">
                     <td>{{ book.rank }}</td>
                     <td>{{ book.title }}</td>
@@ -51,12 +51,58 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import 소년이온다 from "@/assets/소년이 온다.jpg"
 
 export default {
     setup() {
     const coverEX = 소년이온다;
+
+    const books = ref([]);
+
+    const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
+    const ttbKey = "ttbyoungjae.bae1809001";
+
+    const fetchBooksJSONP = () => {
+        return new Promise((resolve, reject) => {
+            const callbackName = `jsonpCallback_${Date.now()}`;
+            const script = document.createElement("script");
+
+            script.src = `${apiUrl}?ttbkey=${ttbKey}&QueryType=ItemNewSpecial&MaxResults=5&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
+
+            script.onerror = () => {
+            reject(new Error("JSONP request failed"));
+            document.body.removeChild(script);
+            };
+
+            window[callbackName] = (response) => {
+            console.log("API Response:", response); // 추가된 로그
+            resolve(response);
+            delete window[callbackName];
+            document.body.removeChild(script);
+            };
+
+            document.body.appendChild(script);
+        });
+    };
+
+    const fetchBestsellers = async () => {
+        try {
+            const data = await fetchBooksJSONP();
+            books.value = data.item.map((book) => ({
+                title: book.title,
+                author: book.author,
+                cover: book.cover,
+            }));
+        } catch (error) {
+            console.error("Error fetching bestseller data:", error);
+        }
+    };
+
+    onMounted(async () => {
+        await fetchBestsellers();
+        console.log("Books after fetch:", books.value);
+    });
 
     // Recommended books data
     const recommendedBooks = ref([
@@ -85,7 +131,7 @@ export default {
         { rank: 5, title: "The Wild Robot", author: "Peter Brown" },
     ]);
 
-    return { recommendedBooks, domesticRankings, internationalRankings };
+    return { recommendedBooks, domesticRankings, internationalRankings, books};
     },
 };
 </script>
