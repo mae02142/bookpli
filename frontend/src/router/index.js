@@ -25,19 +25,19 @@ const router = createRouter({
         },
       ],
     },
-    {
-      path: "/main",
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/main/mainPage.vue")
-        },
-        {
-          path: "music",
-          component: () => import("@/components/musicSection.vue")
-        },
-      ]
-    }
+    // {
+    //   path: "/main",
+    //   children: [
+    //     {
+    //       path: "",
+    //       component: () => import("@/views/main/mainPage.vue")
+    //     },
+    //     {
+    //       path: "music",
+    //       component: () => import("@/components/musicSection.vue")
+    //     },
+    //   ]
+    // }
   ],
 });
 

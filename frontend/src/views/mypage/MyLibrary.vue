@@ -133,8 +133,8 @@ const closeModal = () => {
   .sidebar-item {
     display: flex;
     align-items: center;
-    padding: 10px 0px;
-    margin-left: 10px;
+    padding: 20px 0px;
+    margin-left: 20px;
     transition: background-color 0.3s ease;
   }
 
@@ -145,8 +145,8 @@ const closeModal = () => {
   }
   
   .sidebar-icon {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     margin-right: 10px;
   }
   
