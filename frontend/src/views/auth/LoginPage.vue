@@ -12,7 +12,7 @@
         <div class="main-content">
           <p class="title">플레이리스트와 독서 추천을 한번에</p>
           <p class="subtitle">인생책과 노래를 찾아보세요:)</p>
-          <div class="spotify-login-box">
+          <div class="spotify-login-box" @click="handleLogin">
             <img class="spotify-logo" src="@/assets/logos/spotify_logo.png" />
             <div class="spotify-login">Spotify 로그인</div>
           </div>
@@ -30,6 +30,10 @@ const router = useRouter();
 function goHome() {
   router.push({ path: '/' });
 }
+
+const handleLogin = async () => {
+  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login`; // 서버가 리다이렉트를 처리하도록 직접 URL 이동
+};
 </script>
   
   <style>
@@ -111,7 +115,7 @@ function goHome() {
     border-radius: 5px;
     padding: 15px;
     gap: 10px;
-    width: -webkit-fill-available;
+    width: 100%;
     justify-content: center;
   }
   .spotify-logo {
@@ -133,5 +137,9 @@ function goHome() {
   .left-arrow {
     width: 20px;
     height: 20px;
+  }
+
+  .spotify-login-box:hover{
+    cursor: pointer;
   }
   </style>
