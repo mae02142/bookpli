@@ -32,7 +32,7 @@
             :src="`/src/assets/icons/${book.coverImage}`"
             alt="Book Cover"
             class="book-cover"
-            @click="openModal(book)"
+            @click="openModal(book)" @mouseover="showTooltip" @mouseleave="hideTooltip"
           />
           <div class="book-details">
             <div class="title-grid">
