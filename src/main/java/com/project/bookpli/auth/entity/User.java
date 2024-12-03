@@ -1,33 +1,29 @@
 package com.project.bookpli.auth.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Entity
 @Getter
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column
+    @Column(unique = true)
     private String spotifyId;
 
-    @Column
     private String displayName;
-
-    @Column
     private String userNickname;
 
-    @Column
+    @Column(unique = true)
     private String email;
 
-    @Column
     private String profilePath;
 
-    @Column
     private String refreshToken;
 
     // refreshToken 업데이트 메서드
