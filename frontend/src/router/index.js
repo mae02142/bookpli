@@ -25,6 +25,36 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/review",
+      children: [
+        {
+          path: "mylist",
+          component: () => import("@/components/review/MyReviewList.vue"),
+        },
+        {
+          path: "form",
+          component: () => import("@/components/review/ReviewForm.vue"),
+        },
+      ],
+    },
+    {
+      path: "/bookclub",
+      children: [
+        {
+          path: "",
+          component: () => import("@/components/bookclub/BookclubMain.vue"),
+        },
+        {
+          path: "community",
+          component: () => import("@/components/bookclub/CommunityDetail.vue"),
+        },
+        {
+          path: "mypost",
+          component: () => import("@/components/bookclub/MyPost.vue"),
+        },
+      ],
+    },
 
     {
       path: "/miniroom",
