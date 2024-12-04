@@ -25,7 +25,6 @@ const router = createRouter({
         },
       ],
     },
-
     {
       path: "/review",
       children: [
@@ -47,16 +46,15 @@ const router = createRouter({
           component: () => import("@/components/bookclub/BookclubMain.vue"),
         },
         {
-          path : "community",
+          path: "community",
           component: () => import("@/components/bookclub/CommunityDetail.vue"),
         },
         {
-          path : "mypost",
-          component : () => import("@/components/bookclub/MyPost.vue"),
+          path: "mypost",
+          component: () => import("@/components/bookclub/MyPost.vue"),
         },
-      ]
+      ],
     },
-
 
     {
       path: "/miniroom",
@@ -81,15 +79,14 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: () => import("@/views/main/mainPage.vue")
+          component: () => import("@/views/main/mainPage.vue"),
         },
         {
           path: "music",
-          component: () => import("@/components/musicSection.vue")
+          component: () => import("@/components/musicSection.vue"),
         },
-      ]
-    }
-
+      ],
+    },
   ],
 });
 
