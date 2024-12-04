@@ -65,7 +65,7 @@
 <script>
 import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
-import RemoveReview from "./RemoveReview.vue";
+import RemoveReview from "@/components/review/RemoveReview.vue";
 import { ref } from "vue";
 
 export default {

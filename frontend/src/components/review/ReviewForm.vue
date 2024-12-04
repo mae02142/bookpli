@@ -3,12 +3,8 @@
     <section v-if="isVisible" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
         <!-- 모달 내용 -->
-        <div class="review-form">
-          <div class="date-rating">
-          <div class="form-group">
-            <label for="reading-date">독서 일자</label>
-            <input type="date" id="reading-date" v-model="readingDate" />
-          </div>
+      <div class="review-form">
+        <div class="date-rating">
           <div class="form-group">
             <label for="rating">별점</label>
             <div class="star-rating">
@@ -22,7 +18,7 @@
               />
             </div>
           </div>
-          </div>
+        </div>
   
           <div class="form-summary">
             <label for="summary">한 줄 독서</label>
@@ -60,7 +56,6 @@
     },
     emits: ['update:isVisible'],
     setup(props, { emit }) {
-      const readingDate = ref("");
       const rating = ref(0);
       const summary = ref("");
       const charCount = ref(0);
@@ -91,12 +86,11 @@
   
       // 폼 제출
       const submitForm = () => {
-        if (!readingDate.value || !summary.value || rating.value === 0) {
+        if ( !summary.value || rating.value === 0) {
           alert("모든 항목을 작성해주세요!");
           return;
         }
         console.log("Form Submitted: ", {
-          readingDate: readingDate.value,
           rating: rating.value,
           summary: summary.value,
         });
@@ -104,7 +98,6 @@
       };
   
       return {
-        readingDate,
         rating,
         summary,
         charCount,
@@ -163,20 +156,6 @@
     display: block;
     margin-bottom: 20px;
   }
-  #reading-date {
-    width: 80%;
-  }
-  
-  input[type="date"],
-  textarea {
-    width: 80%;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-  }
-  
   textarea {
     resize: none;
     min-height: 100px;

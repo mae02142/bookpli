@@ -1,6 +1,6 @@
 <template>
     <section class="post-content">
-      <article class="post-article" v-for="item, index in posts" :key="index">
+      <article class="post-article" v-for="item, index in comments" :key="index">
           <div class="post-body">
           <div class="author-info">
               <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
@@ -56,27 +56,24 @@
     },
     setup() {
     
-      const serverPosts = ref([ //서버에서 받아온 데이터
+      const serverComments = ref([ //서버에서 받아온 데이터
           {  
           author: "트리",
           profile: `@/assets/icons/profile.png`,
-          postDate: `2024-11-27`,
-          content: `크리스마스로 불리는 소년은 크리스마스를 떠올리기에 딱 좋았던 책인 것 같다.
-          크리스마스를 좋아하는 내게 굉장히 흥미로웠고 영화를 먼저 봤었기 때문에
-          영화가 책의 내용을 잘 담아냈다고 생각한다.`,
+          commentDate: `2024-11-27`,
+          content: `저도 그 도서 너무 감명깊게 봤습니다~~@@!.`,
           },
           {
           author: "트리",
           profile: `@/assets/icons/profile.png`,
-          postDate: `2024-11-29`,
-          content: `
-          나처럼 크리스마스를 좋아하는 분들이 있다면 ‘크리스마스를 지켜라’ 라는 책을 추천하고 싶다.`,
+          commentDate: `2024-11-29`,
+          content: `혹시 크리스마스 관련된 도서 중 미스테리장르의 도서도 있을까요?`,
           },
       ]);
-      const posts = ref([]);
+      const comments = ref([]);
       // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
-      if (Array.isArray(serverPosts.value)) {
-          posts.value = serverPosts.value.map(post => ({
+      if (Array.isArray(serverComments.value)) {
+          comments.value = serverComments.value.map(post => ({
               ...post,
               likeCount: 0,
               likes: { changeLike: dislike },
@@ -88,7 +85,7 @@
       }
   
         const checkLike = (index) => {
-            let currentLike = posts.value[index];
+            let currentLike = comments.value[index];
             if(currentLike.likes.changeLike == dislike){
                 currentLike.likes.changeLike = like;
                 currentLike.likeCount +=1;
@@ -110,8 +107,8 @@
       return {
         dislike,
         like,
-        serverPosts,
-        posts,
+        serverComments,
+        comments,
         checkLike,
         showBtn,
         dropdown,

@@ -11,7 +11,7 @@
             <h1 class="title">{{ community.title }}</h1>
             <p class="author">{{ community.author }}</p>
         </div>
-        <RouterLink to="/bookclub/mypost" style="margin-top: auto; margin-left: auto;">
+        <RouterLink to="/bookclub/mybookclub" style="margin-top: auto; margin-left: auto;">
           <img class="user-archive" src="@/assets/icons/archive.png" alt="작성자글목록" />
         </RouterLink>
       </div>
@@ -41,12 +41,13 @@
                     </p>
                       <!-- 아이콘 섹션 -->
                     <div class="icon-container">
-                        <img class="icon" src="@/assets/icons/chat.png" alt="댓글 아이콘" />
+                        <img class="icon" @click="post.showComment = true" src="@/assets/icons/chat.png" alt="댓글 아이콘" />
                         <img class="like-icon" :src="post.likes.changeLike" @click="checkLike(index)" alt="좋아요 아이콘" />
                         <p class="like-count">{{post.likeCount}}</p>
                     </div> 
                 </div>
             </div>   
+            <Comment v-model:showComments="post.showComment" :postId="index" />
         <hr class="divider" />
         </article>
       </div>
@@ -57,10 +58,12 @@
   import { ref } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
-  import PostForm from "./PostForm.vue";
+  import PostForm from "@/components/bookclub/PostForm.vue";
+  import Comment from "@/components/bookclub/Comment.vue"
   export default {
     components : {
       PostForm,
+      Comment,
     },  
     setup() {
       const community = ref({
@@ -80,6 +83,7 @@
             추천하고 싶다.`,
             likeCount: 0,
             likes: {changeLike: dislike},
+            showComment : false,
         },
         {
             user: "작성자2",
@@ -87,12 +91,13 @@
             영화였어요!!`,
             likeCount: 0,
             likes: {changeLike: dislike},
+            showComment : false,
         },
     ]);
     const addPost = ref(false);
       // 부모에서 modelValue 값이 업데이트 될 때 호출되는 함수
 
-    const checkLike = (index) => {
+    const checkLike = (index) => { 
         let currentLike = posts.value[index];
         if(currentLike.likes.changeLike == dislike){
             currentLike.likes.changeLike = like;
@@ -102,7 +107,7 @@
             currentLike.likeCount -=1;
         }   
     };
-  
+
       return { 
         dislike,
         like,
