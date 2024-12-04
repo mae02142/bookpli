@@ -25,7 +25,6 @@ const router = createRouter({
         },
       ],
     },
-
     {
       path: "/review",
       children: [
@@ -81,15 +80,14 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: () => import("@/views/main/mainPage.vue")
+          component: () => import("@/views/main/mainPage.vue"),
         },
         {
           path: "music",
-          component: () => import("@/components/musicSection.vue")
+          component: () => import("@/components/musicSection.vue"),
         },
-      ]
-    }
-
+      ],
+    },
   ],
 });
 
