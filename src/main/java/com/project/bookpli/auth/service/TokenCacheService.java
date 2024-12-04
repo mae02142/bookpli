@@ -14,16 +14,16 @@ public class TokenCacheService {
             .maximumSize(1000) // 최대 캐시 항목 수
             .build();
 
-    public String getAccessToken(String userId, TokenSupplier tokenSupplier) {
-        return tokenCache.get(userId, tokenSupplier::get);
+    public String getAccessToken(String spotifyId, TokenSupplier tokenSupplier) {
+        return tokenCache.get(spotifyId, tokenSupplier::get);
     }
 
-    public void invalidateToken(String userId) {
-        tokenCache.invalidate(userId);
+    public void invalidateToken(String spotifyId) {
+        tokenCache.invalidate(spotifyId);
     }
 
     @FunctionalInterface
     public interface TokenSupplier {
-        String get(String userId);
+        String get(String spotifyId);
     }
 }

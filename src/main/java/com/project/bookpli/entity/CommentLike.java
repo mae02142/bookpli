@@ -11,13 +11,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class commentLike {
+public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentLikeId;
-
-    //FK
     private Long commentId;
-    //FK
     private String userId;
 }

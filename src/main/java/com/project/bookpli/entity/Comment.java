@@ -18,11 +18,8 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
-    //FK
     private Long userId;
-    //FK
     private Long postId;
-
     private String commentContent;
     private Date commentDate;
 
