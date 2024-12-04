@@ -1,14 +1,12 @@
 package com.project.bookpli.auth.dto;
 
-import com.project.bookpli.auth.entity.User;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.project.bookpli.entity.User;
+import lombok.*;
 
 @Setter
 @Getter
 @NoArgsConstructor
+@ToString
 public class UserDTO {
 
     private String spotifyId;
