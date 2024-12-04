@@ -1,5 +1,6 @@
 package com.project.bookpli.auth.service;
 
+import com.project.bookpli.auth.dto.AuthResponseDTO;
 import com.project.bookpli.auth.dto.UserDTO;
 import com.project.bookpli.entity.User;
 import com.project.bookpli.auth.repository.UserRepository;
@@ -7,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -23,22 +23,18 @@ public class AuthService {
     }
 
     @Transactional
-    public UserDTO processSpotifyCallback(String code) {
+    public AuthResponseDTO processSpotifyCallback(String code) {
         // 1. Access Token 및 Refresh Token 요청
-        System.out.println("코드 확인>>>>>>>>>>>>>>>>" + code);
         Map<String, String> tokenResponse = spotifyApiService.requestSpotifyAccessToken(code);
         String accessToken = tokenResponse.get("access_token");
         String refreshToken = tokenResponse.get("refresh_token");
 
         // 2. Spotify 회원 정보 조회
         UserDTO userDTO = spotifyApiService.fetchSpotifyUserProfile(accessToken);
-        System.out.println("회원정보조회>>>>>>>>>>>>>>" + userDTO);
-        System.out.println("엑세스 토큰>>>>>>>>>>>>>>" + accessToken);
 
         // 3. DB 저장 또는 업데이트
         User user = userRepository.findBySpotifyId(userDTO.getSpotifyId())
                 .map(existingUser -> {
-                    // 새로 받은 Refresh Token이 null이 아니고 기존 값과 다를 경우에만 업데이트
                     if (refreshToken != null && !refreshToken.equals(existingUser.getRefreshToken())) {
                         existingUser.updateRefreshToken(refreshToken);
                     }
@@ -54,8 +50,9 @@ public class AuthService {
         // 4. Access Token 캐싱
         tokenCacheService.getAccessToken(user.getSpotifyId(), id -> accessToken);
 
-        // 5. DTO 반환
-        return UserDTO.fromEntity(user);
+        // 5. AuthResponseDTO 생성 및 반환 (사용자 정보와 엑세스 토큰 포함)
+        UserDTO responseUserDTO = UserDTO.fromEntity(user);
+        return new AuthResponseDTO(responseUserDTO, accessToken);
     }
 
     public String getAccessToken(String spotifyId) {
