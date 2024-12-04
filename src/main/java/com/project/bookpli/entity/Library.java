@@ -15,10 +15,11 @@ public class Library {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long libraryId;
 
-    //FK
     private Long userId;
-    //FK
-    private String bookId;
+
+    @ManyToOne
+    private Book book;
+
     private String status;
     private Date startDate;
     private Date endDate;

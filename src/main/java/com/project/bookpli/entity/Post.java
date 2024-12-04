@@ -18,11 +18,9 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    //FK
     private Long userId;
-    //FK
+
     private Long bookClubId;
-    //DB 는 Text 타입
     private String postContent;
     private Date postDate;
 }

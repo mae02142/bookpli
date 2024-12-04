@@ -26,7 +26,6 @@ public class User {
 
     private String refreshToken;
 
-    // refreshToken 업데이트 메서드
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }

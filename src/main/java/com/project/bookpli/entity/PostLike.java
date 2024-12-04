@@ -15,9 +15,6 @@ public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postLikeId;
-
-    //FK
     private Long postId;
-    //FK
     private String userId;
 }

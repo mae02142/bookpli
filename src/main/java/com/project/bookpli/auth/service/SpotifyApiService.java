@@ -1,5 +1,6 @@
 package com.project.bookpli.auth.service;
 
+import com.project.bookpli.auth.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,12 @@ public class SpotifyApiService {
                 .block();
     }
 
-    public <T> T fetchSpotifyUserProfile(String accessToken, Class<T> responseType) {
+    public UserDTO fetchSpotifyUserProfile(String accessToken) {
         return webClient.get()
                 .uri("https://api.spotify.com/v1/me")
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
-                .bodyToMono(responseType)
+                .bodyToMono(UserDTO.class)
                 .block();
     }
 
@@ -80,4 +81,3 @@ public class SpotifyApiService {
         return formData;
     }
 }
-
