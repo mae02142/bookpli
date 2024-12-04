@@ -1,4 +1,4 @@
-package com.project.bookpli.auth.entity;
+package com.project.bookpli.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
