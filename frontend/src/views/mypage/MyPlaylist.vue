@@ -61,8 +61,36 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
+import { useAuthStore } from '@/stores/auth';
+import { jwtDecode } from 'jwt-decode';
+
+// URL에서 토큰 추출 후 저장
+onMounted(() => {
+  const authStore = useAuthStore();
+  
+  // 현재 페이지의 URL에서 쿼리 파라미터를 가져옵니다.
+  const urlParams = new URLSearchParams(window.location.search);
+  const jwtToken = urlParams.get('token');
+  
+  if (jwtToken) {
+
+    // JWT 디코딩을 통해 사용자 정보 추출 (필요한 경우)
+    const decodedToken = jwtDecode(jwtToken);
+    let userInfo = {
+      spotifyId: decodedToken.sub,
+      userId: decodedToken.userId,
+    };
+
+    authStore.setUser(decodedToken.accessToken, userInfo);
+    console.log(decodedToken.accessToken);
+    console.log("디코딩 토큰>>>",decodedToken);
+
+    // 필요한 경우 URL에서 토큰 파라미터 제거 (보안 목적으로)
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+});
 
 const playlists = ref([
   { id: 1, name: '내 플레이리스트 #1', count: 30 },
@@ -83,6 +111,7 @@ const hoveredIndex = ref(null);
 const deleteSong = (id) => {
   songs.value = songs.value.filter(song => song.id !== id);
 };
+
 </script>
 
 <style scoped>

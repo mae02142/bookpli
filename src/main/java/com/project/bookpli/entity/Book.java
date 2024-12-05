@@ -23,6 +23,6 @@ public class Book {
     private Date pubdate;
     private String publisher;
     private String cover;
+    private Integer startIndex;
     private String genre;
-    private Long startIndex;
 }

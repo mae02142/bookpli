@@ -17,7 +17,7 @@ public class Review {
     private Long reviewId;
 
     private Long userId;
-    private String bookId;
+    private String isbn13;
     private String reviewContent;
     private Integer rating;
 

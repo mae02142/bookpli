@@ -61,10 +61,29 @@
 </template>
   
   <script setup>
-  import { ref, reactive } from 'vue';
+  import { ref, reactive, onMounted } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
+  // import axios from 'axios';
+  import { useAuthStore } from '@/stores/auth';
   
+  const authStore = useAuthStore();
+
+  onMounted(() => {
+    console.log("회원 아이디 확인 : ", authStore.user.userId);
+  });
+
+//store에서 저장된 회원 id 사용하기
+// const loadBooks = async () => {
+//   try {
+//     const response = await axios.get(`/api/mypage/${authStore.user.userId}`);
+//   } catch (error) {
+//     console.error('Error loading inquiries:', error);
+//   }
+// };
+
+
+
   // 사이드바 메뉴 아이템들 데이터
   const menuItems = ref([
     { title: '독서중', count: '1권', icon: 'openbook.png' },

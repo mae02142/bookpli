@@ -14,7 +14,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "firebase": "^11.0.2",
-    "pinia": "^2.2.6",
+    "jwt-decode": "^4.0.0",
+    "pinia": "^2.2.8",
+    "pinia-plugin-persistedstate": "^4.1.3",
     "simple-oauth2": "^5.1.0",
     "spotify-web-api-node": "^5.0.2",
     "vue": "^3.5.12",
@@ -22,7 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
-    "vite": "^6.0.2",
+    "vite": "^5.4.10",
     "vite-plugin-vue-devtools": "^7.5.4"
   }
 }
