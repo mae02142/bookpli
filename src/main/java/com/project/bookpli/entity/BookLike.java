@@ -16,5 +16,5 @@ public class BookLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookLikeId;
     private Long userId;
-    private String bookId;
+    private String isbn13;
 }

@@ -16,11 +16,9 @@ public class Library {
     private Long libraryId;
 
     private Long userId;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "isbn13")
     private Book book;
-
     private String status;
     private Date startDate;
     private Date endDate;

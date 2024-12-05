@@ -2,7 +2,7 @@
 <div>
     <div class="book-details">
         <div class="book-cover-section">
-            <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
+            <img class="book-cover" src="../../assets/test/book1.jpg"/>
         </div>
     <div class="book-info-section">
         <div>
@@ -175,6 +175,11 @@ body {
     gap: 10px;
 }
 
+.recommendation-covers img {
+    width: 281px;
+    height: 383px;
+}
+
 .recommendation-cover {
     width: 182px;
     height: 280px;
@@ -210,11 +215,6 @@ body {
     padding: 10px 20px;
     cursor: pointer;
     margin-top: 20px;
-}
-
-img{
-    width: 281px;
-    height: 383;
 }
 
 .tabs {

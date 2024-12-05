@@ -14,9 +14,6 @@ public class BookClub {
     private Long bookClubId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "isbn13")
     private Book book;
-
-
-
 }
