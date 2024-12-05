@@ -78,12 +78,12 @@ onMounted(() => {
 
     // JWT 디코딩을 통해 사용자 정보 추출 (필요한 경우)
     const decodedToken = jwtDecode(jwtToken);
-    
-    authStore.setUser({
+    let userInfo = {
       spotifyId: decodedToken.sub,
       userId: decodedToken.userId,
-    });
-    authStore.setToken(decodedToken.accessToken);
+    };
+
+    authStore.setUser(decodedToken.accessToken, userInfo);
     console.log(decodedToken.accessToken);
     console.log("디코딩 토큰>>>",decodedToken);
 

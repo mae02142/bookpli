@@ -7,6 +7,7 @@ import com.project.bookpli.auth.service.JwtService;
 import com.project.bookpli.auth.service.SpotifyApiService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,14 @@ public class AuthController {
 
             // JWT 생성
             String jwtToken = jwtService.createToken(userDTO, accessToken);
+
+            // JWT를 HTTP-Only 쿠키에 저장 - 추후에 쿠키로 변경해야함
+//            Cookie jwtCookie = new Cookie("token", jwtToken);
+//            jwtCookie.setHttpOnly(true);
+//            jwtCookie.setPath("/");
+//            jwtCookie.setMaxAge(60 * 60); // 1시간 유효기간
+//
+//            response.addCookie(jwtCookie);
 
             // 프론트엔드로 리다이렉트하면서 JWT 전달
             String redirectUrl = "http://localhost:3000/mypage/mypli?token=" + jwtToken;

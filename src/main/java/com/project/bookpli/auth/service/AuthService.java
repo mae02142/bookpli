@@ -27,6 +27,7 @@ public class AuthService {
         // 1. Access Token 및 Refresh Token 요청
         Map<String, String> tokenResponse = spotifyApiService.requestSpotifyAccessToken(code);
         String accessToken = tokenResponse.get("access_token");
+        System.out.println("access token : " + accessToken);
         String refreshToken = tokenResponse.get("refresh_token");
 
         // 2. Spotify 회원 정보 조회
