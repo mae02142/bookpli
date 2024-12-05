@@ -13,7 +13,7 @@
       </div>
       <div class="search-bar">
         <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" />
-        <input type="text" class="search-input" placeholder="Q">
+        <input type="text" class="search-input" placeholder="검색어 입력" onkeypress="fetchSearchBooksJSONP()">
       </div>
       <router-link to="/auth/login">
       <div class="log-button">
@@ -27,11 +27,59 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { ref,onMounted } from "vue";
 const router = useRouter();
 
 function goHome() {
   router.push({ path: '/' });
 }
+
+const searchBooks = ref([]);
+
+const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx";
+const ttbKey = "ttbyoungjae.bae1809001";
+
+// Search Books
+const fetchSearchBooksJSONP = () => {
+        return new Promise((resolve, reject) => {
+            const callbackName = `jsonpCallback_${Date.now()}`;
+            const script = document.createElement("script");
+
+            script.src = `${apiUrl}?ttbkey=${ttbKey}&QueryType=Keyword&MaxResults=5&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
+
+            script.onerror = () => {
+            reject(new Error("JSONP request failed"));
+            document.body.removeChild(script);
+            };
+
+            window[callbackName] = (response) => {
+            console.log("API Response:", response); // 추가된 로그
+            resolve(response);
+            delete window[callbackName];
+            document.body.removeChild(script);
+            };
+
+            document.body.appendChild(script);
+        });
+    };
+
+    const fetchSearchBooks = async () => {
+        try {
+            const searchBooksData = await fetchSearchBooksJSONP();
+            searchBooks.value = searchBooksData.item.map((book) => ({
+                title: book.title,
+                author: book.author,
+                cover: book.cover,
+            }));
+        } catch (error) {
+            console.error("Error fetching Search Books data:", error);
+        }
+    };
+
+    onMounted(async () => {
+      await fetchSearchBooks();
+      console.log("Search Books after fetch:", searchBooks.value)
+    });    
 </script>
   
   <style scoped>

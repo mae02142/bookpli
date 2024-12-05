@@ -1,4 +1,5 @@
 <template>
+  <img src="@/assets/banners/thumbnail2.png" class="main-thumbnail">
   <div class="toggle-container">
     <!-- Toggle Switch -->
     <label class="switch">
@@ -11,7 +12,7 @@
   </div>
 
   <!-- Conditional rendering for bookSection and musicSection -->
-  <div v-if="!isMusicSection">
+  <div v-if="!isMusicSection" style="padding-bottom: 100px;">
     <book-section />
   </div>
   <div v-else>
@@ -24,7 +25,7 @@ import { ref } from "vue";
 import bookSection from "@/components/bookSection.vue";
 import musicSection from "@/components/musicSection.vue";
 
-const isMusicSection = ref(false); // Default to 'Book Page'
+const isMusicSection = ref(false); // Default to 'Book Page' 
 </script>
 
 <style scoped>
@@ -33,7 +34,7 @@ const isMusicSection = ref(false); // Default to 'Book Page'
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 /* Toggle Switch Styles */
@@ -81,7 +82,7 @@ const isMusicSection = ref(false); // Default to 'Book Page'
 }
 
 input:checked + .slider {
-  background-color: #f4f4b1;
+  background-color: #67de86;
 }
 
 input:checked + .slider:before {
