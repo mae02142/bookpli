@@ -1,35 +1,41 @@
 package com.project.bookpli.auth.service;
 
+import com.project.bookpli.auth.dto.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 @Service
 public class JwtService {
 
-    private final String secretKey;
+    private final String secretKeyString;
 
-    // 생성자 주입을 통해 secretKey를 초기화
-    public JwtService(@Value("${CUSTOM_JWT_SECRETKEY}") String secretKey) {
-        this.secretKey = secretKey;
+    // 생성자 주입을 통해 비밀 키를 초기화
+    public JwtService(@Value("${CUSTOM_JWT_SECRETKEY}") String secretKeyString) {
+        this.secretKeyString = secretKeyString;
     }
 
-    public String createToken(String spotifyId) {
+    // SecretKey 객체 생성
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(secretKeyString.getBytes());
+    }
+
+    // JWT 토큰 생성 메서드
+    public String createToken(UserDTO userDTO, String accessToken) {
+        SecretKey secretKey = getSecretKey();
         return Jwts.builder()
-                .setSubject(spotifyId) // 사용자 식별 정보
-                .setIssuedAt(new Date()) // 토큰 생성 시간
-                .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1시간 유효
-                .signWith(SignatureAlgorithm.HS256, secretKey) // 서명 알고리즘 및 비밀키
+                .setSubject(userDTO.getSpotifyId())
+                .claim("accessToken", accessToken)
+                .claim("userId", userDTO.getUserId())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일 후 만료
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
-
-    public Claims validateToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody();
-    }
 }
+

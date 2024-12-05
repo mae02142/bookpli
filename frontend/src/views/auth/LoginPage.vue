@@ -23,16 +23,21 @@
   </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 
 const router = useRouter();
+const spotifyLoginUrl = ref('');
 
 function goHome() {
   router.push({ path: '/' });
 }
 
 const handleLogin = async () => {
-  window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login`; // 서버가 리다이렉트를 처리하도록 직접 URL 이동
+  const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/login`);
+  spotifyLoginUrl.value = response.data;
+  window.location.href = spotifyLoginUrl.value;
 };
 </script>
   
