@@ -15,24 +15,40 @@
         <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" />
         <input type="text" class="search-input" placeholder="검색어 입력" onkeypress="fetchSearchBooksJSONP()">
       </div>
-      <router-link to="/auth/login">
-      <div class="log-button">
-        <img src="@/assets/icons/logout.png">
-        <span>LOGIN</span>
+      <router-link v-if="!isAuthenticated" to="/auth/login">
+        <div class="log-button">
+          <img src="@/assets/icons/logout.png" alt="로그인 아이콘">
+          <span>LOGIN</span>
+        </div>
+      </router-link>
+      <div v-else @click="handleLogout" class="log-button">
+        <img src="@/assets/icons/login.png" alt="로그아웃 아이콘">
+        <span>LOGOUT</span>
       </div>
-    </router-link>
 
     </header>
   </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { computed } from 'vue';
 import { ref,onMounted } from "vue";
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
 const router = useRouter();
 
 function goHome() {
   router.push({ path: '/' });
 }
+
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+const handleLogout = () => {
+  authStore.clearAuth();
+  router.push({ path: '/' });
+};
+
 
 const searchBooks = ref([]);
 
@@ -79,7 +95,7 @@ const fetchSearchBooksJSONP = () => {
     onMounted(async () => {
       await fetchSearchBooks();
       console.log("Search Books after fetch:", searchBooks.value)
-    });    
+    });
 </script>
   
   <style scoped>

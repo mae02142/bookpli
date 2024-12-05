@@ -15,8 +15,6 @@ public class PostImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long imageId;
-
-    //FK
     private Long postId;
     private String imageUrl;
 

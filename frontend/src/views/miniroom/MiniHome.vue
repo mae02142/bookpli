@@ -26,27 +26,29 @@
         </div> 
 
     <!-- 음악 플레이어 -->
-    <div class="music-player">
-        <h3 class="music-title">play music</h3>
-        <p class="more-wrapper music-more">
-            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
-        </p>
+<div class="music-section">
+    <h3 class="music-title">play music</h3>
+    <p class="more-wrapper music-more">
+        <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+    </p>
+    <div class="music-player"> 
         <div class="current-track">
-        <img class="track-cover" src="../../assets/test/music2.png">    
-            <div class="track-details">
-                <p class="track-title">첫 눈
-                    <img src="../../assets/icons/empty_like.png" class="sm-images"/>
-                </p>
-                <p>엑소</p>
-                <progress class="music-progress" value="30" max="100"></progress>
-            </div>
-            <div class="controls">
-                <img class="control-button" src="../../assets/icons/previous.png" alt="Play" />
-                <img class="control-button" src="../../assets/icons/play.png" alt="Skip to Start" />
-                <img class="control-button" src="../../assets/icons/next.png" alt="End" />
-            </div>
+            <img class="track-cover" src="../../assets/test/music2.png">    
+                <div class="track-details">
+                    <p class="track-title">첫 눈
+                        <img src="../../assets/icons/empty_like.png" class="sm-images"/>
+                    </p>
+                    <p>엑소</p>
+                    <progress class="music-progress" value="30" max="100"></progress>
+                </div>
+                <div class="controls">
+                    <img class="control-button" src="../../assets/icons/previous.png" alt="Play" />
+                    <img class="control-button" src="../../assets/icons/play.png" alt="Skip to Start" />
+                    <img class="control-button" src="../../assets/icons/next.png" alt="End" />
+                </div>
         </div>
     </div>
+</div>    
 </div>
 
     <!-- 세로 구분선 -->
@@ -66,10 +68,10 @@
                 <p class="">{{ book.progress }}%</p> 
                 <div  class="goal-progress"  :style="{ width: (book.currentPage / book.totalPages) * 100 + '%' }"></div>-->
 
-                <!-- 목표량 Progress Bar (빨간색) -->
+                <!-- 목표량 Progress Bar -->
                 <div class="full-progress" :value="book.progress" max="100"></div>
                 <div class="goal-progress" :style="{ width: (book.totalPages / 400) * 100 + '%' }"></div>
-                <!-- 현재 Progress Bar (초록색) -->
+                <!-- 현재 Progress Bar -->
                 <div class="current-progress" :style="{ width: book.progress + '%' }"></div>
                 <div class="progress-info">
                     <span class="progress-percentage">{{ book.progress }}%</span>
@@ -86,15 +88,15 @@
 <div class="book-section section">
     <div class="book-covers">
         <div class="book-item">
-            <img class="book-cover" src="../../assets/test/book1.jpg"/>
+            <img class="book-cover" src="../../assets/test/book1.jpg" @click="gotoDetail"/>
             <p class="book-info">
-                <span class="book-icon">📖</span>&nbsp;&nbsp;
+                <span class="book-icon" @click="gotoGoal">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
                 <span>저자명</span>
             </p>
         </div>
         <div class="book-item">
-            <img class="book-cover" src="../../assets/test/book2.jpg" />
+            <img class="book-cover" src="../../assets/test/book2.jpg" @click="gotoDetail"/>
             <p class="book-info">
                 <span class="book-icon">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
@@ -102,7 +104,7 @@
             </p>
         </div>
         <div class="book-item">    
-            <img class="book-cover" src="../../assets/test/book3.jpg"/>
+            <img class="book-cover" src="../../assets/test/book3.jpg" @click="gotoDetail"/>
             <p class="book-info">
                 <span class="book-icon">📖</span>&nbsp;&nbsp;
                 <span>책제목</span>&nbsp;&nbsp;
@@ -119,13 +121,13 @@
 <div class="book-section section">
 <div class="book-covers">
     <div class="book-item">
-        <img class="book-cover" src="../../assets/test/book4.jpg" alt="Book 1" />
+        <img class="book-cover" src="../../assets/test/book4.jpg" @click="gotoDetail"/>
     </div>
     <div class="book-item">    
-        <img class="book-cover" src="../../assets/test/book5.jpg" alt="Book 2" />
+        <img class="book-cover" src="../../assets/test/book5.jpg" @click="gotoDetail" />
     </div>
     <div class="book-item">    
-        <img class="book-cover" src="../../assets/test/book6.jpg" alt="Book 3" /> 
+        <img class="book-cover" src="../../assets/test/book6.jpg" @click="gotoDetail" /> 
     </div>
 </div>
 </div>
@@ -136,6 +138,10 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'; 
+
+const router= useRouter();
+
 const books = [
 {
     title: '소년이 온다',
@@ -170,6 +176,14 @@ const savedBooks = [
 { title: '시의 언어들', author: '김소연' },
 { title: '숲속의 생활', author: '헨리 소로우' },
 ];
+
+const gotoGoal = () =>{
+    router.push('/miniroom/goal');
+}
+
+const gotoDetail = () => {
+    router.push('/miniroom/book');
+}
 </script>
 
 <style scoped>
@@ -184,6 +198,10 @@ const savedBooks = [
 .right-section {
 display: flex;
 flex-direction: column;
+}
+
+.left-section {
+    align-items: center;
 }
 
 .user-profile {
@@ -211,19 +229,23 @@ flex-direction: column;
 .stats-card {
     display: flex;
     gap: 15px;
-    margin-right: 15px;
+    margin-left: 15px;
+    flex-direction: row;
+    align-items: center;
 }
 
 .most-read-month,
 .yearly-read {
     position: relative;
-    width: 150px;
-    height: 100px;
+    width: 120px;
+    height: 80px;
     text-align: center;
     background: #dffdcc;
     border-radius: 20px;
     padding: 15px;
+    box-sizing: border-box;
 }
+
 
 .right-section{
     margin-left: 15px;
@@ -250,6 +272,10 @@ border-radius: 8px;
 .music-player,
 .book-section {
     margin-top: 20px;       
+}
+
+.music-section{
+    align-items: center;
 }
 
 .music-player {
@@ -337,9 +363,10 @@ margin: 5px 0;
     width: 2px;
 }
 
-.book-progress {
-    margin-bottom: 20px;
+.book-progress:nth-of-type(2) {
+    margin-top: 50px;
 }
+
 
 .progress-wrapper {
     position: relative;
@@ -360,16 +387,6 @@ margin: 5px 0;
     font-size: 14px;
     color: #666;
 }
-
-.progress-wrapper {
-    position: relative;
-    width: 100%;
-    height: 12px; 
-    background-color: #f2f2f2; 
-    border-radius: 6px;
-    margin-bottom: px;
-    overflow: hidden;
-} 
 
 .goal-progress {
     position: absolute;
@@ -445,7 +462,6 @@ color: #666;
     cursor: pointer; 
     gap: 5px; 
     font-size: 14px; 
-    margin-right: 50px;
 }
 
 .music-more {
@@ -457,7 +473,10 @@ color: #666;
     cursor: pointer;
     margin-top: -15px; 
     width: 100%; 
-    margin-right: 10px;
+}
+
+.more-wrapper.music-more {
+    padding-right: 20px;
 }
 
 .reading-stats {
@@ -467,12 +486,6 @@ background: #ffffff;
 width: 611px;
 padding: 20px;
 border-radius: 10px;
-}
-
-.stats-card {
-display: flex;
-flex-direction: row;
-align-items: center;
 }
 
 .profile-image {

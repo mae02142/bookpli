@@ -1,9 +1,6 @@
 package com.project.bookpli.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -16,7 +13,7 @@ public class BookClub {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookClubId;
 
-    //FK
-    private String bookId;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "isbn13")
+    private Book book;
 }
