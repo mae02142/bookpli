@@ -1,9 +1,6 @@
 package com.project.bookpli.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
@@ -18,10 +15,10 @@ public class Library {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long libraryId;
 
-    //FK
     private Long userId;
-    //FK
-    private String isbn13;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "isbn13")
+    private Book book;
     private String status;
     private Date startDate;
     private Date endDate;
