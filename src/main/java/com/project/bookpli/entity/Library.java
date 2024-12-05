@@ -21,7 +21,7 @@ public class Library {
     //FK
     private Long userId;
     //FK
-    private String bookId;
+    private String isbn13;
     private String status;
     private Date startDate;
     private Date endDate;

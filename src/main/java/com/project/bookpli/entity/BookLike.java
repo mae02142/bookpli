@@ -19,5 +19,5 @@ public class BookLike {
     //FK
     private Long userId;
     //FK
-    private String bookId;
+    private String isbn13;
 }

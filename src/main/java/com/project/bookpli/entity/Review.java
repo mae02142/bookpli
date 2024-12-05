@@ -19,7 +19,7 @@ public class Review {
     //FK
     private Long userId;
     //FK
-    private String bookId;
+    private String isbn13;
 
     private String reviewContent;
     private Integer rating;

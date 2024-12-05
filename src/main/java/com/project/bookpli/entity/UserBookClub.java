@@ -21,5 +21,5 @@ public class UserBookClub {
     //FK
     private Long bookClubId;
     //FK
-    private String bookId;
+    private String isbn13;
 }
