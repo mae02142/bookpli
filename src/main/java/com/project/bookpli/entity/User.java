@@ -30,6 +30,10 @@ public class User {
         this.refreshToken = refreshToken;
     }
 
+    public void updateNickName(String userNickname){
+        this.userNickname = userNickname;
+    }
+
 }
 
 
