@@ -13,10 +13,8 @@ public class UserBookClub {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userClubId;
     private Long userId;
-    //FK
     private Long bookClubId;
-    //FK
-    private String isbn13;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bookclub_id")
     private BookClub bookClub;
