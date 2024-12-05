@@ -17,8 +17,8 @@
           <div style="position: relative;">
               <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
               <div v-show="showBtn[index]" class="dropdown">
-                  <button @click="item.deleteCheck= true" class="show-btn">수정</button>
-                  <EditPost v-model="item.deleteCheck" :editId="index" @edit-post="EditPost" />
+                  <button @click="item.editCheck= true" class="show-btn">수정</button>
+                  <EditPost v-model="item.editCheck" :editId="index" @edit-post="EditPost" />
                   <hr class="btn-line">
                   <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                   <!-- 삭제 컴포넌트 -->
@@ -81,6 +81,7 @@
               likeCount: 0,
               likes: { changeLike: dislike },
               deleteCheck: false,
+              editCheck: false,
               showComment: false,
           }));
       } else {
@@ -123,7 +124,7 @@
   <style>
     /* 리스트 */
     .post-content {
-      width: 60%;
+      width: 80%;
       border : 1px solid #ccc;
       border-bottom: none;
       border-radius: 20px 20px 0 0;

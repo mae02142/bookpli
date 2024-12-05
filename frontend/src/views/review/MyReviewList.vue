@@ -19,39 +19,38 @@
         <div class="title-icon">
           <h3 class="title">{{ review.title }}</h3>
         <div class="rating">
-          <div>
-            <template v-if="editingIndex === index">
+          <article style="display: flex;">
+            <div v-if="editingIndex === index">
               <img v-for="starIndex in 5"
               :key="starIndex"
               class="star" :src="starIndex <= editingReview.rating ? fullStarImage : emptyStarImage"
               @click="ratingStar(starIndex)" />
-            </template>
-            <template v-else>
+            </div>
+            <div v-else>
               <img :src="fullStarImage" class="star">
-            </template>
+            </div>
             <span class="rating-value">
-              <template v-if="editingIndex === index">
+              <div v-if="editingIndex === index">
                 {{ editingReview.rating }}
-              </template>
-              <template v-else>
+              </div>
+              <div v-else>
                 {{ review.rating }}
-              </template>
+              </div>
             </span>
-          </div>
+          </article>
         </div>
           <div class="edit-review">
             <img src="@/assets/icons/edit-2-line.png" @click="openInput(index)" 
             :style="{display: editingIndex === index ? 'none' : 'block' }"
             style="width: 27px; margin-top: px;">
           </div>
-          <span class="date">{{ review.date }}</span>
       </div>
         <div class="content-icon" style="display: flex;">
           <p class="summary">
-          <template v-if="editingIndex === index">
+          <div v-if="editingIndex === index">
             <textarea v-model="editingReview.summary" class="textbox"></textarea>
-          </template>
-          <template v-else>{{ review.summary }}</template>
+          </div>
+          <div v-else>{{ review.summary }}</div>
         </p>
         <div v-if="editingIndex === index">
           <img src="@/assets/icons/task-line.png" @click="saveReview(index)" class="task-line">
@@ -78,7 +77,6 @@ export default {
         title: "소년이 온다",
         image: "image-40.png",
         summary: "소년이 온다에 대한 한줄평을 이 곳에 띄운다.",
-        date: "2024-11-29",
         rating: 5,
         showModal: false, //개별로 등록해야 각각의 값으로 인식하고 삭제가 진행된다.
       },
@@ -86,7 +84,6 @@ export default {
         title: "면도날",
         image: "image-110.png",
         summary: "면도날 한줄평을 수정할 때 입니다.",
-        date: "2024-10-19",
         rating: 4,
         showModal : false,
       },
@@ -94,6 +91,7 @@ export default {
     const editingIndex = ref(null); // 어떤 리뷰가 수정 중인지 추적
     const editingReview = ref({
       title: "",
+      image: "",
       rating: 1,
       summary: "",
     });
@@ -137,8 +135,8 @@ export default {
   /* 공통 스타일 */
   .review-container {
     width: 100%;
-    max-width: 700px;
-    margin: 180px auto;
+    max-width: 800px;
+    margin: 100px auto;
     padding: 20px;
     box-sizing: border-box;
     background-color: #ffffff;
@@ -174,7 +172,6 @@ export default {
   }
   
   .edit-review {
-    margin-top: 3px;
     padding-bottom: 10px;
   }
 

@@ -15,14 +15,14 @@ import java.util.Date;
 @AllArgsConstructor
 public class Book {
     @Id
-    private String bookId;
+    private String isbn13;
 
     private String title;
     private String author;
-    private String contents;
-    private Date publishDate;
+    private String description;
+    private Date pubdate;
     private String publisher;
-    private String thumbnail;
-    private String translators;
+    private String cover;
     private String genre;
+    private Long startIndex;
 }

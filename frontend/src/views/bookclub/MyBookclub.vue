@@ -7,6 +7,8 @@
             <div class="post-header">
                 <div class="post-title">{{ info.title }}</div>
                 <div class="title">{{ info.nickname }} 님의 활동</div> 
+            </div>
+          </div>
                 <nav class="nav-container">
                   <ul class="nav-list">
                     <li v-for="(item, index) in navItems" :key="index" class="nav-item">
@@ -31,9 +33,7 @@
                 </div>
               </li>
             </ul>
-            </nav>
-        </div>
-        </div>
+          </nav>
       </header>
       <hr class="divider" />
           <!-- 게시글 추가 -->
@@ -44,7 +44,7 @@
       <PostForm :modelValue="addPost" @update:modelValue="addPost = $event" />
              <!-- 게시글 리스트 -->
              <MyPost v-if="selected === 1" :userInfo="info" />
-             <!-- <EditPost v-if="selected === 2" /> -->
+             <MyComment v-if="selected === 2" />
     </div>
   </template>
   
@@ -52,11 +52,13 @@
   import { ref } from "vue";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import MyPost from "@/components/bookclub/MyPost.vue";
+  import MyComment from "@/components/bookclub/MyComment.vue";
 
   export default {
     components: {
         PostForm,
         MyPost,
+        MyComment,
     },
     setup() {
       const navItems = ref([
@@ -117,14 +119,16 @@
 
   /* 네비 */
   .nav-container {
-  width: 200px;
-  height: 40px;
-  background-color: #fff;
-  border-radius: 40px;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.041);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 200px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 40px;
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.041);
+    display: flex
+;
+    align-items: center;
+    margin-left: auto;
+    margin-top: auto;
 }
 
 .nav-list {
@@ -174,7 +178,7 @@
     flex-direction: row;
     align-items: center;
     margin: 20px 0;
-    gap: 30px;
+    gap: 50px;
   }
   
   .profile-image {

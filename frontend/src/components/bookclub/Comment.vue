@@ -24,7 +24,7 @@
             <img class="user-profile" src="@/assets/icons/profile.png" alt="댓글작성자">
             <p class="user-name">{{ comment.author }}</p>
         </div>
-        <div class="comment-content">{{ comment.content }}</div>
+        <div class="comment-cnt">{{ comment.content }}</div>
         <div class="like-box">
             <img class="icon" :src="comment.likes.changeLike" @click="checkLike(index)" id="like-icon" alt="Like" />
             <p class="like-count">{{comment.likeCount}}</p>
@@ -149,7 +149,7 @@ import like from "@/assets/icons/like.png";
     margin-bottom: 5px;
   }
   
-  .comment-content {
+  .comment-cnt {
     color: #555;
     font-size: 13px;
     line-height: 3;
