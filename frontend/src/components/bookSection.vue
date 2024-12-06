@@ -223,10 +223,11 @@ body {
 }
 
 .book-author {
-    word-wrap: break-word; /* Allow text to wrap within the container */
-    word-break: break-word; /* Break long words to fit within the container */
-    display: block;
-
+    max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: block; 
 }
 
 .book-list {

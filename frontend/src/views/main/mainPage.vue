@@ -7,7 +7,7 @@
       <span class="slider">
                 <span class="slider-label left-label" v-show="isMusicSection">Music</span>
                 <span class="slider-label right-label" v-show="!isMusicSection">Book</span>
-            </span>
+      </span>
     </label>
   </div>
 
@@ -15,15 +15,17 @@
   <div v-if="!isMusicSection" style="padding-bottom: 100px;">
     <book-section />
   </div>
-  <div v-else>
+  <div v-else style="padding-bottom: 100px;">
     <music-section />
   </div>
+  <MusicPlayer/>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import bookSection from "@/components/bookSection.vue";
 import musicSection from "@/components/musicSection.vue";
+import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 const isMusicSection = ref(false); // Default to 'Book Page' 
 </script>
