@@ -47,6 +47,35 @@
     </ul>
   </div>
 </template>
+    <header class="header">
+      <div class="left-section">
+        <div class="logo" @click="goHome">bookpli</div>
+        <nav class="nav">
+            <router-link to="/miniroom/minihome">
+            <span class="nav-item">미니룸</span>
+            </router-link>
+            <router-link to="/bookclub">
+                <span class="nav-item">북적북적</span>
+            </router-link>
+        </nav>
+      </div>
+      <div class="search-bar">
+        <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" />
+        <input type="text" class="search-input" placeholder="Q">
+      </div>
+      <router-link v-if="!isAuthenticated" to="/auth/login">
+        <div class="log-button">
+          <img src="@/assets/icons/logout.png" alt="로그인 아이콘">
+          <span>LOGIN</span>
+        </div>
+      </router-link>
+      <div v-else @click="handleLogout" class="log-button">
+        <img src="@/assets/icons/login.png" alt="로그아웃 아이콘">
+        <span>LOGOUT</span>
+      </div>
+
+    </header>
+  </template>
 
 <script setup>
 import { computed, ref } from "vue";
