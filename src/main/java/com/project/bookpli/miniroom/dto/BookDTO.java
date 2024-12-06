@@ -5,11 +5,12 @@ import lombok.*;
 
 import java.util.Date;
 
-@Setter
 @Getter
 @NoArgsConstructor
 @ToString
-public class MiniroomDTO {
+@Builder
+@AllArgsConstructor
+public class BookDTO {
     private String isbn13;
     private String title;
     private String author;
@@ -17,11 +18,10 @@ public class MiniroomDTO {
     private Date pubdate;
     private String publisher;
     private String cover;
-    private Integer startIndex;
+    private Integer startindex;
     private String genre;
 
     // DTO -> Entity
-    @Builder
     public Book toEntity() {
         return Book.builder()
                 .isbn13(this.isbn13)
@@ -31,24 +31,23 @@ public class MiniroomDTO {
                 .pubdate(this.pubdate)
                 .publisher(this.publisher)
                 .cover(this.cover)
-                .startIndex(this.startIndex)
+                .startindex(this.startindex)
                 .genre(this.genre)
                 .build();
     }
 
     // Entity -> DTO
-    public static MiniroomDTO fromEntity(Book book) {
-        MiniroomDTO dto = new MiniroomDTO();
-
-        dto.setIsbn13(book.getIsbn13());
-        dto.setTitle(book.getTitle());
-        dto.setAuthor(book.getAuthor());
-        dto.setDescription(book.getDescription());
-        dto.setPubdate(book.getPubdate());
-        dto.setPublisher(book.getPublisher());
-        dto.setStartIndex(book.getStartIndex());
-        dto.setCover(book.getCover());
-
-        return dto;
+    public static BookDTO fromEntity(Book book) {
+        return BookDTO.builder()
+                .isbn13(book.getIsbn13())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .description(book.getDescription())
+                .pubdate(book.getPubdate())
+                .publisher(book.getPublisher())
+                .cover(book.getCover())
+                .startindex(book.getStartindex())
+                .genre(book.getGenre())
+                .build();
     }
 }

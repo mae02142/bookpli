@@ -1,7 +1,6 @@
 package com.project.bookpli.auth.service;
 
-import com.project.bookpli.auth.dto.UserDTO;
-import io.jsonwebtoken.Claims;
+import com.project.bookpli.mypage.dto.UserDTO;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;

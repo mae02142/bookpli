@@ -1,9 +1,9 @@
 package com.project.bookpli.auth.service;
 
 import com.project.bookpli.auth.dto.AuthResponseDTO;
-import com.project.bookpli.auth.dto.UserDTO;
 import com.project.bookpli.entity.User;
-import com.project.bookpli.auth.repository.UserRepository;
+import com.project.bookpli.mypage.dto.UserDTO;
+import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +31,7 @@ public class AuthService {
         String refreshToken = tokenResponse.get("refresh_token");
 
         // 2. Spotify 회원 정보 조회
+//        UserDTO userDTO = spotifyApiService.fetchSpotifyUserProfile(accessToken);
         UserDTO userDTO = spotifyApiService.fetchSpotifyUserProfile(accessToken);
 
         // 3. DB 저장 또는 업데이트
