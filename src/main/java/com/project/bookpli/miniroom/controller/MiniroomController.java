@@ -1,12 +1,14 @@
 package com.project.bookpli.miniroom.controller;
 
+import com.project.bookpli.entity.Library;
+import com.project.bookpli.miniroom.dto.BookDTO;
+import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/miniroom")
@@ -15,7 +17,7 @@ public class MiniroomController {
     @Autowired
     private BookApiService bookApiService;
 
-    @GetMapping
+    @GetMapping("{itemId}")
     public ResponseEntity<String> bookList(@RequestParam String itemId){
         try{
             bookApiService.searchBook(itemId);
@@ -23,5 +25,11 @@ public class MiniroomController {
         }catch(Exception e){
             return ResponseEntity.status(500).body("데이터 저장 중 오류발생:"+e.getMessage());
         }
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<BookResponseDTO>> getBookList(@PathVariable Long userId){
+            List<BookResponseDTO> bookList= bookApiService.getBookList(userId);
+            return ResponseEntity.ok(bookList);
     }
 }

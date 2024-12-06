@@ -22,7 +22,6 @@ public class Book {
     private String genre;
 
     @Builder
-
     public Book(String isbn13, String title, String author, String description, Date pubdate, String publisher, String cover, Integer startindex, String genre) {
         this.isbn13 = isbn13;
         this.title = title;

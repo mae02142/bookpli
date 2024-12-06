@@ -142,9 +142,14 @@
 
 <script setup>
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router'; 
+import { useAuthStore } from '@/stores/auth';
+import { onMounted } from 'vue';
 
 const router= useRouter();
+const authStore= useAuthStore();
+
 
 const books = [
 {
@@ -188,6 +193,21 @@ const gotoGoal = () =>{
 const gotoDetail = () => {
     router.push('/miniroom/book');
 }
+
+const loadMyLibrary = async () => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`)
+        console.log(response.data);
+        
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+
+onMounted(() => {
+    loadMyLibrary();
+})
 
 
 </script>

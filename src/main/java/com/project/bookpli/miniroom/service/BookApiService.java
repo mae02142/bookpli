@@ -1,8 +1,11 @@
 package com.project.bookpli.miniroom.service;
 
 import com.project.bookpli.entity.Book;
+import com.project.bookpli.entity.Library;
 import com.project.bookpli.miniroom.dto.BookDTO;
+import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
+import com.project.bookpli.miniroom.repository.LibraryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -105,5 +108,8 @@ public class BookApiService {
     }
 
 
-
+    public List<BookResponseDTO> getBookList(Long userId) {
+        // Book 리스트 가져오기
+        return bookrep.testBookList(userId);
+    }
 }
