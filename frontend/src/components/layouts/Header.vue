@@ -3,11 +3,11 @@
       <div class="left-section">
         <div class="logo" @click="goHome">bookpli</div>
         <nav class="nav">
-            <router-link to="/mypage/mylibrary">
-            <span class="nav-item">My서재</span>
+            <router-link to="/miniroom/minihome">
+            <span class="nav-item">미니룸</span>
             </router-link>
-            <router-link to="/mypage/mypli">
-                <span class="nav-item">My플리</span>
+            <router-link to="/bookclub">
+                <span class="nav-item">북적북적</span>
             </router-link>
         </nav>
       </div>
