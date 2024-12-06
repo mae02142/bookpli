@@ -100,6 +100,7 @@ import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import spotifyApi from '@/api/axiosInstance';
+import { jwtDecode } from 'jwt-decode';
 const authStore = useAuthStore();
 const hoveredIndex = ref(null);
 
@@ -135,20 +136,26 @@ const loadTracks = async (playlistId) => {
 const getPlaylistTracks = async (playlistId) => {
   try {
     const response = await spotifyApi.get(`/playlists/${playlistId}/tracks`);
-    console.log("트랙 확인 >> " + response.data.items);
-    return response.data.items.map((item) => {
+    const tracks = response.data.items.map((item) => {
       const track = item.track;
       return {
-        id: track.id,
-        name: track.name,
-        album: track.album.name,
-        artists: track.artists.map((artist) => artist.name).join(', '),
-        duration: track.duration_ms,
-        albumCover: track.album.images[0]?.url || '',
+        id: track.id, // 트랙 ID
+        name: track.name, // 곡 이름
+        album: track.album.name, // 앨범 이름
+        artists: track.artists.map((artist) => artist.name).join(', '), // 아티스트 이름
+        duration: track.duration_ms, // 곡 길이 (ms)
+        albumCover: track.album.images[0]?.url || '', // 앨범 이미지 URL
       };
     });
+    console.log(`플레이리스트(${playlistId})의 트랙:`, tracks);
+    return tracks;
   } catch (error) {
-    console.error('플레이리스트 트랙 가져오기 실패:', error);
+    // 에러 처리
+    if (error.response?.status === 404) {
+      console.error('플레이리스트를 찾을 수 없습니다:', error.message);
+    } else {
+      console.error('플레이리스트 트랙 가져오기 실패:', error.message);
+    }
     return [];
   }
 };
