@@ -1,6 +1,7 @@
 package com.project.bookpli.auth.service;
 
-import com.project.bookpli.auth.dto.UserDTO;
+import com.project.bookpli.mypage.dto.UserDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.util.Base64;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class SpotifyApiService {
 
     @Value("${spotify.client.id}")
@@ -58,12 +60,24 @@ public class SpotifyApiService {
     }
 
     public UserDTO fetchSpotifyUserProfile(String accessToken) {
-        return webClient.get()
+        log.debug("Access Token: {}", accessToken);
+        UserDTO userDTO = webClient.get()
                 .uri("https://api.spotify.com/v1/me")
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
                 .bodyToMono(UserDTO.class)
                 .block();
+
+        // 결과 출력
+        if (userDTO != null) {
+            System.out.println("Spotify ID: " + userDTO.getSpotifyId());
+            System.out.println("Display Name: " + userDTO.getDisplayName());
+            System.out.println("Email: " + userDTO.getEmail());
+            System.out.println("Profile Path: " + userDTO.getProfilePath());
+        } else {
+            System.out.println("Failed to fetch user profile");
+        }
+        return userDTO;
     }
 
     private MultiValueMap<String, String> buildFormData(String code) {

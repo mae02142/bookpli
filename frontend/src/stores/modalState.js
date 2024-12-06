@@ -1,13 +1,15 @@
-import { reactive } from "vue";
+import { defineStore } from "pinia";
 
-export const modalState = reactive({
-  isUserInfoModalOpen: false,
+export const useModalStore = defineStore("modal", {
+  state: () => ({
+    activeModal: null,
+  }),
+  actions: {
+    openModal(modalName) {
+      this.activeModal = modalName;
+    },
+    closeModal() {
+      this.activeModal = null;
+    },
+  },
 });
-
-export const openUserInfoModal = () => {
-  modalState.isUserInfoModalOpen = true;
-};
-
-export const closeUserInfoModal = () => {
-  modalState.isUserInfoModalOpen = false;
-};
