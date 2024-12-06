@@ -87,7 +87,25 @@ const router = createRouter({
           component: () => import("@/components/musicSection.vue")
         },
       ]
-    }
+    },
+    
+    {
+      path: "/bookclub",
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/bookclub/BookclubMain.vue"),
+        },
+        {
+          path : "community",
+          component: () => import("@/views/bookclub/CommunityDetail.vue"),
+        },
+        {
+          path : "mybookclub",
+          component : () => import("@/views/bookclub/MyBookclub.vue"),
+        },
+      ]
+    },
   ],
 });
 
