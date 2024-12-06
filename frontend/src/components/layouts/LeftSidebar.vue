@@ -1,24 +1,34 @@
 <template>
     <div class="sidebar">
-        <img class="bookshelf-icon" src="@/assets/sidebar/bookshelf.png">
-        <img class="playlist-icon" src="@/assets/sidebar/playlist.png">
-        <img class="bookclub-icon" src="@/assets/sidebar/bookclub.png">
-        <img class="user-icon" src="@/assets/sidebar/usericon.png" @click="openModal">
-        <UserInfoModal v-if="modalState.isUserInfoModalOpen" @close="closeModal" />
+      <router-link to="/mypage/mylibrary">
+        <img class="sidebar-icon" src="@/assets/sidebar/bookshelf.png">
+      </router-link>  
+      <router-link to="/mypage/mypli">
+        <img class="sidebar-icon" src="@/assets/sidebar/playlist.png">
+      </router-link>  
+        <img class="sidebar-icon" src="@/assets/sidebar/bookclub.png">
+        <img class="sidebar-icon" src="@/assets/sidebar/usericon.png" @click="openModal">
+        <UserInfoModal   v-if="modalStore.activeModal === 'UserInfoModal'" 
+        @close="closeModal" />
     </div>
 </template>
 
 <script setup>
-import { modalState, openUserInfoModal, closeUserInfoModal } from "@/stores/modalState.js";
+import { useModalStore } from "@/stores/modalState";
+import { useRouter } from 'vue-router'
 import UserInfoModal from "@/views/mypage/UserInfoModal.vue";
 
+const modalStore = useModalStore();
+const router = useRouter();
+
 const openModal = () => {
-  openUserInfoModal();
+  modalStore.openModal("UserInfoModal");
 };
 
 const closeModal = () => {
-  closeUserInfoModal();
+  modalStore.closeModal();
 };
+
 </script>
 
 <style scoped>
@@ -31,15 +41,11 @@ const closeModal = () => {
   gap: 25px;
 }
 
-.bookshelf-icon, .playlist-icon {
+.sidebar-icon {
     width: 45px;
 }
 
-.bookshelf-icon:hover {
-    cursor: pointer;
-}
-
-.playlist-icon:hover {
+.sidebar-icon:hover {
     cursor: pointer;
 }
 

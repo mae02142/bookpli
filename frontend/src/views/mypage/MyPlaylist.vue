@@ -1,116 +1,184 @@
 <template>
-    <div class="playlist-container">
-        <LeftSidebar/>
-        <div class="sidebar2">
-            <div class="sidebar2-item">
-                <img src="@/assets/icons/search.png" class="search-icon">
-                <input type="text" placeholder="검색" class="search-bar" />
-                <img src="@/assets/icons/add2.png" class="add-icon">
-            </div>
-            <div class="playlist-list">
-                <div class="playlist-item" v-for="playlist in playlists" :key="playlist.id">
-                <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
-                <div class="playlist-details">
-                    <p class="playlist-name">{{ playlist.name }}</p>
-                    <p class="playlist-count">{{ playlist.count }}곡</p>
-                </div>
-                </div>
-            </div>
+  <div class="playlist-container">
+    <LeftSidebar />
+    <div class="sidebar2">
+      <div class="sidebar2-item">
+        <img src="@/assets/icons/search.png" class="search-icon">
+        <input type="text" placeholder="검색" class="search-bar" />
+        <img src="@/assets/icons/add2.png" class="add-icon">
+      </div>
+      <div class="playlist-list">
+        <!-- 플레이리스트 목록 -->
+        <div
+          class="playlist-item"
+          v-for="playlist in playlists"
+          :key="playlist.id"
+          @click="loadTracks(playlist.id)"
+        >
+          <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
+          <div class="playlist-details">
+            <p class="playlist-name">{{ playlist.name }}</p>
+            <p class="playlist-count">{{ playlist.count }}곡</p>
+          </div>
         </div>
-        <div>
-
-        </div class="content">
-        <div class="song-list">
-            <h1 class="pli-header">플레이리스트</h1>
-            <table class="song-table">
-            <thead>
-                <tr>
-                <th>#</th>
-                <th>제목</th>
-                <th>앨범</th>
-                <th><img src="@/assets/icons/time.png" class="time-icon"></th>
-                <th><img src="@/assets/icons/delete.png" class="delete-icon"></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(song, index) in songs" :key="song.id">
-                <td class="song-index">
-                    <img v-if="hoveredIndex === index" src="@/assets/icons/play.png" alt="Play Icon" class="play-icon" />
-                    <span v-else>{{ index + 1 }}</span>
-                </td>
-                <td @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">
-                    <div class="song-info">
-                    <img :src="`/src/assets/sidebar/${song.albumCover}`" alt="Album Cover" class="album-cover" />
-                    <div class="song-details">
-                        <p class="song-title">{{ song.title }}</p>
-                        <p class="song-artist">{{ song.artist }}</p>
-                    </div>
-                    </div>
-                </td>
-                <td class="song-album" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">{{ song.album }}</td>
-                <td class="song-duration" @mouseover="hoveredIndex = index" @mouseleave="hoveredIndex = null">{{ song.duration }}</td>
-                <td class="delete-button-container">
-                    <button class="delete-button" @click="deleteSong(song.id)">삭제</button>
-                </td>
-                </tr>
-            </tbody>
-            </table>
       </div>
     </div>
-  </template>
+    <div class="content">
+      <div class="song-list">
+        <h1 class="pli-header">플레이리스트</h1>
+        <table class="song-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>제목</th>
+              <th>앨범</th>
+              <th><img src="@/assets/icons/time.png" class="time-icon"></th>
+              <th><img src="@/assets/icons/delete.png" class="delete-icon"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(song, index) in songs" :key="song.id">
+              <td class="song-index">
+                <img
+                  v-if="hoveredIndex === index"
+                  src="@/assets/icons/play.png"
+                  alt="Play Icon"
+                  class="play-icon"
+                />
+                <span v-else>{{ index + 1 }}</span>
+              </td>
+              <td
+                @mouseover="hoveredIndex = index"
+                @mouseleave="hoveredIndex = null"
+              >
+                <div class="song-info">
+                  <img
+                    :src="song.albumCover"
+                    alt="Album Cover"
+                    class="album-cover"
+                  />
+                  <div class="song-details">
+                    <p class="song-title">{{ song.title }}</p>
+                    <p class="song-artist">{{ song.artist }}</p>
+                  </div>
+                </div>
+              </td>
+              <td
+                class="song-album"
+                @mouseover="hoveredIndex = index"
+                @mouseleave="hoveredIndex = null"
+              >
+                {{ song.album }}
+              </td>
+              <td
+                class="song-duration"
+                @mouseover="hoveredIndex = index"
+                @mouseleave="hoveredIndex = null"
+              >
+                {{ formatDuration(song.duration) }}
+              </td>
+              <td class="delete-button-container">
+                <button
+                  class="delete-button"
+                  @click="deleteSong(song.id)"
+                >
+                  삭제
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
 
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
-import { jwtDecode } from 'jwt-decode';
+import spotifyApi from '@/api/axiosInstance';
+const authStore = useAuthStore();
+const hoveredIndex = ref(null);
 
-// URL에서 토큰 추출 후 저장
+
+const playlists = ref([]); // 플레이리스트 목록
+const songs = ref([]); // 선택한 플레이리스트의 곡
+const formatDuration = (ms) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
+
+// 사용자 플레이리스트 가져오기
+const getUserPlaylist = async () => {
+  try {
+    const response = await spotifyApi.get('/me/playlists'); // Spotify API 호출
+    playlists.value = response.data.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      count: item.tracks.total,
+    }));
+  } catch (error) {
+    console.error('플레이리스트를 가져오는 중 오류 발생:', error);
+  }
+};
+
+// 플레이리스트 클릭 시 해당 곡 로드
+const loadTracks = async (playlistId) => {
+  songs.value = await getPlaylistTracks(playlistId); // 곡 데이터 로드
+};
+
+// 특정 플레이리스트의 트랙 가져오기
+const getPlaylistTracks = async (playlistId) => {
+  try {
+    const response = await spotifyApi.get(`/playlists/${playlistId}/tracks`);
+    console.log("트랙 확인 >> " + response.data.items);
+    return response.data.items.map((item) => {
+      const track = item.track;
+      return {
+        id: track.id,
+        name: track.name,
+        album: track.album.name,
+        artists: track.artists.map((artist) => artist.name).join(', '),
+        duration: track.duration_ms,
+        albumCover: track.album.images[0]?.url || '',
+      };
+    });
+  } catch (error) {
+    console.error('플레이리스트 트랙 가져오기 실패:', error);
+    return [];
+  }
+};
+
+// 페이지 로드 시 실행
 onMounted(() => {
-  const authStore = useAuthStore();
-  
-  // 현재 페이지의 URL에서 쿼리 파라미터를 가져옵니다.
   const urlParams = new URLSearchParams(window.location.search);
   const jwtToken = urlParams.get('token');
-  
-  if (jwtToken) {
 
-    // JWT 디코딩을 통해 사용자 정보 추출 (필요한 경우)
+  if (jwtToken) {
+    // URL에서 토큰 가져와 상태 저장
     const decodedToken = jwtDecode(jwtToken);
-    let userInfo = {
+    const userInfo = {
       spotifyId: decodedToken.sub,
       userId: decodedToken.userId,
     };
-
     authStore.setUser(decodedToken.accessToken, userInfo);
-    console.log(decodedToken.accessToken);
-    console.log("디코딩 토큰>>>",decodedToken);
 
-    // 필요한 경우 URL에서 토큰 파라미터 제거 (보안 목적으로)
+    // URL에서 토큰 파라미터 제거
     window.history.replaceState({}, document.title, window.location.pathname);
   }
+
+  getUserPlaylist(); // 플레이리스트 가져오기
 });
 
-const playlists = ref([
-  { id: 1, name: '내 플레이리스트 #1', count: 30 },
-  { id: 2, name: '노동요 #2', count: 30 },
-]);
-
-const songs = ref([
-  { id: 1, title: 'LOVE LOVE LOVE', artist: '에픽하이', album: 'Remapping the Human Soul', duration: '3:51', albumCover: 'album1.jpeg' },
-  { id: 2, title: 'LOVE LOVE LOVE', artist: '에픽하이', album: 'Remapping the Human Soul', duration: '3:51', albumCover: 'album1.jpeg' },
-  { id: 3, title: 'LOVE LOVE LOVE', artist: '에픽하이', album: 'Remapping the Human Soul', duration: '3:51', albumCover: 'album1.jpeg' },
-  { id: 4, title: 'LOVE LOVE LOVE', artist: '에픽하이', album: 'Remapping the Human Soul', duration: '3:51', albumCover: 'album1.jpeg' },
-  { id: 5, title: 'LOVE LOVE LOVE', artist: '에픽하이', album: 'Remapping the Human Soul', duration: '3:51', albumCover: 'album1.jpeg' },
-]);
-
-// 호버된 행의 인덱스를 추적하는 상태 추가
-const hoveredIndex = ref(null);
-
-const deleteSong = (id) => {
-  songs.value = songs.value.filter(song => song.id !== id);
+// 노래 삭제 (임시 함수)
+const deleteSong = (songId) => {
+  songs.value = songs.value.filter((song) => song.id !== songId);
 };
+
 
 </script>
 
@@ -205,7 +273,6 @@ const deleteSong = (id) => {
 }
 
 .song-list {
-width: 60%;
 margin-top: 20px;
 }
 

@@ -1,9 +1,9 @@
 package com.project.bookpli.auth.service;
 
 import com.project.bookpli.auth.dto.AuthResponseDTO;
-import com.project.bookpli.auth.dto.UserDTO;
 import com.project.bookpli.entity.User;
-import com.project.bookpli.auth.repository.UserRepository;
+import com.project.bookpli.mypage.dto.UserDTO;
+import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
