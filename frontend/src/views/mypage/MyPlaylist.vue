@@ -100,6 +100,8 @@ import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import spotifyApi from '@/api/axiosInstance';
+import { jwtDecode } from 'jwt-decode';
+
 const authStore = useAuthStore();
 const hoveredIndex = ref(null);
 

@@ -52,12 +52,10 @@
 
 <script>
 import { ref, onMounted } from "vue";
-import 소년이온다 from "@/assets/소년이 온다.jpg"
 
 export default {
     setup() {
-    const coverEX = 소년이온다;
-
+        
     const newBooks = ref([]);
     const bestBooks = ref([]);
     const blogBooks = ref([]);
