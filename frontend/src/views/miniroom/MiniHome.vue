@@ -1,5 +1,8 @@
 <template>
 <div class="dashboard">
+    <!-- <div class="sidebar">
+        <LeftSidebar />
+    </div> -->
     <div class="left-section">
     <!-- 사용자 프로필 -->
         <div class="user-profile">
@@ -15,7 +18,7 @@
                 <div class="most-read-month">
                     <div class="card-background"></div>
                     <div class="card-title">가장 많이 읽은달</div>
-                    <div class="card-stats">4권/6권</div>
+                    <div class="card-stats">9월 | 5권</div>
                 </div>
                 <div class="yearly-read">
                     <div class="card-background"></div>
@@ -35,7 +38,7 @@
         <div class="current-track">
             <img class="track-cover" src="../../assets/test/music2.png">    
                 <div class="track-details">
-                    <p class="track-title">첫 눈
+                    <p class="track-title">첫 눈!
                         <img src="../../assets/icons/empty_like.png" class="sm-images"/>
                     </p>
                     <p>엑소</p>
@@ -138,6 +141,7 @@
 </template>
 
 <script setup>
+import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useRouter } from 'vue-router'; 
 
 const router= useRouter();
@@ -184,6 +188,8 @@ const gotoGoal = () =>{
 const gotoDetail = () => {
     router.push('/miniroom/book');
 }
+
+
 </script>
 
 <style scoped>
@@ -199,6 +205,7 @@ const gotoDetail = () => {
 display: flex;
 flex-direction: column;
 }
+
 
 .left-section {
     align-items: center;
@@ -530,5 +537,20 @@ font-weight: 400;
 color: #000000;
 margin-top: 10px;
 position: relative;
+}
+
+.sidebar {
+    position: fixed; /* 고정 */
+    top: 0;
+    left: 0;
+    width: 60px; /* 사이드바 너비 */
+    height: 100%; /* 화면 전체 높이 */
+    background-color: #fffdf1; /* 사이드바 배경색 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* 다른 요소 위에 배치 */
 }
 </style>

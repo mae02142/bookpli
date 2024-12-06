@@ -1,18 +1,13 @@
 package com.project.bookpli.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Book {
     @Id
     private String isbn13;
@@ -23,6 +18,20 @@ public class Book {
     private Date pubdate;
     private String publisher;
     private String cover;
-    private Integer startIndex;
+    private Integer startindex;
     private String genre;
+
+    @Builder
+
+    public Book(String isbn13, String title, String author, String description, Date pubdate, String publisher, String cover, Integer startindex, String genre) {
+        this.isbn13 = isbn13;
+        this.title = title;
+        this.author = author;
+        this.description = description;
+        this.pubdate = pubdate;
+        this.publisher = publisher;
+        this.cover = cover;
+        this.startindex = startindex;
+        this.genre = genre;
+    }
 }

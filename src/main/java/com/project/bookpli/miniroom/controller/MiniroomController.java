@@ -16,9 +16,9 @@ public class MiniroomController {
     private BookApiService bookApiService;
 
     @GetMapping
-    public ResponseEntity<String> bookList(@RequestParam String keyword, @RequestParam int maxData){
+    public ResponseEntity<String> bookList(@RequestParam String itemId){
         try{
-            bookApiService.saveBookList(keyword, maxData);
+            bookApiService.searchBook(itemId);
             return ResponseEntity.ok("도서 데이터가 성공적으로 저장되었습니다.");
         }catch(Exception e){
             return ResponseEntity.status(500).body("데이터 저장 중 오류발생:"+e.getMessage());
