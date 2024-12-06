@@ -44,7 +44,7 @@ function goHome() {
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const handleLogout = () => {
-  authStore.clearAuth();
+  authStore.clearAuthData();
   router.push({ path: '/' });
 };
 

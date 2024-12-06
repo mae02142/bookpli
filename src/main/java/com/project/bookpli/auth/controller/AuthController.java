@@ -1,16 +1,14 @@
 package com.project.bookpli.auth.controller;
 
 import com.project.bookpli.auth.dto.AuthResponseDTO;
-import com.project.bookpli.auth.dto.UserDTO;
 import com.project.bookpli.auth.service.AuthService;
 import com.project.bookpli.auth.service.JwtService;
+import com.project.bookpli.common.response.BaseResponse;
+import com.project.bookpli.mypage.dto.UserDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -39,7 +37,7 @@ public class AuthController {
                 "?client_id=" + clientId +
                 "&response_type=code" +
                 "&redirect_uri=" + redirectUri +
-                "&scope=user-read-private user-read-email";
+                "&scope=user-read-private user-read-email playlist-read-private";
         System.out.println("spotifyAuthUrl>>>>>>>>"+spotifyAuthUrl);
         return ResponseEntity.ok(spotifyAuthUrl); // URL 반환
     }
@@ -76,5 +74,12 @@ public class AuthController {
                 ioException.printStackTrace();
             }
         }
+    }
+
+    // 엑세스 토큰 재발급
+    @PostMapping("{userId}")
+    public BaseResponse<String> getAccessToken(@RequestParam String spotifyId) {
+        String response = authService.getAccessToken(spotifyId);
+        return new BaseResponse<>(response);
     }
 }
