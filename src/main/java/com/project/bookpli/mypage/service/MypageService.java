@@ -1,15 +1,16 @@
 package com.project.bookpli.mypage.service;
 
-import com.project.bookpli.auth.dto.UserDTO;
-import com.project.bookpli.auth.repository.UserRepository;
 import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.User;
+import com.project.bookpli.mypage.dto.UserDTO;
+import com.project.bookpli.mypage.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +32,10 @@ public class MypageService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
         user.updateNickName(nickName);
+    }
+
+    public UserDTO duplicateCheckNickname(String nickName) {
+        Optional<User> user = userRepository.findByUserNickname(nickName);
+        return user.map(UserDTO::fromEntity).orElse(null);
     }
 }

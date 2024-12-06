@@ -1,4 +1,4 @@
-package com.project.bookpli.auth.dto;
+package com.project.bookpli.mypage.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,17 +7,21 @@ import lombok.*;
 
 import java.util.List;
 
-@Setter
 @Getter
 @NoArgsConstructor
 @ToString
+@Builder
+@AllArgsConstructor
 public class UserDTO {
 
     private Long userId;
+
     @JsonProperty("id")
     private String spotifyId;
+
     @JsonProperty("display_name")
     private String displayName;
+
     private String email;
     private String userNickname;
 
@@ -32,7 +36,6 @@ public class UserDTO {
     private String profilePath;
 
     // DTO -> Entity
-    @Builder
     public User toEntity() {
         return User.builder()
                 .spotifyId(this.spotifyId)
@@ -44,21 +47,19 @@ public class UserDTO {
 
     // Entity -> DTO
     public static UserDTO fromEntity(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setUserId(user.getUserId());
-        dto.setSpotifyId(user.getSpotifyId());
-        dto.setDisplayName(user.getDisplayName());
-        dto.setEmail(user.getEmail());
-        dto.setUserNickname(user.getUserNickname());
-        dto.setProfilePath(user.getProfilePath());
-        return dto;
+        return UserDTO.builder()
+                .userId(user.getUserId())
+                .spotifyId(user.getSpotifyId())
+                .displayName(user.getDisplayName())
+                .email(user.getEmail())
+                .userNickname(user.getUserNickname())
+                .profilePath(user.getProfilePath())
+                .build();
     }
 
     // 내부 클래스: 이미지 구조 매핑
     @Getter
-    @Setter
     @NoArgsConstructor
-    @ToString
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Image {
         private String url;

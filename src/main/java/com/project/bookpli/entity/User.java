@@ -5,9 +5,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +23,17 @@ public class User {
     private String profilePath;
 
     private String refreshToken;
+
+    @Builder
+    public User(Long userId, String spotifyId, String displayName, String userNickname, String email, String profilePath, String refreshToken) {
+        this.userId = userId;
+        this.spotifyId = spotifyId;
+        this.displayName = displayName;
+        this.userNickname = userNickname;
+        this.email = email;
+        this.profilePath = profilePath;
+        this.refreshToken = refreshToken;
+    }
 
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;

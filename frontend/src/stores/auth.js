@@ -18,6 +18,7 @@ export const useAuthStore = defineStore("auth", {
     clearAuthData() {
       this.token = null;
       this.user = null;
+      localStorage.removeItem("auth");
     },
     // 인증 헤더 가져오기 (API 요청 시 사용)
     getAuthHeader() {

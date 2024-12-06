@@ -2,7 +2,7 @@
   <div class="modal-container">
     <div class="modal-overlay"></div>
     <div class="modal-content">
-      <img class="user-avatar" src="@/assets/images/default_image.png" alt="User Avatar" />
+      <img class="user-avatar"  :src="user.profilePath || '@/assets/images/default_image.png'" alt="User Avatar" />
       <h2 class="modal-title">회원 정보 확인</h2>
       <div class="input-grid">
         <div class="info-section">
@@ -29,7 +29,10 @@
         <div class="info-section">
           <label class="info-label">닉네임</label>
           <div class="nickname-box">
-            <div class="nickname-grid">
+            <div 
+              class="nickname-grid" 
+              :class="{ 'error-border': nicknameError }"
+            >
               <input 
                 type="text" 
                 v-model="user.userNickname" 
@@ -45,107 +48,127 @@
               <img 
                 v-if="isEditing" 
                 src="@/assets/icons/double_check.png" 
-                @click="duplicateCheckNickname" 
+                @click="duplicateCheckNickname"
                 class="edit-icon"
               />
             </div>
           </div>
+          <span v-if="nicknameError" class="error-message">{{ errorMessage }}</span> <!-- 에러 메시지 표시 -->
+          <span v-if="nicknameCheck" class="check-message">{{ checkMessage }}</span>
           <div v-if="isEditing" class="edit-buttons">
             <button @click="saveEdit" class="save-btn">수정완료</button>
             <button @click="cancelEdit" class="cancel-btn">취소</button>
           </div>
         </div>
-
+        <div class="edit-buttons">
+          <button v-if="!isEditing" class="confirm-btn" @click="closeModal">확인</button>
+        </div>
       </div>
-      <button v-if="!isEditing" class="confirm-btn"  @click="closeModal">확인</button>
     </div>
   </div>
 </template>
+
 
   
 <script setup>
 import { ref, onMounted, reactive } from "vue";
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
-import { defineEmits } from 'vue';
+import { defineEmits } from "vue";
 
 const authStore = useAuthStore();
 
-const user = reactive({}); // 빈 객체로 초기화
-const originalNickname = ref(""); // 초기값 저장
+const user = reactive({});
+const originalNickname = ref("");
 const isEditing = ref(false);
- // 부모로 이벤트 전달
-  const emit = defineEmits(['close']);
+const nicknameError = ref(false);
+const nicknameCheck = ref(false);
+const errorMessage = ref("");
+const checkMessage = ref("");
+const emit = defineEmits(["close"]);
 
+// 편집 시작
 const startEditing = () => {
   isEditing.value = true;
-  originalNickname.value = user.userNickname; // 편집 시작 시 원본 값 저장
+  originalNickname.value = user.userNickname;
 };
 
+// 닉네임 저장
 const saveEdit = async () => {
-  isEditing.value = false;
   try {
+    // 닉네임 중복 체크 후 저장
+    const duplicateResponse = await axios.get(`/api/mypage/nickname/${user.userNickname}`);
+    if (duplicateResponse.data.data) {
+      nicknameError.value = true;
+      errorMessage.value = "이미 존재하는 닉네임입니다.";
+      return;
+    }
+
+    // 닉네임 저장 요청
     const request = {
       userId: authStore.user.userId,
-      userNickname: user.userNickname
-    }
-    await axios.patch('/api/mypage', request);
+      userNickname: user.userNickname,
+    };
+    await axios.patch("/api/mypage", request);
     isEditing.value = false;
+    nicknameError.value = false;
+    nicknameCheck.value = false;
+    errorMessage.value = "";
   } catch (error) {
-    console.error("데이터 불러오기 오류:", error);
+    console.error("데이터 저장 오류:", error);
   }
 };
 
+// 닉네임 변경 취소
 const cancelEdit = () => {
   isEditing.value = false;
-  user.userNickname = originalNickname.value; // 저장된 초기값으로 복구
+  nicknameError.value = false;
+  nicknameCheck.value = false;
+  errorMessage.value = "";
+  user.userNickname = originalNickname.value; // 원본 복원
 };
 
-const confirmChanges = async () => {
-  try {
-    const request = {
-      userId: authStore.user.userId,
-      userNickname: user.userNickname
-    }
-    await axios.patch('/api/mypage', request);
-    isEditing.value = false;
-  } catch (error) {
-    console.error("데이터 불러오기 오류:", error);
-  }
-};
-
+// 모달 닫기
 const closeModal = () => {
-  emit('close'); // 부모로 close 이벤트 전달
+  emit("close");
 };
 
+// 유저 정보 로드
 const loadUserInfo = async () => {
   try {
     const response = await axios.get(`/api/mypage/${authStore.user.userId}`);
-    Object.assign(user, response.data.data); // user 객체에 데이터 병합
+    Object.assign(user, response.data.data);
   } catch (error) {
     console.error("데이터 불러오기 오류:", error);
   }
 };
 
+// 닉네임 중복 확인
 const duplicateCheckNickname = async () => {
   try {
-    const request = {
-      userId: authStore.user.userId,
-      userNickname: user.userNickname
+    const response = await axios.get(`/api/mypage/nickname/${user.userNickname}`);
+    console.log(response.data.data);
+    if (response.data.data) {
+      nicknameError.value = true;
+      nicknameCheck.value = false;
+      errorMessage.value = "이미 존재하는 닉네임입니다.";
+    } else {
+      nicknameError.value = false;
+      nicknameCheck.value = true;
+      checkMessage.value = "✅사용 가능한 닉네임입니다.";
     }
-    
-    const response = await axios.patch('/api/mypage', request);
-    console.log("바뀐 닉네임:", response.data.data);
   } catch (error) {
-    console.error("데이터 불러오기 오류:", error);
+    console.error("닉네임 중복 확인 오류:", error);
+    nicknameError.value = true;
+    errorMessage.value = "닉네임 확인 중 오류가 발생했습니다.";
   }
 };
 
 onMounted(() => {
   loadUserInfo();
-  console.log("User ID:", authStore.user.userId);
 });
 </script>
+
 
   
   <style scoped>
@@ -248,12 +271,12 @@ onMounted(() => {
   }
 
   .confirm-btn {
-    margin-top: 20px;
     padding: 10px 40px;
     border-radius: 20px;
     border: 1px solid gray;
     width: 150px;
     background: #fff8bb;
+    height: 40px;
   }
 
   .edit-buttons{
@@ -270,6 +293,7 @@ onMounted(() => {
     border: 1px solid gray;
     width: 150px;
     background: #fff8bb;
+    height: 40px;
   }
   
   .cancel-btn {
@@ -279,6 +303,7 @@ onMounted(() => {
     border: 1px solid gray;
     width: 150px;
     background: #ffffff;;
+    height: 40px;
   }
 
   .save-btn:hover, .cancel-btn:hover, .confirm-btn:hover {
@@ -292,7 +317,23 @@ onMounted(() => {
   border-radius: 5px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  transition: border-color 0.3s ease;
+}
+
+.nickname-grid.error-border {
+  border-color: red;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.check-message {
+  color: #00b707;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
 .nickname-input {

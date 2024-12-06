@@ -1,6 +1,6 @@
 package com.project.bookpli.auth.dto;
 
-import com.project.bookpli.auth.dto.UserDTO;
+import com.project.bookpli.mypage.dto.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
