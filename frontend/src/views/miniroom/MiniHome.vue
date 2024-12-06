@@ -142,6 +142,7 @@
 
 <script setup>
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
+import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import { useRouter } from 'vue-router'; 
 import { useAuthStore } from '@/stores/auth';
