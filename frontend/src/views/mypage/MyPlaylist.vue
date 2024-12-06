@@ -136,26 +136,20 @@ const loadTracks = async (playlistId) => {
 const getPlaylistTracks = async (playlistId) => {
   try {
     const response = await spotifyApi.get(`/playlists/${playlistId}/tracks`);
-    const tracks = response.data.items.map((item) => {
+    console.log("트랙 확인 >> " + response.data.items);
+    return response.data.items.map((item) => {
       const track = item.track;
       return {
-        id: track.id, // 트랙 ID
-        name: track.name, // 곡 이름
-        album: track.album.name, // 앨범 이름
-        artists: track.artists.map((artist) => artist.name).join(', '), // 아티스트 이름
-        duration: track.duration_ms, // 곡 길이 (ms)
-        albumCover: track.album.images[0]?.url || '', // 앨범 이미지 URL
+        id: track.id,
+        name: track.name,
+        album: track.album.name,
+        artists: track.artists.map((artist) => artist.name).join(', '),
+        duration: track.duration_ms,
+        albumCover: track.album.images[0]?.url || '',
       };
     });
-    console.log(`플레이리스트(${playlistId})의 트랙:`, tracks);
-    return tracks;
   } catch (error) {
-    // 에러 처리
-    if (error.response?.status === 404) {
-      console.error('플레이리스트를 찾을 수 없습니다:', error.message);
-    } else {
-      console.error('플레이리스트 트랙 가져오기 실패:', error.message);
-    }
+    console.error('플레이리스트 트랙 가져오기 실패:', error);
     return [];
   }
 };

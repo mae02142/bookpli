@@ -30,7 +30,7 @@ const router = createRouter({
       children: [
         {
           path: "mylist",
-          component: () => import("@/components/review/MyReviewList.vue"),
+          component: () => import("@/views/review/MyReviewList.vue"),
         },
         {
           path: "form",
@@ -43,18 +43,19 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: () => import("@/components/bookclub/BookclubMain.vue"),
+          component: () => import("@/views/bookclub/BookclubMain.vue"),
         },
         {
-          path: "community",
-          component: () => import("@/components/bookclub/CommunityDetail.vue"),
+          path : "community",
+          component: () => import("@/views/bookclub/CommunityDetail.vue"),
         },
         {
-          path: "mypost",
-          component: () => import("@/components/bookclub/MyPost.vue"),
+          path : "mybookclub",
+          component : () => import("@/views/bookclub/MyBookclub.vue"),
         },
-      ],
+      ]
     },
+
 
     {
       path: "/miniroom",
@@ -79,13 +80,31 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: () => import("@/views/main/mainPage.vue"),
+          component: () => import("@/views/main/mainPage.vue")
         },
         {
           path: "music",
-          component: () => import("@/components/musicSection.vue"),
+          component: () => import("@/components/musicSection.vue")
         },
-      ],
+      ]
+    },
+    
+    {
+      path: "/bookclub",
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/bookclub/BookclubMain.vue"),
+        },
+        {
+          path : "community",
+          component: () => import("@/views/bookclub/CommunityDetail.vue"),
+        },
+        {
+          path : "mybookclub",
+          component : () => import("@/views/bookclub/MyBookclub.vue"),
+        },
+      ]
     },
   ],
 });

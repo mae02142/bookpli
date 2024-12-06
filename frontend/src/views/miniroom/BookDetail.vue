@@ -50,6 +50,7 @@
 <script setup>
 import { ref } from "vue";
 
+
 const book = ref({
 title: "불안의 서",
 introduction: "지상에서 가장 슬픈 책, 페소아가 전하는 슬픈 상상력",
@@ -63,8 +64,14 @@ translator: "배수아",
 });
 
 const viewReviews = () => {
-alert("리뷰 보기 클릭됨!");
+    alert("리뷰 보기 클릭됨!");
 };
+
+// const bookInfo= () => async {
+
+// }
+
+
 </script>
 
 <style>

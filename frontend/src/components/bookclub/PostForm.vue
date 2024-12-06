@@ -6,13 +6,30 @@
                 <h3>게시글 등록</h3>
                 <hr>
             </header>
-        <article class="post-content">
-            <div :v-show="uploadImg" v-for="img,index in imageSrc" :key="index" class="preview">
-                <img :src="img.url" class="preview-img">
+        <article class="post-form">
+            <div class="preview">
+                <div :v-show="uploadImg" v-for="img,index in imageSrc" :key="index">
+                    <div class="preImg-box">
+                      <img @click="removeImg(index)" src="@/assets/icons/close.png" alt="delete image" class="del-img">
+                      <img :src="img.url" class="preview-img">
+                    </div>
+                </div>       
             </div>
             <textarea class="post-text" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요."></textarea>
             <div class="icon-btn">
-                <img @click="triggerFileInput"  src="@/assets/icons/image-add.png" alt="click to upload">
+                <button class="open-file" @click="triggerFileInput">
+                <span class="file-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 71 67">
+                    <path
+                        stroke-width="5"
+                        stroke="black"
+                        d="M41.7322 11.7678L42.4645 12.5H43.5H68.5V64.5H2.5V2.5H32.4645L41.7322 11.7678Z"
+                    ></path>
+                    </svg>
+                    <span class="file-front"></span>
+                </span>
+                Open file
+                </button>
                 <input type="file" ref="fileInput" style="display: none;" @change="onFileChange" multiple accept="image/*">
                 <button @click="putUpPost" class="modal-btn">게시</button>
             </div>
@@ -34,6 +51,7 @@ import {ref} from "vue";
         setup(_,{emit}) {
             const closeModal = () =>{ //모달 닫기
                 console.log("모달창을 닫습니다.");
+                imageSrc.value = "";
                 emit("update:modelValue", false);
                 console.log("emit 실행 완료");
             }
@@ -43,8 +61,8 @@ import {ref} from "vue";
             const onFileChange = (event) =>{
                 const files = event.target.files;
 
-                if(files.length + imageSrc.value.length >4){
-                    alert("이미지는 최대 4장까지 업로드 가능합니다.");
+                if(files.length + imageSrc.value.length >3){
+                    alert("이미지는 최대 2장까지 업로드 가능합니다.");
                     return ;
                 }
                 for(let i=0; i<files.length ; i++){
@@ -63,13 +81,19 @@ import {ref} from "vue";
             };
             const triggerFileInput = () => {
                 fileInput.value.click();  // input file 태그를 클릭하게끔 함
-            }
+            };
+            const removeImg = (index) => {
+                imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
+            };
+
+
             const putUpPost = () => { //게시글 등록
                 //axios 수행
                 alert("게시글이 등록되었습니다");
+                imageSrc.value = "";
                 closeModal();
                 //mypost 다시 리로딩
-            }
+            };
             return{
                 closeModal,
                 putUpPost,
@@ -78,6 +102,7 @@ import {ref} from "vue";
                 fileInput,
                 imageSrc,
                 uploadImg,
+                removeImg,
             };
         },
     }
@@ -108,6 +133,7 @@ import {ref} from "vue";
         box-sizing: border-box;
         overflow: scroll;
     }
+
     /*  헤더 스타일  */
     .header {
         text-align: center;
@@ -129,10 +155,32 @@ import {ref} from "vue";
         height: auto;
         display: flex;
         flex-direction: row;
+        justify-content: center;
     }
-    .preview-img {
-        width: 150px;
-        height: 150px;
+    .del-img {
+        width: 15px;
+        height: 15px;
+        margin-left: auto;
+    }
+    .del-img:hover{
+        cursor: pointer;
+    }
+    .image-preview {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .preview-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  .preImg-box {
+      display: flex;
+      flex-direction: column;
+      width: 170px;
+      height: 170px;
     }
     .modal-btn {
         width: 50px;
@@ -152,4 +200,52 @@ import {ref} from "vue";
         justify-content: space-between;
         align-items: center;
     }
+
+    /* 이미지 파일 */
+.open-file {
+  background-color: rgb(255, 255, 255);
+  width: 140px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border: 1px solid rgb(217, 217, 217);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 10px;
+}
+.file-wrapper {
+  width: 15px;
+  height: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+}
+.file-wrapper svg {
+  width: 100%;
+}
+.file-front {
+    position: absolute;
+    width: 85%;
+    height: 60%;
+    border: 2px solid rgb(0, 0, 0);
+    border-bottom: 1px solid black;
+    transform: skewX(-30deg);
+    transform-origin: bottom right;
+    background-color: white;
+    transition: all 0.5s;
+    bottom: 0;
+}
+.open-file:hover .file-front {
+  height: 50%;
+  transform-origin: bottom right;
+  transform: skewX(-45deg);
+}
+.open-file:hover {
+  box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.048);
+}
+
 </style>
