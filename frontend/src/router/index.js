@@ -60,7 +60,7 @@ const router = createRouter({
       path: "/miniroom",
       children: [
         {
-          path: "book",
+          path: "book/:isbn13",
           component: () => import("@/views/miniroom/BookDetail.vue"),
         },
         {

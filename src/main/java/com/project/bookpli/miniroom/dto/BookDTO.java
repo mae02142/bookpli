@@ -24,30 +24,30 @@ public class BookDTO {
     // DTO -> Entity
     public Book toEntity() {
         return Book.builder()
-                .isbn13(this.isbn13)
-                .title(this.title)
-                .author(this.author)
-                .description(this.description)
-                .pubdate(this.pubdate)
-                .publisher(this.publisher)
-                .cover(this.cover)
-                .startindex(this.startindex)
-                .genre(this.genre)
-                .build();
+            .isbn13(this.isbn13)
+            .title(this.title)
+            .author(this.author)
+            .description(this.description)
+            .pubdate(this.pubdate)
+            .publisher(this.publisher)
+            .cover(this.cover)
+            .startindex(this.startindex)
+            .genre(this.genre)
+            .build();
     }
 
     // Entity -> DTO
     public static BookDTO fromEntity(Book book) {
         return BookDTO.builder()
-                .isbn13(book.getIsbn13())
-                .title(book.getTitle())
-                .author(book.getAuthor())
-                .description(book.getDescription())
-                .pubdate(book.getPubdate())
-                .publisher(book.getPublisher())
-                .cover(book.getCover())
-                .startindex(book.getStartindex())
-                .genre(book.getGenre())
-                .build();
-    }
+            .isbn13(book.getIsbn13())
+            .title(book.getTitle())
+            .author(book.getAuthor())
+            .description(book.getDescription())
+            .pubdate(book.getPubdate())
+            .publisher(book.getPublisher())
+            .cover(book.getCover())
+            .startindex(book.getStartindex())
+            .genre(book.getGenre())
+            .build();
+}
 }

@@ -2,24 +2,23 @@
 <div>
     <div class="book-details">
         <div class="book-cover-section">
-            <img class="book-cover" src="../../assets/test/book1.jpg"/>
+            <img class="book-cover" :src="book.cover"/>
         </div>
     <div class="book-info-section">
         <div>
             <h1 class="book-title">{{ book.title }}</h1>
             <span class="book-meta">
-                출판일: {{ book.publicationDate }}
-                쪽수: {{ book.pages }}쪽
-                ISBN: {{ book.isbn }}
+                출판일: {{ book.pubdate.split('T')[0] }}
+                <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
+                ISBN: {{ book.isbn13 }}
             </span>
             <span class="book-meta">
                 출판사: {{ book.publisher }}
                 지은이: {{ book.author }}
-                옮긴이: {{ book.translator }}
             </span>
             <div>
                 <h2 class="book-intro-header">책소개</h2>
-                <p class="book-intro">{{ book.introduction }}</p> 
+                <p class="book-intro">{{ book.description }}</p> 
                 보기
             </div>
         </div>
@@ -49,28 +48,14 @@
 
 <script setup>
 import { ref } from "vue";
+import { useRoute } from "vue-router";
 
-
-const book = ref({
-title: "불안의 서",
-introduction: "지상에서 가장 슬픈 책, 페소아가 전하는 슬픈 상상력",
-cover: "image-120.png",
-publicationDate: "2014-03-27",
-pages: 808,
-isbn: "9788996997962",
-publisher: "봄날의 책",
-author: "페르난두 페소아",
-translator: "배수아",
-});
+const route= useRoute();
+const book= ref(JSON.parse(route.query.data));
 
 const viewReviews = () => {
     alert("리뷰 보기 클릭됨!");
 };
-
-// const bookInfo= () => async {
-
-// }
-
 
 </script>
 

@@ -21,6 +21,7 @@ public class BookApiService {
 
     private final String TTB_KEY = "ttbsumini0911820002";
     private final String BASE_URL = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx";
+
     @Autowired
     private BookRepository bookrep;
 
@@ -107,9 +108,18 @@ public class BookApiService {
         return 0; // 기본값
     }
 
+    public List<BookResponseDTO> getBookList(Long userId, String status) {
+        if ("reading".equalsIgnoreCase(status)) {
+            return bookrep.readBookList(userId);
+        } else if ("wished".equalsIgnoreCase(status)) {
+            return bookrep.addBookList(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+    }
 
-    public List<BookResponseDTO> getBookList(Long userId) {
-        // Book 리스트 가져오기
-        return bookrep.testBookList(userId);
+
+    public List<BookDTO> bookDetail(String isbn13) {
+        return bookrep.findByIsbn13(isbn13);
     }
 }

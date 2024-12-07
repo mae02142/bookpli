@@ -10,7 +10,7 @@
                 <div class="avatar">이미지</div>
                 <div>
                     <p>xxx님</p>
-                    <p>이번달 목표 권 수: <span>xx 권</span></p>
+                    <p>현재 목표 권 수:</p>권
                     <p>이번달 읽은 권 수: <span>xx 권</span></p>
                 </div>
             </div>
@@ -90,30 +90,14 @@
 <h3 class="title-header">내가 읽고 있는 책</h3>    
 <div class="book-section section">
     <div class="book-covers">
-        <div class="book-item">
-            <img class="book-cover" src="../../assets/test/book1.jpg" @click="gotoDetail"/>
+        <div class="book-item" v-for="rbook in readList" :key="readList.isbn13">
+            <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
             <p class="book-info">
                 <span class="book-icon" @click="gotoGoal">📖</span>&nbsp;&nbsp;
-                <span>책제목</span>&nbsp;&nbsp;
-                <span>저자명</span>
+                <span>{{ rbook.title }}</span>&nbsp;&nbsp;
+                <span>{{ rbook.author }}</span>
             </p>
         </div>
-        <div class="book-item">
-            <img class="book-cover" src="../../assets/test/book2.jpg" @click="gotoDetail"/>
-            <p class="book-info">
-                <span class="book-icon">📖</span>&nbsp;&nbsp;
-                <span>책제목</span>&nbsp;&nbsp;
-                <span>저자명</span>
-            </p>
-        </div>
-        <div class="book-item">    
-            <img class="book-cover" src="../../assets/test/book3.jpg" @click="gotoDetail"/>
-            <p class="book-info">
-                <span class="book-icon">📖</span>&nbsp;&nbsp;
-                <span>책제목</span>&nbsp;&nbsp;
-                <span>저자명</span>
-            </p>
-        </div>    
     </div>
 
 </div>
@@ -123,14 +107,8 @@
 </p>
 <div class="book-section section">
 <div class="book-covers">
-    <div class="book-item">
-        <img class="book-cover" src="../../assets/test/book4.jpg" @click="gotoDetail"/>
-    </div>
-    <div class="book-item">    
-        <img class="book-cover" src="../../assets/test/book5.jpg" @click="gotoDetail" />
-    </div>
-    <div class="book-item">    
-        <img class="book-cover" src="../../assets/test/book6.jpg" @click="gotoDetail" /> 
+    <div class="book-item" v-for="wbook in addList" :key="addList.isbn13">
+        <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
     </div>
 </div>
 </div>
@@ -144,12 +122,15 @@
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router'; 
 import { useAuthStore } from '@/stores/auth';
 import { onMounted } from 'vue';
 
 const router= useRouter();
 const authStore= useAuthStore();
+const addList= ref([]);
+const readList= ref([]);
 
 
 const books = [
@@ -191,23 +172,39 @@ const gotoGoal = () =>{
     router.push('/miniroom/goal');
 }
 
-const gotoDetail = () => {
-    router.push('/miniroom/book');
-}
 
-const loadMyLibrary = async () => {
+const gotoDetail = (book) => {
+    console.log(book);
+    router.push({
+        path: `/miniroom/book/${book.isbn13}`,
+        query: { data: JSON.stringify(book) },  
+    });
+};
+
+
+const loadMyLibrary = async (status='wished') => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`)
-        console.log(response.data);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`,{params: {status}});
+        addList.value= response.data;
         
     } catch (error) {
         console.log(error);
     }
 }
 
+const readingBook = async (status='reading') => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`,{params: {status}});
+        readList.value= response.data;
+        
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 onMounted(() => {
     loadMyLibrary();
+    readingBook();
 })
 
 

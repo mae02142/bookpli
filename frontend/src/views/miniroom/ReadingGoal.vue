@@ -13,23 +13,38 @@
     </div>
     </div>
 
-    <!-- Date Section -->
     <div class="date-section">
-        <div class="date-status">독서상태</div>
-        <div class="date-row">
-            <span class="date-label"><input type="radio">독서중</span>
-            <span class="date-label"><input class="date-label" type="radio">독서 중 해제</span>
-        </div>      
-        <div class="date-header">독서기간</div>
-            <div class="date-row">
-                <span class="date-label">시작일
-                    <img src="../../assets/icons/calendar.png">
-                    <span class="date-value">{{ startDate }}</span>
-                </span>
-                <span class="date-label">종료일
-                    <img src="../../assets/icons/calendar.png">
-                    <span class="date-value">{{ endDate }}</span>
-                </span>
+    <div class="date-status">독서상태</div>
+    <div class="date-row">
+        <span class="date-label"><input type="radio">독서중</span>
+        <span class="date-label"><input type="radio">독서 중 해제</span>
+    </div>
+    <div class="date-header">독서기간</div>
+    <div class="date-row">
+        <span class="date-label">
+        시작일
+        <img src="../../assets/icons/calendar.png" @click="showStartPicker = !showStartPicker" />
+        <VueDatePicker
+            v-if="showStartPicker"
+            v-model="startDate"
+            @close="showStartPicker = false"
+            :teleport="false"
+            placeholder="날짜 선택"
+        />
+        <span class="date-value">{{ startDate }}</span>
+        </span>
+        <span class="date-label">
+        종료일
+        <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
+        <VueDatePicker
+            v-if="showEndPicker"
+            v-model="endDate"
+            @close="showEndPicker = false"
+            :teleport="false"
+            placeholder="날짜 선택"
+        />
+        <span class="date-value">{{ endDate }}</span>
+        </span>
             </div>
     </div>
 
@@ -49,17 +64,44 @@
 
 <script setup>
 import { ref } from "vue";
+import { useAuthStore } from '@/stores/auth';
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
+
+const authStore= useAuthStore();
 
 // State variables
-const startDate = ref("2024.11.06");
-const endDate = ref("2024.11.30");
-const progress = ref(25); // Progress percentage
+// const startDate = ref("2024.11.06");
+// const endDate = ref("2024.11.30");
+// const progress = ref(25); // Progress percentage
+
+const startDate = ref(null);
+const endDate = ref(null);
+const showStartPicker = ref(false);
+const showEndPicker = ref(false);
 
 // Methods
 const confirmAction = () => {
 alert("확인이 완료되었습니다!");
 };
+
+// const loadMyLibrary = async () => {
+//     try {
+//         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`)
+//         console.log(response.data);
+        
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
+
+// onMounted(() => {
+//     loadMyLibrary();
+// })
+
 </script>
+
 <style>
 * {
 box-sizing: border-box;
@@ -222,5 +264,28 @@ max-width: 800px;
     width: 1.2em; 
     height: 1.2em; 
     cursor: pointer; 
+}
+
+.date-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.date-row {
+display: flex;
+gap: 20px;
+}
+
+.date-label {
+display: flex;
+align-items: center;
+gap: 5px;
+}
+
+.date-value {
+margin-left: 10px;
+color: #555;
+font-size: 14px;
 }
 </style>
