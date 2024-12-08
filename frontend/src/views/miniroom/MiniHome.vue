@@ -178,6 +178,7 @@ const gotoDetail = (book) => {
     router.push({
         path: `/miniroom/book/${book.isbn13}`,
         query: { data: JSON.stringify(book) },  
+        // state: {data:book},
     });
 };
 

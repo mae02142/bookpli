@@ -6,6 +6,7 @@ import com.project.bookpli.miniroom.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
 import com.project.bookpli.miniroom.repository.LibraryRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -61,6 +62,11 @@ public class BookApiService {
             return;
         }
 
+
+
+
+
+
         // DTO 생성 (빌더 패턴 사용)
         BookDTO dto = BookDTO.builder()
                 .isbn13(isbn13)
@@ -108,6 +114,7 @@ public class BookApiService {
         return 0; // 기본값
     }
 
+    //미니룸 - 도서리스트 조회
     public List<BookResponseDTO> getBookList(Long userId, String status) {
         if ("reading".equalsIgnoreCase(status)) {
             return bookrep.readBookList(userId);
@@ -117,9 +124,15 @@ public class BookApiService {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
+    
+//    @Transactional
+//    public void addBookAndLibrary(Book book, Long userId){
+//        if(!bookrep.existsById((book.getIsbn13()))){
+//            bookrep.save(book);
+//        }
+//
+////        Library library= new Library();
+//
+//    }
 
-
-    public List<BookDTO> bookDetail(String isbn13) {
-        return bookrep.findByIsbn13(isbn13);
-    }
 }

@@ -21,6 +21,7 @@
                 <p class="book-intro">{{ book.description }}</p> 
                 보기
             </div>
+            <button class="btn-read" @click="gotoGoal(book)">선택</button>
         </div>
     </div>
 </div> 
@@ -48,13 +49,33 @@
 
 <script setup>
 import { ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route= useRoute();
+const router= useRouter();
 const book= ref(JSON.parse(route.query.data));
+// const book= ref(route.state?.data || {});
 
 const viewReviews = () => {
     alert("리뷰 보기 클릭됨!");
+};
+
+const gotoGoal = (book) => {
+    console.log(book);
+    router.push({
+        path: `/miniroom/goal/${book.isbn13}`,
+        query: { 
+            title: book.title,
+            author: book.author,
+            description: book.description,
+            pubdate: book.pubdate,
+            publisher: book.publisher,
+            cover: book.cover,
+            startindex: book.startindex,
+            genre: book.genre,
+            status: book.status,
+        },  
+    });
 };
 
 </script>
@@ -99,6 +120,7 @@ body {
 }
 
 .book-info-section {
+    position: relative;
     background: #ffffff;
     border: 1px solid #cccccc;
     border-radius: 8px;
@@ -222,6 +244,18 @@ body {
     font-size: 18px;
     font-weight: bold;
     padding: 5px 10px;
+    cursor: pointer;
+}
+
+.btn-read {
+    position: absolute;
+    bottom: 10px; 
+    right: 10px; 
+    background-color: #fffdf1;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
     cursor: pointer;
 }
 </style>

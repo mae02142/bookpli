@@ -36,5 +36,5 @@ public interface BookRepository extends JpaRepository<Book, String> {
             + "FROM Book b WHERE b.isbn13 = :isbn13")
     List<BookDTO> findByIsbn13(@Param("isbn13") String isbn13);
 
-//    List<BookDTO> bookInfo(@PathVariable String isbn13);
+    
 }

@@ -1,13 +1,12 @@
 <template>
 <div>
     <!-- Title -->
-    <div class="title">불안의 서</div>
+    <div class="title">{{book.title}}</div>
 
-    <!-- Book Section -->
     <div class="book-section">
-    <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
-    <div class="book-info">페르난두 페소아(808p)</div>
-    <div class="reading-status">
+    <img class="book-cover" :src="book.cover" alt="Book Cover" />
+    <div class="book-info">{{book.author}}({{book.startindex}}p)</div>
+    <div class="reading-status" v-if="book.status === 'reading'">
         <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
         <span class="reading-status-text">읽고 있는 책</span>
     </div>
@@ -27,11 +26,12 @@
         <VueDatePicker
             v-if="showStartPicker"
             v-model="startDate"
-            @close="showStartPicker = false"
             :teleport="false"
             placeholder="날짜 선택"
+            :locale="ko"
+            :format="dateFormat"
+            @update:modelValue="updateStartDate"
         />
-        <span class="date-value">{{ startDate }}</span>
         </span>
         <span class="date-label">
         종료일
@@ -39,22 +39,22 @@
         <VueDatePicker
             v-if="showEndPicker"
             v-model="endDate"
-            @close="showEndPicker = false"
             :teleport="false"
             placeholder="날짜 선택"
+            :locale="ko"
+            :format="dateFormat"
+            @update:modelValue="updateEndDate"
         />
-        <span class="date-value">{{ endDate }}</span>
         </span>
             </div>
     </div>
 
-    <!-- Progress Section -->
-    <div class="progress-section">
-    <div class="progress-header">독서량</div>
-    <div class="progress-bar">
-        <div class="progress-bar-fill"></div>
-    </div>
-    <p class="progress-percentage">25%</p>
+    <div class="progress-section" v-if="book.status === 'reading'">
+        <div class="progress-header">독서량</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <p class="progress-percentage">25%</p>
     </div>
 
     <!-- Confirm Button -->
@@ -63,17 +63,47 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref,computed } from "vue";
 import { useAuthStore } from '@/stores/auth';
+import { useRoute, useRouter } from "vue-router";
+
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { ko } from "date-fns/locale";
+import { format } from "date-fns";
+
+const route= useRoute();
+const router= useRouter();
+
+//날짜 포맷팅
+const dateFormat = "yyyy-MM-dd";
+
+const book = ref({
+    isbn13: route.params.isbn13, 
+    title: route.query.title,
+    author: route.query.author,
+    pubdate: route.query.pubdate,
+    publisher: route.query.publisher,
+    cover: route.query.cover,
+    startindex: route.query.startindex,
+    genre: route.query.genre,
+    status: route.query.status,
+});
+
+console.log(book.value);
+
+
+// Methods
+const updateStartDate = (value) => {
+    startDate.value = value; 
+};
+
+const updateEndDate = (value) => {
+    endDate.value = value;
+};
+
 
 const authStore= useAuthStore();
-
-// State variables
-// const startDate = ref("2024.11.06");
-// const endDate = ref("2024.11.30");
-// const progress = ref(25); // Progress percentage
 
 const startDate = ref(null);
 const endDate = ref(null);
@@ -85,6 +115,9 @@ const confirmAction = () => {
 alert("확인이 완료되었습니다!");
 };
 
+const changeStatus = async () => {
+    
+}
 // const loadMyLibrary = async () => {
 //     try {
 //         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`)
@@ -177,11 +210,12 @@ max-width: 800px;
 }
 
 .date-header {
-margin: 40px auto;
-font-size: 30px;
-color: #000000;
-margin-bottom: 10px;
+    text-align: left; 
+    font-size: 30px;
+    color: #000000;
+    margin: 20px 0 10px 0; 
 }
+
 
 .date-label input[type="radio"] {
     width: 24px; 

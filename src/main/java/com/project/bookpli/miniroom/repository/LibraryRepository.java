@@ -1,7 +1,10 @@
 package com.project.bookpli.miniroom.repository;
 
 import com.project.bookpli.entity.Library;
+import com.project.bookpli.miniroom.dto.BookResponseDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,5 +24,18 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     //1년동안 읽은 도서수
     @Query("SELECT YEAR(l.endDate) AS year, COUNT(l.libraryId) AS bookCnt FROM Library l WHERE l.status = 'completed' GROUP BY YEAR(l.endDate) ORDER BY year ASC")
     String bookCntOrderByYear();
+
+    //독서 목표설정 status update
+    @Transactional
+    @Modifying
+    @Query("update library l set l.status='reading', l.startDate= :startDate, l.endDate= :endDate where status='wished'")
+    int setReadGoal(@Param("status") String status, @Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    //독서 상태 해제로 변경
+    @Transactional
+    @Modifying
+    @Query("update library l set l.status='dropped' where status='reading'")
+    int changeStatus();
+
 
 }
