@@ -72,9 +72,9 @@
   
 <script setup>
 import { ref, onMounted, reactive } from "vue";
-import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { defineEmits } from "vue";
+import apiClient from "@/api/axiosInstance";
 
 const authStore = useAuthStore();
 
@@ -97,7 +97,7 @@ const startEditing = () => {
 const saveEdit = async () => {
   try {
     // 닉네임 중복 체크 후 저장
-    const duplicateResponse = await axios.get(`/api/mypage/nickname/${user.userNickname}`);
+    const duplicateResponse = await apiClient.get(`/api/mypage/nickname/${user.userNickname}`);
     if (duplicateResponse.data.data) {
       nicknameError.value = true;
       errorMessage.value = "이미 존재하는 닉네임입니다.";
@@ -109,7 +109,7 @@ const saveEdit = async () => {
       userId: authStore.user.userId,
       userNickname: user.userNickname,
     };
-    await axios.patch("/api/mypage", request);
+    await apiClient.patch("/api/mypage", request);
     isEditing.value = false;
     nicknameError.value = false;
     nicknameCheck.value = false;
@@ -136,7 +136,7 @@ const closeModal = () => {
 // 유저 정보 로드
 const loadUserInfo = async () => {
   try {
-    const response = await axios.get(`/api/mypage/${authStore.user.userId}`);
+    const response = await apiClient.get(`/api/mypage/${authStore.user.userId}`);
     Object.assign(user, response.data.data);
   } catch (error) {
     console.error("데이터 불러오기 오류:", error);
@@ -146,7 +146,7 @@ const loadUserInfo = async () => {
 // 닉네임 중복 확인
 const duplicateCheckNickname = async () => {
   try {
-    const response = await axios.get(`/api/mypage/nickname/${user.userNickname}`);
+    const response = await apiClient.get(`/api/mypage/nickname/${user.userNickname}`);
     console.log(response.data.data);
     if (response.data.data) {
       nicknameError.value = true;

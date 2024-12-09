@@ -21,7 +21,7 @@ public class MypageController {
     }
     @PatchMapping
     public BaseResponse<Void> patchNickName(@RequestBody Map<String, Object> request){
-        mypageService.patchNickName(request);
+        mypageService.patchNickName(request); 
         return new BaseResponse<>();
     }
 
