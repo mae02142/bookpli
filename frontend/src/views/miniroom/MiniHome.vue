@@ -79,9 +79,29 @@
                 <div class="progress-info">
                     <span class="progress-percentage">{{ book.progress }}%</span>
                     <span class="page-info">p.{{ book.currentPage }}/{{ book.totalPages }}
-                        <img src="../../assets/icons/bookmark2.png" class="sm-images"/>
+                        <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="editPage"/>
                     </span>
                 </div>
+                <!-- <div class="page-info">
+                    <div v-if="isEditing">
+                        <input
+                            type="number" 
+                            v-model.number="currentPageInput" 
+                            class="edit-input" 
+                            @blur="savePage" 
+                            @keyup.enter="savePage" 
+                        />
+                        /{{ book.totalPages }}
+                    </div>
+                    <div v-else>
+                        p.{{ book.currentPage }}/{{ book.totalPages }}
+                        <img 
+                            src="../../assets/icons/bookmark2.png" 
+                            class="sm-images" 
+                            @click="editPage"
+                        />
+                    </div>
+                </div> -->
             </div>  
             </div>
         </ul>          
@@ -93,7 +113,7 @@
         <div class="book-item" v-for="rbook in readList" :key="readList.isbn13">
             <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
             <p class="book-info">
-                <span class="book-icon" @click="gotoGoal">📖</span>&nbsp;&nbsp;
+                <span class="book-icon" @click="gotoGoal(rbook)">📖</span>&nbsp;&nbsp;
                 <span>{{ rbook.title }}</span>&nbsp;&nbsp;
                 <span>{{ rbook.author }}</span>
             </p>
@@ -122,7 +142,7 @@
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router'; 
 import { useAuthStore } from '@/stores/auth';
 import { onMounted } from 'vue';
@@ -131,6 +151,7 @@ const router= useRouter();
 const authStore= useAuthStore();
 const addList= ref([]);
 const readList= ref([]);
+const isEditing= ref([]);
 
 
 const books = [
@@ -168,9 +189,43 @@ const savedBooks = [
 { title: '숲속의 생활', author: '헨리 소로우' },
 ];
 
-const gotoGoal = () =>{
-    router.push('/miniroom/goal');
-}
+
+const currentPageInput = ref(addList.value.currentPage);
+
+const progressPercentage = computed(() => {
+    return Math.round((addList.value.currentPage / addList.value.totalPages) * 100);
+});
+
+
+const editPage = () => {
+    isEditing.value=true;
+};
+
+const savePage = () => {
+    if (
+        currentPageInput.value >= 0 &&
+        currentPageInput.value <= addList.value.totalPages
+    ) {
+        addList.value.currentPage = currentPageInput.value;
+    } else {
+        alert("유효한 페이지를 입력하세요.");
+    }
+    isEditing.value = false;
+};
+
+const gotoGoal = (book) =>{
+    if(book.status === "reading"){
+        router.push({
+            path:`/miniroom/goal/${book.isbn13}`,
+            query: {data: JSON.stringify(book)},
+        });
+    }else{
+        router.push({
+            path:`/miniroom/goal/${book.isbn13}`,
+            query: {data: JSON.stringify(book)},
+        });
+    }
+};
 
 
 const gotoDetail = (book) => {
@@ -178,7 +233,6 @@ const gotoDetail = (book) => {
     router.push({
         path: `/miniroom/book/${book.isbn13}`,
         query: { data: JSON.stringify(book) },  
-        // state: {data:book},
     });
 };
 
@@ -384,7 +438,7 @@ margin: 5px 0;
 }
 
 .vr.full-height {
-    height: 100%; /* 화면 전체 높이에 맞춤 */
+    height: 100%; 
     background-color: #ccc;
     width: 2px;
 }
@@ -559,17 +613,17 @@ position: relative;
 }
 
 .sidebar {
-    position: fixed; /* 고정 */
+    position: fixed; 
     top: 0;
     left: 0;
-    width: 60px; /* 사이드바 너비 */
-    height: 100%; /* 화면 전체 높이 */
-    background-color: #fffdf1; /* 사이드바 배경색 */
+    width: 60px; 
+    height: 100%;
+    background-color: #fffdf1;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 10px 0;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    z-index: 1000; /* 다른 요소 위에 배치 */
+    z-index: 1000; 
 }
 </style>

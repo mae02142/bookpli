@@ -4,7 +4,7 @@ import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.Library;
 import lombok.*;
 
-import java.sql.Date;
+import java.util.Date;
 
 @Getter
 @NoArgsConstructor
@@ -36,8 +36,8 @@ public class LibraryDTO {
                 .user_id(library.getUserId())
                 .isbn13(library.getBook().getIsbn13())
                 .status(library.getStatus())
-//                .startDate(library.getStartDate())
-//                .endDate(library.getEndDate())
+                .startDate(library.getStartDate())
+                .endDate(library.getEndDate())
                 .build();
     }
 }

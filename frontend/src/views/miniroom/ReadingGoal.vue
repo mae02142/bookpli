@@ -15,8 +15,12 @@
     <div class="date-section">
     <div class="date-status">독서상태</div>
     <div class="date-row">
-        <span class="date-label"><input type="radio">독서중</span>
-        <span class="date-label"><input type="radio">독서 중 해제</span>
+        <span class="date-label">
+            <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
+        </span>
+        <span class="date-label">
+            <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
+        </span>
     </div>
     <div class="date-header">독서기간</div>
     <div class="date-row">
@@ -57,8 +61,7 @@
         <p class="progress-percentage">25%</p>
     </div>
 
-    <!-- Confirm Button -->
-    <button class="confirm-button" @click="confirmAction">확인</button>
+    <button class="confirm-button" @click="handleAction()">확인</button>
 </div>
 </template>
 
@@ -71,6 +74,7 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
+import axios from "axios";
 
 const route= useRoute();
 const router= useRouter();
@@ -78,22 +82,11 @@ const router= useRouter();
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
 
-const book = ref({
-    isbn13: route.params.isbn13, 
-    title: route.query.title,
-    author: route.query.author,
-    pubdate: route.query.pubdate,
-    publisher: route.query.publisher,
-    cover: route.query.cover,
-    startindex: route.query.startindex,
-    genre: route.query.genre,
-    status: route.query.status,
-});
 
-console.log(book.value);
+const book =ref(
+    route.query.data ? JSON.parse(route.query.data): {}
+);
 
-
-// Methods
 const updateStartDate = (value) => {
     startDate.value = value; 
 };
@@ -110,28 +103,56 @@ const endDate = ref(null);
 const showStartPicker = ref(false);
 const showEndPicker = ref(false);
 
-// Methods
-const confirmAction = () => {
-alert("확인이 완료되었습니다!");
-};
+const radioSelect= ref("");
+
+const handleAction= async () => {
+    if(radioSelect.value === "reading"){
+        await changeStatus();
+    }else if(radioSelect.value === "dropped"){
+        await dropReading();
+    }else{
+        alert("독서상태를 선택해주세요");
+    }
+}
 
 const changeStatus = async () => {
-    
+    if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
+        alert("독서상태와 독서기간을 모두 선택해주세요");
+        return;
+    }
+
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+
+    try{
+        const response= await axios.post(`/api/goal/${book.value.isbn13}`, null, {
+            params: {
+                status: book.value.status,
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
+        alert(response.data);
+        router.push('/miniroom/minihome');
+    }catch(error){
+        console.error(error.response?.data || error.message);
+        alert("오류가 발생했습니다.");
+    }
 }
-// const loadMyLibrary = async () => {
-//     try {
-//         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}`)
-//         console.log(response.data);
-        
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
 
+const dropReading = async () => {
+    try{
+        const response= await axios.delete(`/api/goal/${book.value.isbn13}`,{
+            params: { status: "dropped" },
+        });
+        alert(response.data);
+        router.push("/miniroom/minihome");
+    }catch(error){
+        console.error(error.response?.data || error.message);
+        alert("오류가 발생했습니다.");
+    }
+}
 
-// onMounted(() => {
-//     loadMyLibrary();
-// })
 
 </script>
 

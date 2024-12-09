@@ -21,7 +21,7 @@
                 <p class="book-intro">{{ book.description }}</p> 
                 보기
             </div>
-            <button class="btn-read" @click="gotoGoal(book)">선택</button>
+            <button class="btn-read" @click="gotoGoal(book)" v-if="book.status !== 'reading'">선택</button>
         </div>
     </div>
 </div> 
@@ -60,20 +60,12 @@ const viewReviews = () => {
     alert("리뷰 보기 클릭됨!");
 };
 
-const gotoGoal = (book) => {
+const gotoGoal = (book, source="default") => {
     console.log(book);
     router.push({
         path: `/miniroom/goal/${book.isbn13}`,
         query: { 
-            title: book.title,
-            author: book.author,
-            description: book.description,
-            pubdate: book.pubdate,
-            publisher: book.publisher,
-            cover: book.cover,
-            startindex: book.startindex,
-            genre: book.genre,
-            status: book.status,
+            data: JSON.stringify(book),
         },  
     });
 };
