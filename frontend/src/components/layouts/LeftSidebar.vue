@@ -6,7 +6,9 @@
       <router-link to="/mypage/mypli">
         <img class="sidebar-icon" src="@/assets/sidebar/playlist.png">
       </router-link>  
+      <router-link to="/bookclub">
         <img class="sidebar-icon" src="@/assets/sidebar/bookclub.png">
+      </router-link>
         <img class="sidebar-icon" src="@/assets/sidebar/usericon.png" @click="openModal">
         <UserInfoModal   v-if="modalStore.activeModal === 'UserInfoModal'" 
         @close="closeModal" />

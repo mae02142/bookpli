@@ -82,17 +82,27 @@
     </div>
   </template>
   <script>
-  import { ref } from "vue";
+  import { onMounted, ref } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue"
+  import { useRoute } from "vue-router";
+
   export default {
     components : {
       PostForm,
       Comment,
     },  
     setup() {
+    
+      onMounted(()=>{
+        const route = useRoute(); // 현재 라우트 정보
+
+        console.log(route.query.clubInfo);
+        console.log(route);
+      });
+
       const community = ref({
         title: "크리스마스로 불리는 소년",
         author: "매트 헤이그",

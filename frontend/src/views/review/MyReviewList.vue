@@ -14,7 +14,13 @@
         <div class="remove-review">
           <img src="@/assets/icons/close.png" @click="review.showModal = true" class="removeIcon">
           <!-- 모달 표시 -->
-          <RemoveReview v-model:isVisible="review.showModal" :deleteId="review.reviewId" @delete-review="deleteReview" />
+          <RemoveReview 
+          v-model:isVisible="review.showModal" 
+          :deleteId="review.reviewId"
+           @delete-review="deleteReview" 
+           @closeModal="close"
+           />
+
         </div>
         <div class="title-icon">
           <h3 class="title">{{ review.title }}</h3>
@@ -40,9 +46,10 @@
           </article>
         </div>
           <div class="edit-review">
-            <img src="@/assets/icons/edit-2-line.png" @click="openInput(review.reviewId)" 
+            <img src="@/assets/icons/edit-2-line.png" 
+            @click="openInput(review.reviewId)" 
             :style="{display: editingId === review.reviewId ? 'none' : 'block' }"
-            style="width: 27px; margin-top: px;">
+            style="width: 27px; ">
           </div>
       </div>
         <div class="content-icon" style="display: flex;">
@@ -53,7 +60,9 @@
           <div v-else>{{ review.reviewContent }}</div>
         </p>
         <div v-if="editingId === review.reviewId">
-          <img src="@/assets/icons/task-line.png" @click="saveReview(review.reviewId)" class="task-line">
+          <img src="@/assets/icons/task-line.png" 
+          @click="updateReview" class="task-line"
+          >
         </div> 
         </div>
       </div>
@@ -65,33 +74,38 @@
 import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
 import RemoveReview from "@/components/review/RemoveReview.vue";
-import { onMounted, ref, toRaw } from "vue";
+import { onMounted, ref} from "vue";
 import axios from "axios";
+import { useAuthStore } from '@/stores/auth';
 
 export default {
   components : {
     RemoveReview,
   },
   setup() {
+  
+  const authStore = useAuthStore();
+  
+  onMounted(() => {
+    const checkUser = authStore.user.userId;
+    console.log("회원 아이디 확인 : ", checkUser);
+    getMyList(checkUser);
+
+  });
+  
     //서버에서 받아온 리뷰 저장
     const serverReview = ref([]); 
     //브라우저에 출력할 리뷰의 값 
     const reviews = ref([]);
-    // 어떤 리뷰가 수정 중인지 index 추적
+    // 어떤 리뷰가 수정 중인지 id 추적
     const editingId = ref(null); 
     // 수정할 값을 담기
-    const editingReview = ref({
-      reviewId : 1,
-      userId : 1,
-      isbn13: "",
-      reviewContent: "",
-      rating: 1,
-    });
+    const editingReview = ref({ });
 
-          // 서버에서 유저의 리뷰 조회
-    const getMyList = async (userId) => {
+            /*  리뷰  조회  */
+    const getMyList = async (checkUser) => {
       try{
-        const response = await axios.get(`http://localhost:8081/api/review/myreview/${userId}`);
+        const response = await axios.get(`http://localhost:8081/api/review/myreview/${checkUser}`)
         if(response.status != 200){
           console.log("리뷰를 불러오는데 오류가 발생했습니다.");
           console.log(response.status);
@@ -105,7 +119,6 @@ export default {
             ...review,
             showModal : false,
           }))
-          console.log("review data 값 : "+JSON.stringify(reviews.value));
         } else {
           console.error('serverPosts는 배열이 아닙니다.');
         };
@@ -114,54 +127,66 @@ export default {
       }
     }
 
-     // 수정하기 위해 데이터를 복사해서 창을 열기
-    const openInput = (reviewId) => {
+            /*  리뷰  수정  */
+    const openInput = (reviewId) => {  // 수정하기 위해 데이터를 복사해서 창을 열기
       console.log("수정하려는 값 : " + reviewId);
       editingId.value = reviewId;
-      editingReview.value = { ...reviews.value.find(review => review.reviewId === reviewId) }; // 리뷰의 데이터를 복사하여 편집용 데이터로 설정
-
+      // 리뷰의 데이터를 복사하여 편집용 데이터로 설정
+      editingReview.value = { ...reviews.value.find(review => 
+        review.reviewId === reviewId) }; 
+        console.log("editing review 에 복사: "+ JSON.stringify(editingReview.value));
+    };
+      //별점 변경
+    const ratingStar = (starIndex) => {  
+      editingReview.value.rating = starIndex;
     };
 
-     // 해당 reviewId의 인덱스를 찾음
-    const findIndex= (reviewId) =>{ reviews.value.findIndex(review => review.reviewId === reviewId)};
-
-    // 수정한 리뷰 저장
-    const saveReview = (reviewId) => {
-      const reviewIndex = findIndex(reviewId);
-      if (reviewIndex !== -1) { //조건에 맞지 않으면 -1 반환 
-        reviews.value[reviewIndex] = { ...editingReview.value }; // 해당 인덱스의 리뷰를 수정된 값으로 업데이트
-        console.log("수정완료")
-        editingId.value = null; // 수정 모드 종료
-        updateReview(editingReview);
-      } else {
-        console.log("수정할 리뷰를 찾을 수 없습니다.");
-      }
-    };
     // 서버로 수정 처리 
-    const raw =  toRaw(editingReview)
     const updateReview = async() => {
       try{
-        const response = await axios.put("http://localhost:8081/api/review/update", raw);
-        console.log("리뷰 수정 상태 : "+ response.status);
+        const review =  {
+        reviewId : editingId.value,
+        reviewContent: editingReview.value.reviewContent,
+        rating: editingReview.value.rating,
+      };
+      console.log(review);
+
+       const response = await axios.patch(`http://localhost:8081/api/review/update`, review);
+         console.log("리뷰 수정 상태 : "+ response.status);
+        
+      const index = reviews.value.findIndex((item) => item.reviewId === review.reviewId);
+      if(index !== -1){
+        reviews.value[index] = {...reviews.value[index],...review};
+      }
+      editingId.value = null;
       }catch(error){
         console.error(error , "수정 처리 중 오류 발생 ");
       }
-    }
-
-    const deleteReview = (reviewId) => {
-      console.log("삭제하려는 값 : "+ reviewId);
-      const reviewIndex = findIndex(reviewId);  
-      reviews.value.splice(reviewIndex, 1); // 리뷰 삭제
-       };
-
-    const ratingStar = (starIndex) => {  //별점 값 변경
-      editingReview.value.rating = starIndex;
     };
-  
-    onMounted(() => {
-      const userId = 3;  // 예시 사용자
-      getMyList(userId);
-    });
+
+           /*  리뷰  삭제  */ 
+    const deleteReview = async(reviewId) => {
+      console.log("삭제하려는 값 : "+ reviewId);
+      try{
+        const response = await axios.delete(`http://localhost:8081/api/review/delete/${reviewId}`)
+        console.log(response.status);
+
+        if(response.status=== 200){
+          const checkUser = authStore.user.userId;
+          getMyList(checkUser); // 삭제 후 새롭게 리뷰 목록을 가져옴
+          close(); // 모달 닫기
+        }
+      }catch(error){
+        console.error(error,"삭제 오류 발생");
+      }
+    };
+
+    const close = () => {
+      reviews.value.forEach(review => {
+      review.showModal = false;
+      });
+    }
+ 
     return {
       serverReview,
       reviews,
@@ -169,13 +194,12 @@ export default {
       fullStarImage,
       emptyStarImage,
       openInput,
-      findIndex,
-      saveReview,
       updateReview,
-      deleteReview,
       editingId,
       editingReview,
       ratingStar,
+      deleteReview,
+      close,
     };
   },
 };

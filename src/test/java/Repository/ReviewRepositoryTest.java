@@ -1,8 +1,8 @@
 package Repository;
 
 import com.project.bookpli.BookpliApplication;
-import com.project.bookpli.bookclub.dto.ReviewDTO;
-import com.project.bookpli.bookclub.repository.ReviewRepository;
+import com.project.bookpli.review.dto.ReviewDTO;
+import com.project.bookpli.review.repository.ReviewRepository;
 import com.project.bookpli.entity.Review;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,13 +33,13 @@ public class ReviewRepositoryTest {
     @BeforeEach
     void setup () {
         // 테스트를 위한 dto 객체 생성
-        dto = new ReviewDTO();
-        dto.setReviewId(2L);
-        dto.setUserId(3L);
-        dto.setIsbn13("9781234567890");
-        dto.setReviewContent("유익한 내용");
-        dto.setRating(4);
-
+        dto = ReviewDTO.builder()
+                .reviewId(4L)
+                .userId(4L)
+                .isbn13("123456789")
+                .reviewContent("흥미로운 내용이 많습니다")
+                .rating(4)
+                .build();
     }
 
     @Test

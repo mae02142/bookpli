@@ -1,4 +1,4 @@
-package com.project.bookpli.bookclub.repository;
+package com.project.bookpli.review.repository;
 
 import com.project.bookpli.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;

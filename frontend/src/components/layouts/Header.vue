@@ -1,52 +1,5 @@
-<template>
-  <header class="header">
-    <div class="left-section">
-      <div class="logo" @click="goHome">bookpli</div>
-      <nav class="nav">
-        <router-link to="/mypage/mylibrary">
-          <span class="nav-item">My서재</span>
-        </router-link>
-        <router-link to="/mypage/mypli">
-          <span class="nav-item">My플리</span>
-        </router-link>
-      </nav>
-    </div>
-    <div class="search-bar">
-      <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" />
-      <input
-        type="text"
-        class="search-input"
-        placeholder="검색어 입력"
-        @keypress.enter="fetchSearchBooks"
-        v-model="searchQuery"
-      />
-    </div>
-    <router-link v-if="!isAuthenticated" to="/auth/login">
-      <div class="log-button">
-        <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
-        <span>LOGIN</span>
-      </div>
-    </router-link>
-    <div v-else @click="handleLogout" class="log-button">
-      <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
-      <span>LOGOUT</span>
-    </div>
-  </header>
 
-  <!-- Display Search Results -->
-  <div v-if="searchBooks.length" class="search-results">
-    <h2>검색 결과:</h2>
-    <ul>
-      <li v-for="(book, index) in searchBooks" :key="index">
-        <img :src="book.cover" alt="Book Cover" v-if="book.cover" />
-        <div>
-          <strong>{{ book.title }}</strong><br />
-          <em>{{ book.author }}</em>
-        </div>
-      </li>
-    </ul>
-  </div>
-</template>
+<template>
     <header class="header">
       <div class="left-section">
         <div class="logo" @click="goHome">bookpli</div>
