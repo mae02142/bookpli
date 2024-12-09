@@ -37,5 +37,4 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("update Library l set l.status='dropped', l.startDate=null, l.endDate=null where l.status='reading' AND l.book.isbn13 = :isbn13")
     int changeStatus(@Param("isbn13") String isbn13, @Param("status") String status);
 
-
 }

@@ -54,7 +54,6 @@ import { useRoute, useRouter } from "vue-router";
 const route= useRoute();
 const router= useRouter();
 const book= ref(JSON.parse(route.query.data));
-// const book= ref(route.state?.data || {});
 
 const viewReviews = () => {
     alert("리뷰 보기 클릭됨!");

@@ -61,47 +61,33 @@
     <h3 class="title-header">이번달 독서통계</h3>
     <div class="reading-stats-box">
         <ul>
-            <div v-for="(book, index) in books" :key="index" class="book-progress">
+            <div class="book-progress" v-for="(book, index) in readList" :key="index">
             <p class="book-title">{{ book.title }}</p>
-            <p class="book-start-date">시작일 {{ book.startDate }}</p>
+            <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
             <div class="progress-wrapper">
-                
-            <!-- 목표량 Progress Bar -->
-                <!-- <progress :value="book.progress" max="100">{{ book.progress }}%</progress><br>
-                <p class="">{{ book.progress }}%</p> 
-                <div  class="goal-progress"  :style="{ width: (book.currentPage / book.totalPages) * 100 + '%' }"></div>-->
-
+            <!-- Progress Bar -->
                 <!-- 목표량 Progress Bar -->
-                <div class="full-progress" :value="book.progress" max="100"></div>
-                <div class="goal-progress" :style="{ width: (book.totalPages / 400) * 100 + '%' }"></div>
+                <div class="full-progress" max="100"></div>
+                <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}"></div> 
+                <!-- :style="{ width: (book.totalPages / 400) * 100 + '%' }" -->
+                
                 <!-- 현재 Progress Bar -->
-                <div class="current-progress" :style="{ width: book.progress + '%' }"></div>
+                <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"></div>
                 <div class="progress-info">
-                    <span class="progress-percentage">{{ book.progress }}%</span>
-                    <span class="page-info">p.{{ book.currentPage }}/{{ book.totalPages }}
-                        <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="editPage"/>
+                    <span class="progress-percentage">{{ calInputPage[index] }}%</span>
+                    <span class="page-info">
+                        <!-- p.{{ book.currentPage }}/{{ book.startindex }} -->
+                        <span v-if="isEditing[index]">
+                            <input type="number" v-model.number="currentPage[index]" 
+                            @blur="stopEdit(index)" @keyup.enter="stopEdit(index)" class="edit-input"/>
+                            /{{ book.startindex }}
+                        </span>
+                        <span v-else>
+                            p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
+                        <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
+                    </span>
                     </span>
                 </div>
-                <!-- <div class="page-info">
-                    <div v-if="isEditing">
-                        <input
-                            type="number" 
-                            v-model.number="currentPageInput" 
-                            class="edit-input" 
-                            @blur="savePage" 
-                            @keyup.enter="savePage" 
-                        />
-                        /{{ book.totalPages }}
-                    </div>
-                    <div v-else>
-                        p.{{ book.currentPage }}/{{ book.totalPages }}
-                        <img 
-                            src="../../assets/icons/bookmark2.png" 
-                            class="sm-images" 
-                            @click="editPage"
-                        />
-                    </div>
-                </div> -->
             </div>  
             </div>
         </ul>          
@@ -151,67 +137,108 @@ const router= useRouter();
 const authStore= useAuthStore();
 const addList= ref([]);
 const readList= ref([]);
-const isEditing= ref([]);
 
 
-const books = [
-{
-    title: '소년이 온다',
-    startDate: '2024.11.24',
-    progress: 35,
-    currentPage: 90,
-    totalPages: 253,
-},
-{
-    title: '불안의 서',
-    startDate: '2024.11.06',
-    progress: 45,
-    currentPage: 240,
-    totalPages: 355,
-},
-];
+const currentPage= ref(readList.value.map(() => 0)); //초기값 0으로 설정
+const isEditing= ref(readList.value.map(()=> false)); //현재 페이지 입력 편집모드
 
+
+
+//입력 페이지 퍼센트 렌더링
+const calInputPage = computed(() => 
+    readList.value.map((book, index) => {
+    const currentPages= currentPage.value[index] || 0;
+    const totalPages= book.startindex || 1;
+
+    if (currentPages <= 0) return 0; // 최소값 0
+    if (currentPages >= totalPages) return 100; // 최대값 100
+    return Math.round((currentPages / totalPages) * 100); //퍼센트 계산
+    }) 
+);
 const song = {
 title: '혼술 하고 싶은 밤',
 artist: '벤',
 src: 'song.mp3', // 실제 오디오 파일 경로로 대체하세요.
 };
 
-const readingBooks = [
-{ title: '소년이 온다', author: '한강' },
-{ title: '불안의 서', author: '페르난도 페소아' },
-{ title: '면도날', author: '서머싯 몸' },
-];
+//1일 독서량 계산
+const calDailyRead= (startDate, endDate, startindex) => {
+    const start= new Date(startDate);
+    const end= new Date(endDate);
 
-const savedBooks = [
-{ title: '불안 세대', author: '제임스 스미스' },
-{ title: '시의 언어들', author: '김소연' },
-{ title: '숲속의 생활', author: '헨리 소로우' },
-];
+    //기간계산 (밀리초 -> 일 단위)
+    const days= (start-end)/(1000 * 60 * 60 * 24);
+
+    //하루 목표량
+    return Math.ceil(startindex/days);
+}
+
+//편집모드 시작
+const startEdit= (index) => {
+    isEditing.value[index]=true;
+}
+
+//편집모드 종료
+const stopEdit= (index) => {
+    const currentPages = currentPage.value[index];
+    const totalPages = readList.value[index].startindex;
+
+    // 유효한 범위 내로 제한
+    if (currentPages < 0) currentPage.value[index] = 0;
+    if (currentPages > totalPages) currentPage.value[index] = totalPages;
+
+    isEditing.value[index] = false;
+};
 
 
-const currentPageInput = ref(addList.value.currentPage);
+// 반응형 목표량 누적 계산
+const calculateGoalProgress = computed(() => {
+    return readList.value.map((book) => {
+    const start = new Date(book.startDate);
+    const end = new Date(book.endDate);
+    const today = new Date();
 
-const progressPercentage = computed(() => {
-    return Math.round((addList.value.currentPage / addList.value.totalPages) * 100);
+    // 목표 기간 계산 (밀리초 → 일)
+    const totalDays = (end - start) / (1000 * 60 * 60 * 24);
+
+    // 오늘까지의 경과일 계산
+    const elapsedDays = (today - start) / (1000 * 60 * 60 * 24);
+
+    // 경과일이 0보다 작으면 (시작 전) 0%, 종료일 이후면 100%
+    if (elapsedDays < 0) return 0;
+    if (elapsedDays > totalDays) return 100;
+
+    // 목표량 누적 계산 (경과 비율 * 총 페이지 수)
+    const progress = (elapsedDays / totalDays) * 100;
+    return parseFloat(progress.toFixed(2)); // 소수점 2자리까지 표시
+    });
 });
 
 
-const editPage = () => {
-    isEditing.value=true;
-};
 
-const savePage = () => {
-    if (
-        currentPageInput.value >= 0 &&
-        currentPageInput.value <= addList.value.totalPages
-    ) {
-        addList.value.currentPage = currentPageInput.value;
-    } else {
-        alert("유효한 페이지를 입력하세요.");
-    }
-    isEditing.value = false;
-};
+// const currentPageInput = ref(addList.value.currentPage);
+
+
+// const progressPercentage = computed(() => {
+//     return Math.round((addList.value.currentPage / readList.value.startindex) * 100);
+// });
+
+
+// const editPage = (book) => {
+//     isEditing.value=true;
+// };
+
+// const savePage = (book) => {
+//     if (
+//         currentPageInput.value >= 0 &&
+//         currentPageInput.value <= addList.value.totalPages
+//     ) {
+//         addList.value.currentPage = currentPageInput.value;
+//     } else {
+//         alert("유효한 페이지를 입력하세요.");
+//     }
+//     isEditing.value = false;
+// };
 
 const gotoGoal = (book) =>{
     if(book.status === "reading"){
@@ -259,8 +286,10 @@ const readingBook = async (status='reading') => {
 
 onMounted(() => {
     loadMyLibrary();
-    readingBook();
-})
+    readingBook().then(() => {
+        isEditing.value = readList.value.map(() => false); // 각 책의 편집 상태 초기화
+    });
+});
 
 
 </script>
@@ -332,7 +361,7 @@ flex-direction: column;
 }
 
 .reading-stats-box {
-height: 200px; 
+height: 300px; 
 background-color: #f9f9f9;
 padding: 20px;
 border-radius: 8px;
@@ -447,6 +476,9 @@ margin: 5px 0;
     margin-top: 50px;
 }
 
+.book-progress:nth-of-type(3) {
+    margin-top: 50px;
+}
 
 .progress-wrapper {
     position: relative;
