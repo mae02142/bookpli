@@ -46,22 +46,21 @@ const router = createRouter({
           component: () => import("@/views/bookclub/BookclubMain.vue"),
         },
         {
-          path : "community",
+          path: "community",
           component: () => import("@/views/bookclub/CommunityDetail.vue"),
         },
         {
-          path : "mybookclub",
-          component : () => import("@/views/bookclub/MyBookclub.vue"),
+          path: "mybookclub",
+          component: () => import("@/views/bookclub/MyBookclub.vue"),
         },
-      ]
+      ],
     },
-
 
     {
       path: "/miniroom",
       children: [
         {
-          path: "book",
+          path: "book/:isbn13",
           component: () => import("@/views/miniroom/BookDetail.vue"),
         },
         {
@@ -69,7 +68,7 @@ const router = createRouter({
           component: () => import("@/views/miniroom/MiniHome.vue"),
         },
         {
-          path: "goal",
+          path: "goal/:isbn13",
           component: () => import("@/views/miniroom/ReadingGoal.vue"),
         },
       ],
@@ -80,14 +79,37 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: () => import("@/views/main/mainPage.vue")
+          component: () => import("@/views/main/mainPage.vue"),
         },
         {
           path: "music",
-          component: () => import("@/components/musicSection.vue")
+          component: () => import("@/components/musicSection.vue"),
         },
-      ]
-    }
+      ],
+    },
+
+    {
+      path: "/search",
+      component: () => import("@/views/main/bookSearch.vue"),
+    },
+    
+    {
+      path: "/bookclub",
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/bookclub/BookclubMain.vue"),
+        },
+        {
+          path: "community",
+          component: () => import("@/views/bookclub/CommunityDetail.vue"),
+        },
+        {
+          path: "mybookclub",
+          component: () => import("@/views/bookclub/MyBookclub.vue"),
+        },
+      ],
+    },
   ],
 });
 

@@ -53,9 +53,9 @@
 <script>
 import { ref, onMounted } from "vue";
 
-
 export default {
     setup() {
+
 
 
     const newBooks = ref([]);
@@ -263,7 +263,7 @@ body {
     position: absolute;
     bottom: 20px;
     right: 10px;
-    z-index: 10;
+    z-index: 2;
 }
 
 /* Rankings Section */

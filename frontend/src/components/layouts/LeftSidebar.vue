@@ -1,5 +1,5 @@
 <template>
-    <div class="sidebar">
+    <div class="left-sidebar">
       <router-link to="/mypage/mylibrary">
         <img class="sidebar-icon" src="@/assets/sidebar/bookshelf.png">
       </router-link>  
@@ -17,11 +17,9 @@
 
 <script setup>
 import { useModalStore } from "@/stores/modalState";
-import { useRouter } from 'vue-router'
 import UserInfoModal from "@/views/mypage/UserInfoModal.vue";
 
 const modalStore = useModalStore();
-const router = useRouter();
 
 const openModal = () => {
   modalStore.openModal("UserInfoModal");
@@ -34,7 +32,7 @@ const closeModal = () => {
 </script>
 
 <style scoped>
-.sidebar {
+.left-sidebar {
   width: 45px;
   background: #fffdf1;
   padding: 10px;

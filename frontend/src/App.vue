@@ -3,7 +3,6 @@
     <header v-if="!isAuthLoginPage">
       <Header></Header>
     </header>
-    <img src="@/assets/banners/thumbnail2.png" class="main-thumbnail" v-if="isMainPage">
     <div class="wrapper">
       <router-view></router-view>
     </div>
@@ -20,7 +19,7 @@ const route = useRoute();
 const isAuthLoginPage = computed(() => route.path === "/auth/login");
 
 // 현재 경로가 메인 페이지인지 확인
-const isMainPage = computed(() => route.path === "/");
+const isMainPage = computed(() => route.path === "/main");
 </script>
 
 <style scoped>

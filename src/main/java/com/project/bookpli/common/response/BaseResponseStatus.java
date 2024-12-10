@@ -11,6 +11,8 @@ public enum BaseResponseStatus {
 
     /* 회원 */
     USER_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 회원입니다."),
+    JWT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 토큰입니다.");
+
 
 
    /* 리뷰 */

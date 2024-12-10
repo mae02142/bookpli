@@ -1,65 +1,162 @@
 <template>
 <div>
     <!-- Title -->
-    <div class="title">불안의 서</div>
+    <div class="title">{{book.title}}</div>
 
-    <!-- Book Section -->
     <div class="book-section">
-    <img class="book-cover" src="../../assets/test/book1.jpg" alt="Book Cover" />
-    <div class="book-info">페르난두 페소아(808p)</div>
-    <div class="reading-status">
+    <img class="book-cover" :src="book.cover" alt="Book Cover" />
+    <div class="book-info">{{book.author}}({{book.startindex}}p)</div>
+    <div class="reading-status" v-if="book.status === 'reading'">
         <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
         <span class="reading-status-text">읽고 있는 책</span>
     </div>
     </div>
 
-    <!-- Date Section -->
     <div class="date-section">
-        <div class="date-status">독서상태</div>
-        <div class="date-row">
-            <span class="date-label"><input type="radio">독서중</span>
-            <span class="date-label"><input class="date-label" type="radio">독서 중 해제</span>
-        </div>      
-        <div class="date-header">독서기간</div>
-            <div class="date-row">
-                <span class="date-label">시작일
-                    <img src="../../assets/icons/calendar.png">
-                    <span class="date-value">{{ startDate }}</span>
-                </span>
-                <span class="date-label">종료일
-                    <img src="../../assets/icons/calendar.png">
-                    <span class="date-value">{{ endDate }}</span>
-                </span>
+    <div class="date-status">독서상태</div>
+    <div class="date-row">
+        <span class="date-label">
+            <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
+        </span>
+        <span class="date-label">
+            <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
+        </span>
+    </div>
+    <div class="date-header">독서기간</div>
+    <div class="date-row">
+        <span class="date-label">
+        시작일
+        <img src="../../assets/icons/calendar.png" @click="showStartPicker = !showStartPicker" />
+        <VueDatePicker
+            v-if="showStartPicker"
+            v-model="startDate"
+            :teleport="false"
+            placeholder="날짜 선택"
+            :locale="ko"
+            :format="dateFormat"
+            @update:modelValue="updateStartDate"
+        />
+        </span>
+        <span class="date-label">
+        종료일
+        <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
+        <VueDatePicker
+            v-if="showEndPicker"
+            v-model="endDate"
+            :teleport="false"
+            placeholder="날짜 선택"
+            :locale="ko"
+            :format="dateFormat"
+            @update:modelValue="updateEndDate"
+        />
+        </span>
             </div>
     </div>
 
-    <!-- Progress Section -->
-    <div class="progress-section">
-    <div class="progress-header">독서량</div>
-    <div class="progress-bar">
-        <div class="progress-bar-fill"></div>
-    </div>
-    <p class="progress-percentage">25%</p>
+    <div class="progress-section" v-if="book.status === 'reading'">
+        <div class="progress-header">독서량</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <p class="progress-percentage">25%</p>
     </div>
 
-    <!-- Confirm Button -->
-    <button class="confirm-button" @click="confirmAction">확인</button>
+    <button class="confirm-button" @click="handleAction()">확인</button>
 </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref,computed } from "vue";
+import { useAuthStore } from '@/stores/auth';
+import { useRoute, useRouter } from "vue-router";
 
-// State variables
-const startDate = ref("2024.11.06");
-const endDate = ref("2024.11.30");
-const progress = ref(25); // Progress percentage
+import VueDatePicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
+import { ko } from "date-fns/locale";
+import { format } from "date-fns";
+import axios from "axios";
 
-// Methods
-const confirmAction = () => {
-alert("확인이 완료되었습니다!");
+const route= useRoute();
+const router= useRouter();
+
+//날짜 포맷팅
+const dateFormat = "yyyy-MM-dd";
+
+
+const book =ref(
+    route.query.data ? JSON.parse(route.query.data): {}
+);
+
+const updateStartDate = (value) => {
+    startDate.value = value; 
 };
+
+const updateEndDate = (value) => {
+    endDate.value = value;
+};
+
+
+const authStore= useAuthStore();
+
+const startDate = ref(null);
+const endDate = ref(null);
+const showStartPicker = ref(false);
+const showEndPicker = ref(false);
+
+const radioSelect= ref("");
+
+const handleAction= async () => {
+    if(radioSelect.value === "reading"){
+        await changeStatus();
+    }else if(radioSelect.value === "dropped"){
+        await dropReading();
+    }else{
+        alert("독서상태를 선택해주세요");
+    }
+}
+
+const changeStatus = async () => {
+    if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
+        alert("독서상태와 독서기간을 모두 선택해주세요");
+        return;
+    }
+
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+
+    try{
+        const response= await axios.post(`/api/goal/${book.value.isbn13}`, null, {
+            params: {
+                status: book.value.status,
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
+        alert(response.data);
+        router.push('/miniroom/minihome');
+    }catch(error){
+        console.error(error.response?.data || error.message);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+
+const dropReading = async () => {
+    try{
+        const response= await axios.delete(`/api/goal/${book.value.isbn13}`,{
+            params: { status: "dropped" },
+        });
+        alert(response.data);
+        router.push("/miniroom/minihome");
+    }catch(error){
+        console.error(error.response?.data || error.message);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+
 </script>
+
 <style>
 * {
 box-sizing: border-box;
@@ -135,11 +232,12 @@ max-width: 800px;
 }
 
 .date-header {
-margin: 40px auto;
-font-size: 30px;
-color: #000000;
-margin-bottom: 10px;
+    text-align: left; 
+    font-size: 30px;
+    color: #000000;
+    margin: 20px 0 10px 0; 
 }
+
 
 .date-label input[type="radio"] {
     width: 24px; 
@@ -222,5 +320,28 @@ max-width: 800px;
     width: 1.2em; 
     height: 1.2em; 
     cursor: pointer; 
+}
+
+.date-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.date-row {
+display: flex;
+gap: 20px;
+}
+
+.date-label {
+display: flex;
+align-items: center;
+gap: 5px;
+}
+
+.date-value {
+margin-left: 10px;
+color: #555;
+font-size: 14px;
 }
 </style>

@@ -1,34 +1,43 @@
-
 <template>
-    <header class="header">
-      <div class="left-section">
-        <div class="logo" @click="goHome">bookpli</div>
-        <nav class="nav">
-            <router-link to="/miniroom/minihome">
-            <span class="nav-item">미니룸</span>
-            </router-link>
-            <router-link to="/bookclub">
-                <span class="nav-item">북적북적</span>
-            </router-link>
-        </nav>
+  <header class="header">
+    <div class="left-section">
+      <div class="logo" @click="goHome">bookpli</div>
+      <nav class="nav">
+        <router-link to="/miniroom/minihome">
+          <span class="nav-item">미니룸</span>
+        </router-link>
+        <router-link to="/bookclub">
+          <span class="nav-item">북적북적</span>
+        </router-link>
+      </nav>
+    </div>
+    <div class="search-bar">
+      <img
+        class="search-icon"
+        src="@/assets/icons/search.png"
+        alt="Search Icon"
+        @click="submitSearch"
+      />
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Q"
+        v-model="searchQuery"
+        @keyup.enter="submitSearch"
+      />
+    </div>
+    <router-link v-if="!isAuthenticated" to="/auth/login">
+      <div class="log-button">
+        <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
+        <span>LOGIN</span>
       </div>
-      <div class="search-bar">
-        <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" />
-        <input type="text" class="search-input" placeholder="Q">
-      </div>
-      <router-link v-if="!isAuthenticated" to="/auth/login">
-        <div class="log-button">
-          <img src="@/assets/icons/logout.png" alt="로그인 아이콘">
-          <span>LOGIN</span>
-        </div>
-      </router-link>
-      <div v-else @click="handleLogout" class="log-button">
-        <img src="@/assets/icons/login.png" alt="로그아웃 아이콘">
-        <span>LOGOUT</span>
-      </div>
-
-    </header>
-  </template>
+    </router-link>
+    <div v-else @click="handleLogout" class="log-button">
+      <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
+      <span>LOGOUT</span>
+    </div>
+  </header>
+</template>
 
 <script setup>
 import { computed, ref } from "vue";
@@ -38,72 +47,30 @@ import { useAuthStore } from "@/stores/auth";
 const authStore = useAuthStore();
 const router = useRouter();
 
+// Navigation Methods
 function goHome() {
   router.push({ path: "/main" });
 }
 
+// Authentication State
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
+// Logout Handler
 const handleLogout = () => {
   authStore.clearAuthData();
   router.push({ path: "/main" });
 };
 
-const searchBooks = ref([]);
+// Search State
 const searchQuery = ref("");
-const apiUrl = "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx"; // Use HTTPS if supported
-const ttbKey = "ttbyoungjae.bae1809001";
 
-// Search Books using JSONP
-const fetchSearchBooksJSONP = (query) => {
-  return new Promise((resolve, reject) => {
-    if (!query.trim()) {
-      alert("검색어를 입력하세요.");
-      resolve([]); // Resolve with empty results to avoid errors
-      return;
-    }
-
-    const callbackName = `jsonpCallback_${Date.now()}`;
-    const script = document.createElement("script");
-
-    // Construct the API URL without line breaks
-    const url = `${apiUrl}?ttbkey=${ttbKey}&QueryType=Keyword&Query=${encodeURIComponent(query)}&MaxResults=5&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
-    console.log("Fetching JSONP URL:", url); // Debug log
-    script.src = url;
-
-    // Define the global callback
-    window[callbackName] = (response) => {
-      if (!response) {
-        console.warn("No response received from the API.");
-        reject(new Error("Empty API response"));
-      } else {
-        console.log("API Response:", response);
-        resolve(response);
-      }
-      delete window[callbackName];
-      document.body.removeChild(script);
-    };
-
-    // Append the script to the document
-    document.body.appendChild(script);
-  });
-};
-
-const fetchSearchBooks = async () => {
-  try {
-    const searchBooksData = await fetchSearchBooksJSONP(searchQuery.value);
-    if (searchBooksData && searchBooksData.item) {
-      searchBooks.value = searchBooksData.item.map((book) => ({
-        title: book.title || "제목 없음",
-        author: book.author || "저자 없음",
-        cover: book.cover || "",
-      }));
-    } else {
-      searchBooks.value = [];
-      console.warn("No books found in the response:", searchBooksData);
-    }
-  } catch (error) {
-    console.error("Error fetching Search Books data:", error);
+// Search Submission Handler
+const submitSearch = () => {
+  const query = searchQuery.value.trim();
+  if (query) {
+    router.push({ path: "/search", query: { q: query } });
+  } else {
+    alert("검색어를 입력하세요.");
   }
 };
 </script>
@@ -158,11 +125,13 @@ const fetchSearchBooks = async () => {
   align-items: center;
   background: #eaeaea;
   border-radius: 50px;
+  padding: 0 10px;
 }
 
 .search-icon {
   height: auto;
   margin-left: 15px;
+  cursor: pointer;
 }
 
 .search-input {
@@ -182,27 +151,5 @@ const fetchSearchBooks = async () => {
   align-items: center;
   gap: 5px;
   font-weight: bold;
-}
-
-/* Styles for Search Results */
-.search-results {
-  margin: 20px 25px;
-}
-
-.search-results ul {
-  list-style: none;
-  padding: 0;
-}
-
-.search-results li {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.search-results img {
-  width: 50px;
-  height: auto;
-  margin-right: 15px;
 }
 </style>
