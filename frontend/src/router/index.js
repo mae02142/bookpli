@@ -89,6 +89,11 @@ const router = createRouter({
     },
 
     {
+      path: "/search",
+      component: () => import("@/views/main/bookSearch.vue"),
+    },
+    
+    {
       path: "/bookclub",
       children: [
         {
