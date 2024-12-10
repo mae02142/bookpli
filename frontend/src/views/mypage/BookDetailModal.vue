@@ -39,14 +39,14 @@
   <script setup>
   import { ref } from 'vue';
   import { defineProps, defineEmits } from 'vue';
-  
+   
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
     book: Object,
   });
   
   // 부모로 이벤트 전달
-  const emit = defineEmits(['close']);
+  const emit = defineEmits(['close','openForm']);
   
   // 좋아요 상태 관리
   const isLiked = ref(false);
@@ -58,9 +58,10 @@
   const changeStatus = () => {
     alert('독서 상태를 변경합니다!');
   };
-  
+
   const writeReview = () => {
-    alert('리뷰 작성 페이지로 이동합니다!');
+    emit('openForm'); //이벤트 전달
+    closeModal();
   };
   
   const removeBook = () => {

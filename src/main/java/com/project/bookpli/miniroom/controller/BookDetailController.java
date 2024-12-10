@@ -1,3 +1,4 @@
+/*
 package com.project.bookpli.miniroom.controller;
 
 import com.project.bookpli.miniroom.dto.BookDTO;
@@ -22,3 +23,4 @@ public class BookDetailController {
         return ResponseEntity.ok(bookDetail);
     }
 }
+*/

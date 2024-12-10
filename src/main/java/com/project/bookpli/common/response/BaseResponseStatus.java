@@ -15,6 +15,9 @@ public enum BaseResponseStatus {
 
 
 
+   /* 리뷰 */
+    REVIEW_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(),"리뷰가 존재하지 않습니다.");
+
     private final boolean isSuccess;
     private final int code;
     private final String message;

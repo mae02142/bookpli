@@ -42,7 +42,8 @@
   </template>
   
   <script>
-  import { ref, onMounted } from 'vue';
+  import axios from 'axios';
+import { ref, onMounted } from 'vue';
   
   export default {
     props:  {
@@ -59,7 +60,7 @@
     setup(props,{emit}) {
       // 서버에서 불러온 게시글 내용
       const postContent = ref('');
-    
+
       // 서버에서 불러온 이미지 URL 리스트
       const imageSrc = ref([]);
 
@@ -81,14 +82,10 @@
       // 서버에서 게시글 데이터 및 이미지 URL을 불러오는 함수
       const loadPostData = async () => {
         try {
-          // 예시: 서버에서 게시글 내용과 이미지 URL을 받아온다고 가정
-          postContent.value = `크리스마스로 불리는 소년은 크리스마스를 떠올리기에 딱 좋았던 책인 것 같다. 
-          크리스마스를 좋아하는 내게 굉장히 흥미로웠고 영화를 먼저 봤었기 때문에 영화가 책의 내용을 잘 담아냈다고 생각한다.`;
-          
-          // 예시: 서버에서 이미지 URL을 받아오는 로직 (여기서는 더미 데이터 사용)
-          imageSrc.value = [
-            { url: 'https://t2.daumcdn.net/thumb/R720x0/?fname=http://t1.daumcdn.net/brunch/service/user/7KD/image/Twc6gpoHWkc7XDaoU_pZ3opJcWk.jpg' } // 이미지 URL을 불러와서 설정
-          ];
+         const response = await axios.get("http://localhost:8081/api/post/getOne", {
+          params : {postId : props.editId},
+         });
+         console.log(response.data);
         } catch (error) {
           console.error("게시글 데이터를 불러오는 중 오류 발생:", error);
         }
