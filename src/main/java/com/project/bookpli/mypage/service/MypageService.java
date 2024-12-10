@@ -5,7 +5,6 @@ import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.User;
 import com.project.bookpli.mypage.dto.UserDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +12,12 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class MypageService {
     private final UserRepository userRepository;
+
+    public MypageService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public UserDTO getUserProfile(Long userId) {
         User user =  userRepository.findById(userId)
@@ -37,5 +39,10 @@ public class MypageService {
     public UserDTO duplicateCheckNickname(String nickName) {
         Optional<User> user = userRepository.findByUserNickname(nickName);
         return user.map(UserDTO::fromEntity).orElse(null);
+    }
+
+    public Optional<User> findBySpotifyId(String spotifyId) {
+        Optional<User> user = userRepository.findBySpotifyId(spotifyId);
+        return user;
     }
 }

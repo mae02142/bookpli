@@ -1,8 +1,6 @@
 <template>
 <div class="dashboard">
-    <!-- <div class="sidebar">
-        <LeftSidebar />
-    </div> -->
+    <LeftSidebar/> 
     <div class="left-section">
     <!-- 사용자 프로필 -->
         <div class="user-profile">
@@ -214,10 +212,8 @@ onMounted(() => {
 
 <style scoped>
 .dashboard {
-    display: grid;
-    grid-template-columns: 1fr 2px 2fr;
-    padding: 20px;
-    align-items: start;
+    display: flex;
+    height: 100vh;
 }
 
 .left-section,
