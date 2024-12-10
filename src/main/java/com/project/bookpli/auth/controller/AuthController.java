@@ -46,7 +46,8 @@ public class AuthController {
                 "?client_id=" + clientId +
                 "&response_type=code" +
                 "&redirect_uri=" + redirectUri +
-                "&scope=user-read-private user-read-email playlist-read-private playlist-modify-private";
+                "&scope=user-read-private user-read-email playlist-read-private playlist-modify-private "
+                + "playlist-modify-public";
         return ResponseEntity.ok(spotifyAuthUrl);
     }
 

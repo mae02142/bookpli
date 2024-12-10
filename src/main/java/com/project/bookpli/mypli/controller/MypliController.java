@@ -2,14 +2,9 @@ package com.project.bookpli.mypli.controller;
 
 import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.mypli.service.MypliService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.net.http.HttpRequest;
 import java.util.Map;
 
 @RestController
@@ -31,5 +26,17 @@ public class MypliController {
         System.out.println("playlistId : " + playlistId);
         Map<String, Object> music = mypliService.getPlaylistWithMusic(playlistId);
         return new BaseResponse<>(music);
+    }
+
+    @PostMapping("{spotifyId}")
+    public BaseResponse<Map<String, Object>> createPlaylist(@PathVariable String spotifyId, @RequestBody Map<String, Object> requestBody) {
+        Map<String, Object> response = mypliService.createPlaylist(spotifyId, requestBody);
+        return new BaseResponse<>(response);
+    }
+
+    @DeleteMapping("/playlist/{playlistId}/tracks")
+    public BaseResponse<Void> deleteTrack(@PathVariable String playlistId, @RequestBody Map<String, String> requestBody) {
+        mypliService.deleteTrack(playlistId, requestBody.get("uri"));
+        return new BaseResponse<>();
     }
 }

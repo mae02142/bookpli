@@ -5,9 +5,25 @@
       <div class="sidebar2-item">
         <img src="@/assets/icons/search.png" class="search-icon" />
         <input type="text" placeholder="검색" class="search-bar" />
-        <img src="@/assets/icons/add2.png" class="add-icon" />
+        <img src="@/assets/icons/add_pli.png" class="add-icon" @click="toggleAddMode"/>
       </div>
       <div class="playlist-list">
+        <!-- 입력창 -->
+        <div v-if="addMode" class="add-playlist-box">
+          <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
+          <div class="add-playlist-box-right">
+            <input
+              type="text"
+              placeholder="제목을 입력하세요"
+              v-model="newPlaylistName"
+              class="add-playlist-input"
+            />
+            <div class="add-playlist-btns">
+              <button @click="addPlaylist" class="add-playlist-button">추가</button>
+              <button @click="toggleAddMode" class="cancel-button">취소</button>
+            </div>
+          </div>
+        </div>
         <!-- 플레이리스트 목록 -->
         <div
           class="playlist-item"
@@ -25,7 +41,33 @@
     </div>
     <div class="content">
       <div class="song-list" v-if="selectedPlaylist">
-        <h1 class="pli-header">{{ selectedPlaylist.name }}</h1>
+        <div>
+          <!-- 타이틀 변경 input -->
+          <div v-if="isEditingTitle" class="edit-title-container">
+            <input
+              v-model="editedTitle"
+              type="text"
+              class="edit-title-input"
+              placeholder="새 타이틀 입력"
+            />
+            <button @click="updateTitle" class="save-title-button">완료</button>
+          </div>
+          <div v-else>
+            <h1 class="pli-header">{{ selectedPlaylist.name }}</h1>
+          </div>
+          <img
+            src="@/assets/icons/option.png"
+            alt="option-icon"
+            class="option-icon"
+            @click="toggleOptionMenu"
+          />
+
+          <!-- 옵션 메뉴 -->
+          <div v-if="showOptionMenu" class="option-menu">
+            <button @click="enableEditTitle" class="option-button">타이틀 변경</button>
+            <button @click="deletePlaylist" class="option-button delete">삭제하기</button>
+          </div>
+        </div>
         <table class="song-table">
           <thead>
             <tr>
@@ -72,7 +114,7 @@
               <td class="song-album">{{ song.album }}</td>
               <td class="song-duration">{{ formatDuration(song.duration) }}</td>
               <td class="delete-button-container">
-                <button class="delete-button" @click="deleteSongFromPlaylist(song.id)">
+                <button class="delete-button" @click="deleteSongFromPlaylist(selectedPlaylist.id, song.id)">
                   삭제
                 </button>
               </td>
@@ -106,6 +148,57 @@ const playlists = ref([]); // 플레이리스트 목록
 const selectedPlaylist = ref(null); // 선택된 플레이리스트
 const selectedSong = ref(null); // 선택된 노래
 const songs = ref([]); // 선택된 플레이리스트의 곡
+const addMode = ref(false); // 입력창 표시 여부
+const newPlaylistName = ref(""); // 새 플레이리스트 이름
+
+// 옵션 메뉴 상태
+const showOptionMenu = ref(false);
+const isEditingTitle = ref(false);
+const editedTitle = ref("");
+
+// 옵션 메뉴 토글
+const toggleOptionMenu = () => {
+  showOptionMenu.value = !showOptionMenu.value;
+};
+
+// 타이틀 변경 모드 활성화
+const enableEditTitle = () => {
+  isEditingTitle.value = true;
+  editedTitle.value = selectedPlaylist.value.name;
+  showOptionMenu.value = false; // 옵션 메뉴 닫기
+};
+
+// 타이틀 업데이트
+const updateTitle = async () => {
+  if (!editedTitle.value.trim()) {
+    alert("타이틀은 1글자 이상이어야 합니다.");
+    return;
+  }
+
+  try {
+    // API 호출
+    await apiClient.put(`/api/mypli/${selectedPlaylist.value.id}`, {
+      name: editedTitle.value,
+    });
+
+    // 타이틀 업데이트
+    selectedPlaylist.value.name = editedTitle.value;
+    isEditingTitle.value = false;
+  } catch (error) {
+    console.error("타이틀 변경 실패:", error);
+  }
+};
+
+// 플레이리스트 삭제
+const deletePlaylist = async () => {
+  try {
+    await apiClient.delete(`/api/mypli/${selectedPlaylist.value.id}`);
+    alert("플레이리스트가 삭제되었습니다.");
+    // 여기서 플레이리스트 목록 갱신 로직 추가
+  } catch (error) {
+    console.error("플레이리스트 삭제 실패:", error);
+  }
+};
 
 // 유틸 함수: 곡 길이 포맷
 const formatDuration = (ms) => {
@@ -136,7 +229,6 @@ const loadTracks = async (playlistId) => {
 const getUserPlaylist = async () => {
   try {
     const response = await apiClient.get("/api/mypli");
-    console.log(">>>>>>>>.",response.data);
     playlists.value = response.data.data.items.map((item) => ({
       id: item.id,
       name: item.name,
@@ -194,17 +286,44 @@ onMounted(() => {
 // 노래 삭제
 const deleteSongFromPlaylist = async (playlistId, songId) => {
   const songUri = `spotify:track:${songId}`; // Spotify 트랙 URI 형식
-
   try {
-    await apiClient.delete(`/playlists/${playlistId}/tracks`, {
-      data: {
-        tracks: [{ uri: songUri }],
-      },
+    await apiClient.delete(`/api/mypli/playlist/${playlistId}/tracks`, {
+      data: { uri: songUri },
     });
     songs.value = songs.value.filter((song) => song.id !== songId);
-    console.log(`노래가 플레이리스트에서 삭제되었습니다. songId: ${songId}`);
   } catch (error) {
     console.error("플레이리스트에서 노래 삭제 실패:", error);
+  }
+};
+
+const toggleAddMode = () => {
+  addMode.value = !addMode.value; // 입력창 표시 여부 토글
+  if (!addMode.value) {
+    newPlaylistName.value = ""; // 취소 시 초기화
+  }
+};
+
+const addPlaylist = async () => {
+  if (!newPlaylistName.value.trim()) {
+    alert("플레이리스트명은 1글자 이상입니다.");
+    return;
+  }
+
+  try {
+    const response = await apiClient.post(`/api/mypli/${authStore.user.spotifyId}`, {
+      name: newPlaylistName.value,
+    });
+console.log(response.data.data);
+    playlists.value.push({
+      id: response.data.data.id,
+      name: response.data.data.name,
+      count: 0,
+    });
+
+    addMode.value = false;
+    newPlaylistName.value = "";
+  } catch (error) {
+    console.error("플레이리스트 추가 실패:", error);
   }
 };
 
@@ -219,7 +338,8 @@ const deleteSongFromPlaylist = async (playlistId, songId) => {
 
 .sidebar2 {
   width: 250px;
-  padding: 10px 20px;
+  margin-left: 20px;
+  margin-top: 10px;
 }
 
 .sidebar2-item {
@@ -257,6 +377,7 @@ const deleteSongFromPlaylist = async (playlistId, songId) => {
   width: 25px;
   height: 25px;
   margin-right: 13px;
+  margin-left: 5px;
 }
 
 .playlist-details {
@@ -278,6 +399,8 @@ const deleteSongFromPlaylist = async (playlistId, songId) => {
 .content {
   width: 60%;
   margin-top: 10px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .header {
@@ -405,6 +528,10 @@ text-align: center;
   height: 20px;
 }
 
+.add-icon:hover {
+  cursor: pointer;
+}
+
 .time-icon{
   width: 20px;
   margin-left: 5px;
@@ -418,7 +545,127 @@ text-align: center;
 .pli-header {
     font-weight: bold;
     font-size: 25px;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     text-align: center;
 }
+
+.add-playlist-box {
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: 70px;
+}
+
+.add-playlist-input {
+  flex: 1;
+    border: none;
+    font-size: 14px;
+}
+
+.add-playlist-button {
+  background-color: #252525;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+.cancel-button {
+  background-color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    border: 1px solid #ababab;
+}
+
+.add-playlist-box-right {
+  display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 5px;
+}
+
+.add-playlist-btns {
+  align-self: end;
+  margin-right: 10px;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.option-icon {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.option-menu {
+  position: absolute;
+  top: 106px;
+  right: 740px;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.option-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.option-button:hover {
+  background-color: #f5f5f5;
+}
+
+.option-button.delete {
+  color: red;
+}
+
+.edit-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+}
+
+.edit-title-input {
+  font-size: 16px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.save-title-button {
+  padding: 5px 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-title-button:hover {
+  background-color: #218838;
+}
+
+
+
 </style>

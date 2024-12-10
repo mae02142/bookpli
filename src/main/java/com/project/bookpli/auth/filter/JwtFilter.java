@@ -35,13 +35,10 @@ public class JwtFilter extends OncePerRequestFilter {
         if (jwt != null) {
             try {
                 // JWT 검증 및 클레임 추출
-                System.out.println("doFilterInternal에서 토큰 검증");
                 Claims claims = jwtService.verifyToken(jwt);
 
                 // SecurityContext에 인증 정보 설정
                 setAuthentication(claims);
-
-                log.debug("JWT 검증 성공, SecurityContext에 사용자 인증 정보 저장 완료.");
             } catch (Exception e) {
                 log.warn("JWT 검증 실패: {}", e.getMessage());
             }
@@ -57,13 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * 쿠키에서 JWT 추출
      */
     private String extractJwtFromCookies(HttpServletRequest request) {
-        // 1. Authorization 헤더에서 먼저 토큰 추출
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7); // "Bearer " 접두사 제거
-        }
-
-        // 2. 쿠키에서 토큰 추출 (기존 로직 유지)
+        //쿠키에서 토큰 추출
         return Arrays.stream(request.getCookies() != null ? request.getCookies() : new Cookie[0])
                 .filter(cookie -> "jwt".equals(cookie.getName()))
                 .map(Cookie::getValue)
