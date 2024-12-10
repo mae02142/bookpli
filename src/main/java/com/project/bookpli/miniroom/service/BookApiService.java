@@ -6,6 +6,7 @@ import com.project.bookpli.miniroom.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
 import com.project.bookpli.miniroom.repository.LibraryRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,6 +22,7 @@ public class BookApiService {
 
     private final String TTB_KEY = "ttbsumini0911820002";
     private final String BASE_URL = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx";
+
     @Autowired
     private BookRepository bookrep;
 
@@ -59,6 +61,11 @@ public class BookApiService {
             System.out.println("이미 존재하는 도서이거나 ISBN이 없습니다 :" + isbn13);
             return;
         }
+
+
+
+
+
 
         // DTO 생성 (빌더 패턴 사용)
         BookDTO dto = BookDTO.builder()
@@ -107,9 +114,25 @@ public class BookApiService {
         return 0; // 기본값
     }
 
-
-    public List<BookResponseDTO> getBookList(Long userId) {
-        // Book 리스트 가져오기
-        return bookrep.testBookList(userId);
+    //미니룸 - 도서리스트 조회
+    public List<BookResponseDTO> getBookList(Long userId, String status) {
+        if ("reading".equalsIgnoreCase(status)) {
+            return bookrep.readBookList(userId);
+        } else if ("wished".equalsIgnoreCase(status)) {
+            return bookrep.addBookList(userId);
+        } else {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
     }
+    
+//    @Transactional
+//    public void addBookAndLibrary(Book book, Long userId){
+//        if(!bookrep.existsById((book.getIsbn13()))){
+//            bookrep.save(book);
+//        }
+//
+////        Library library= new Library();
+//
+//    }
+
 }
