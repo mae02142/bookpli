@@ -1,151 +1,181 @@
-<!-- src/components/layouts/MusicPlayer.vue -->
 <template>
-    <div class="music-player">
-        <div class="album-cover">
-            <img :src="currentTrack.albumCover" alt="Album Cover" class="cover-image" />
+  <div class="music-player">
+    <!-- Fold Button -->
+    <button @click="toggleFold" class="fold-button">
+      {{ fold ? "▲ 펼치기" : "▼ 접기" }}
+    </button>
+
+    <!-- Expanded Content -->
+    <div v-show="!fold" class="expanded-content">
+      <div v-if="playerStore.currentTrack">
+        <img :src="playerStore.currentTrack.albumCover" alt="Album Cover" class="cover-image" />
+        <p class="track-title">{{ playerStore.currentTrack.title }}</p>
+        <p class="track-artist">{{ playerStore.currentTrack.artist }}</p>
+        <input 
+          type="range" 
+          class="progress-bar" 
+          min="0" 
+          :max="playerStore.currentTrack.duration" 
+          v-model="playerStore.currentTime" 
+          @input="onSeekTrack"
+        />
+        <div class="time-info">
+          <span>{{ formatTime(playerStore.currentTime) }}</span> / 
+          <span>{{ formatTime(playerStore.currentTrack.duration) }}</span>
         </div>
-        <div class="track-info">
-            <p class="track-title">{{ currentTrack.title }}</p>
-            <p class="track-artist">{{ currentTrack.artist }}</p>
-            <input 
-                type="range" 
-                class="progress-bar" 
-                min="0" 
-                :max="currentTrack.duration" 
-                v-model="currentTime" 
-            />
-        </div>
-        <div class="controls">
-            <button class="prev-btn" @click="prevTrack">⏮</button>
-            <button class="play-btn" @click="togglePlay">{{ isPlaying ? "⏸" : "▶" }}</button>
-            <button class="next-btn" @click="nextTrack">⏭</button>
-        </div>
+      </div>
+      <div v-else>
+        <p>현재 재생 중인 곡이 없습니다.</p>
+      </div>
     </div>
+
+    <!-- Folded Content -->
+    <div v-show="fold" class="folded-content">
+      <div v-if="playerStore.currentTrack">
+        <p class="track-title">{{ playerStore.currentTrack.title }}</p>
+      </div>
+      <div v-else>
+        <p>현재 재생 중인 곡이 없습니다.</p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div v-if="playerStore.currentTrack" class="controls">
+      <button @click="playerStore.previousTrack">⏮</button>
+      <button class="play-btn" @click="playerStore.togglePlay">
+        {{ playerStore.isPlaying ? "⏸" : "▶" }}
+      </button>
+      <button @click="playerStore.nextTrack">⏭</button>
+    </div>
+
+    <!-- Volume Control -->
+    <div v-show="!fold && playerStore.player" class="volume-control">
+      <label for="volume">Volume:</label>
+      <input 
+        type="range" 
+        id="volume" 
+        min="0" 
+        max="1" 
+        step="0.01" 
+        v-model="playerStore.volume" 
+        @input="onVolumeChange"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-defineOptions({
-    name: 'MusicPlayer'
+import { ref, onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { usePlayerStore } from "@/stores/playerStore.js";
+
+const authStore = useAuthStore();
+const playerStore = usePlayerStore();
+const fold = ref(false);
+
+const formatTime = (seconds) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+};
+
+const onSeekTrack = (event) => {
+  const seekSeconds = event.target.value;
+  playerStore.seekTrack(seekSeconds);
+};
+
+const onVolumeChange = () => {
+  playerStore.setVolume(playerStore.volume);
+};
+
+const toggleFold = () => {
+  fold.value = !fold.value; // 상태 토글
+};
+
+onMounted(() => {
+  if (authStore.token) {
+    playerStore.initPlayer(authStore.token);
+  }
 });
-
-// 현재 재생 중인 트랙 인덱스
-const currentTrackIndex = ref(0);
-
-// 재생 상태
-const isPlaying = ref(false);
-
-// 현재 진행 시간
-const currentTime = ref(0);
-
-// 트랙 목록
-const tracks = ref([
-    {
-        title: "Song Title 1",
-        artist: "Artist 1",
-        albumCover: "https://via.placeholder.com/80",
-        duration: 240, // In seconds
-    },
-    {
-        title: "Song Title 2",
-        artist: "Artist 2",
-        albumCover: "https://via.placeholder.com/80",
-        duration: 200,
-    },
-    {
-        title: "Song Title 3",
-        artist: "Artist 3",
-        albumCover: "https://via.placeholder.com/80",
-        duration: 300,
-    },
-]);
-
-// 현재 재생 중인 트랙 정보
-const currentTrack = computed(() => tracks.value[currentTrackIndex.value]);
-
-// 재생/일시정지 토글
-const togglePlay = () => {
-    isPlaying.value = !isPlaying.value;
-};
-
-// 다음 곡으로 이동
-const nextTrack = () => {
-    currentTrackIndex.value =
-        (currentTrackIndex.value + 1) % tracks.value.length;
-};
-
-// 이전 곡으로 이동
-const prevTrack = () => {
-    currentTrackIndex.value =
-        (currentTrackIndex.value - 1 + tracks.value.length) % tracks.value.length;
-};
 </script>
 
 <style scoped>
 .music-player {
-    position: fixed;
-    bottom: 60px;
-    right: 40px;
-    display: flex;
-    flex-direction: column; /* 레이아웃을 세로로 변경 */
-    align-items: center; /* 중앙 정렬 */
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 250px; /* 너비 조정 */
-    /* height: 400px; */
+  position: fixed;
+  bottom: 50px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 250px;
+  z-index: 10;
 }
 
-.album-cover {
-    margin-bottom: 15px; /* 아래로 간격 추가 */
-}
-
-.cover-image {
-    width: 230px;
-    height: 230px;
-    border-radius: 10px;
-    object-fit: cover;
-}
-
-.track-info {
-    width: 100%;
-    text-align: center; /* 중앙 정렬 */
-    margin-bottom: 15px; /* 아래로 간격 추가 */
+.fold-button {
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 10px;
 }
 
 .track-title {
-    font-size: 16px;
-    font-weight: bold;
-    margin: 5px 0;
+  font-size: 16px;
+  font-weight: bold;
+  margin: 5px 0;
 }
 
-.track-artist {
-    font-size: 14px;
-    color: gray;
-    margin: 5px 0;
+.cover-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .progress-bar {
-    width: 100%;
-    margin-top: 10px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.time-info {
+  font-size: 12px;
+  color: gray;
+  margin-top: 5px;
 }
 
 .controls {
-    display: flex;
-    justify-content: center; /* 중앙 정렬 */
-    gap: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 button {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
 }
 
 button:hover {
-    color: #007bff;
+  color: #007bff;
+}
+
+.volume-control {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.volume-control label {
+  margin-right: 10px;
+}
+
+.expanded-content,
+.folded-content {
+  text-align: center;
 }
 </style>
