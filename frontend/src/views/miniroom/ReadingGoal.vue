@@ -56,9 +56,9 @@
     <div class="progress-section" v-if="book.status === 'reading'">
         <div class="progress-header">독서량</div>
         <div class="progress-bar">
-            <div class="progress-bar-fill"></div>
+            <div class="progress-bar-fill" :style="{width: `${book.progressPercentage || 0}%`}"></div>
         </div>
-        <p class="progress-percentage">25%</p>
+        <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
     </div>
 
     <button class="confirm-button" @click="handleAction()">확인</button>
@@ -66,10 +66,10 @@
 </template>
 
 <script setup>
-import { ref,computed } from "vue";
+import { ref,computed, onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
-
+import { useProgressStore } from "@/stores/readingProgressbar";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
@@ -78,6 +78,7 @@ import axios from "axios";
 
 const route= useRoute();
 const router= useRouter();
+const progressStore= useProgressStore();
 
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
@@ -154,7 +155,18 @@ const dropReading = async () => {
     }
 }
 
-
+//pinia에서 저장된 진행상황
+onMounted(() => {
+    const savedProgress= progressStore.getProgress(book.value.isbn13);
+    if(savedProgress){
+        // startDate.value= savedProgress.startDate;
+        // endDate.value= savedProgress.endDate;
+        // radioSelect.value= savedProgress.status || "reading";
+        book.value.currentPage=savedProgress.currentPage || 0;
+        book.value.startIndex=savedProgress.startIndex || 0;
+        book.value.progressPercentage=savedProgress.progressPercentage || 0;
+    }
+});
 </script>
 
 <style>

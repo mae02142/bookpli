@@ -6,7 +6,13 @@
         </div>
     <div class="book-info-section">
         <div>
-            <h1 class="book-title">{{ book.title }}</h1>
+            <div class="title-and-icons">
+                <h1 class="book-title">{{ book.title }}</h1>
+                <div class="icons-container">
+                    <img src="../../assets/icons/empty_like.png" class="detail-icons"/>
+                    <img src="../../assets/icons/cart.png" class="detail-icons"/>
+                </div>
+            </div>
             <span class="book-meta">
                 출판일: {{ book.pubdate.split('T')[0] }}
                 <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
@@ -22,6 +28,7 @@
                 보기
             </div>
             <button class="btn-read" @click="gotoGoal(book)" v-if="book.status !== 'reading'">선택</button>
+            
         </div>
     </div>
 </div> 
@@ -59,7 +66,7 @@ const viewReviews = () => {
     alert("리뷰 보기 클릭됨!");
 };
 
-const gotoGoal = (book, source="default") => {
+const gotoGoal = (book) => {
     console.log(book);
     router.push({
         path: `/miniroom/goal/${book.isbn13}`,
@@ -248,5 +255,23 @@ body {
     border-radius: 5px;
     padding: 10px 20px;
     cursor: pointer;
+}
+
+.detail-icons{
+    width: 30px !important;
+    height: 30px !important;
+    cursor: pointer;
+}
+
+.title-and-icons {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.icons-container {
+    display: flex; 
+    gap: 10px; 
 }
 </style>

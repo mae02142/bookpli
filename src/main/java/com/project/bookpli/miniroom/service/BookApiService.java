@@ -2,10 +2,13 @@ package com.project.bookpli.miniroom.service;
 
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.Library;
+import com.project.bookpli.entity.User;
 import com.project.bookpli.miniroom.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
 import com.project.bookpli.miniroom.repository.LibraryRepository;
+import com.project.bookpli.mypage.dto.UserDTO;
+import com.project.bookpli.mypage.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -25,6 +29,9 @@ public class BookApiService {
 
     @Autowired
     private BookRepository bookrep;
+
+    @Autowired
+    private UserRepository userrep;
 
     public void searchBook(String itemId) {
         RestTemplate restTemplate = new RestTemplate();
@@ -61,11 +68,6 @@ public class BookApiService {
             System.out.println("이미 존재하는 도서이거나 ISBN이 없습니다 :" + isbn13);
             return;
         }
-
-
-
-
-
 
         // DTO 생성 (빌더 패턴 사용)
         BookDTO dto = BookDTO.builder()
@@ -124,15 +126,5 @@ public class BookApiService {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
-    
-//    @Transactional
-//    public void addBookAndLibrary(Book book, Long userId){
-//        if(!bookrep.existsById((book.getIsbn13()))){
-//            bookrep.save(book);
-//        }
-//
-////        Library library= new Library();
-//
-//    }
 
 }
