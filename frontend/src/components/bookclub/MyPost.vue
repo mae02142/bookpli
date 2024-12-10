@@ -1,24 +1,27 @@
 <template>
     <section class="post-content">
-      <article class="post-article" v-for="item, index in posts" :key="index">
+      <article class="post-article" v-for="item, index in posts" :key="item.postId">
           <div class="post-body">
           <div class="author-info">
-              <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
-              <h3>{{item.author}}</h3>
+              <img class="author-image" :src="item.profilePath || profile" alt="Author" />
+              <h3>{{item.author || '아무개'}}</h3>
           </div>
           <div class="post-text"> 
-              <p>{{item.content}}</p>
+              <p>{{item.postContent}}</p>
               <div class="post-footer">
+                <div class="footer-icon">
                   <img class="icon" @click="item.showComment = true" src="@/assets/icons/chat.png" alt="Chat" />
                   <img class="icon" :src="item.likes.changeLike" @click="checkLike(index)" id="like-icon" alt="Like" />
                   <p class="like-count">{{item.likeCount}}</p>
+                </div>
+                <p class="date">{{item.postDate.split('T')[0]}}</p>
               </div>
           </div>
           <div style="position: relative;">
               <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
               <div v-show="showBtn[index]" class="dropdown">
                   <button @click="item.editCheck= true" class="show-btn">수정</button>
-                  <EditPost v-model="item.editCheck" :editId="index" @edit-post="EditPost" />
+                  <EditPost v-model="item.editCheck" :editId="item.postId" @edit-post="EditPost" />
                   <hr class="btn-line">
                   <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                   <!-- 삭제 컴포넌트 -->
@@ -31,22 +34,36 @@
       </article>
     </section>
   </template>
-  <script>
-  import { ref } from "vue"; 
+  <script se>
+  import { onMounted, ref } from "vue"; 
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
+  import profile from "@/assets/icons/profile.png";
   import RemovePost from "@/components/bookclub/RemovePost.vue";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import EditPost from "@/components/bookclub/EditPost.vue";
   import Comment from "@/components/bookclub/Comment.vue";
-  
+  import { useAuthStore } from "@/stores/auth";
+  import axios from "axios";
   
   export default {
-     props: {
-      userInfo : {
-          type : Object,
-          required : true,
-      },
+    props: {
+  userId: {
+    type: Number,
+    required: true,
+  },
+  bookclubId: {
+    type: Number,
+    required: true,
+  },
+  nickname: {
+    type: String,
+    required: true,
+  },
+  profile: {
+    type: String,
+    required: true,
+  },
      },
     components: {
         RemovePost,
@@ -54,27 +71,31 @@
         EditPost,
         Comment,
     },
-    setup() {
-    
-      const serverPosts = ref([ //서버에서 받아온 데이터
-          {  
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          postDate: `2024-11-27`,
-          content: `크리스마스로 불리는 소년은 크리스마스를 떠올리기에 딱 좋았던 책인 것 같다.
-          크리스마스를 좋아하는 내게 굉장히 흥미로웠고 영화를 먼저 봤었기 때문에
-          영화가 책의 내용을 잘 담아냈다고 생각한다.`,
-          },
-          {
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          postDate: `2024-11-29`,
-          content: `
-          나처럼 크리스마스를 좋아하는 분들이 있다면 ‘크리스마스를 지켜라’ 라는 책을 추천하고 싶다.`,
-          },
-      ]);
-      const posts = ref([]);
-      // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
+    setup(props) {
+    const authStore = useAuthStore();
+      onMounted(()=>{
+        console.log('club:'+props.bookclubId +'user:'+ props.userId);
+        if(props.bookclubId && props.userId){
+          getMyposts();
+        }
+      })
+
+      const serverPosts = ref([]); //서버에서 받아온 데이터 
+      const posts = ref([]);   // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
+
+          // 나의 게시글 조회
+      const getMyposts = async()=> {
+        console.log('불러올 데이터의 유저 :' + props.userId);
+        console.log('북클럽 : '+ props.bookclubId);
+
+        const response = await axios.get("http://localhost:8081/api/post/bookclub/mypost", {
+          params : {userId : props.userId, 
+            bookClubId : props.bookclubId }
+        });
+
+        console.log(response.status);
+        serverPosts.value = response.data.data;
+
       if (Array.isArray(serverPosts.value)) {
           posts.value = serverPosts.value.map(post => ({
               ...post,
@@ -84,10 +105,12 @@
               editCheck: false,
               showComment: false,
           }));
+          console.log(posts.value);
       } else {
           console.error('serverPosts는 배열이 아닙니다.');
       }
-  
+    };
+             // 좋아요 체크 
         const checkLike = (index) => {
             let currentLike = posts.value[index];
             if(currentLike.likes.changeLike == dislike){
@@ -111,8 +134,10 @@
       return {
         dislike,
         like,
+        profile,
         serverPosts,
         posts,
+        getMyposts,
         checkLike,
         showBtn,
         dropdown,
@@ -131,6 +156,11 @@
       padding: 20px 50px;
       margin:auto;
     }
+
+    .post-article{
+      width: 100%;
+    }
+
     .post-body {
       display: flex;
       margin-bottom: 20px;
@@ -156,11 +186,16 @@
     .post-text {
       font-size: 16px;
       line-height: 1.5;
+      width: 100%;
     }
     
+    .footer-icon{
+      display: flex;
+    }
+
     .post-footer {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       gap: 20px;
       margin-top: 20px;
     }
@@ -178,6 +213,12 @@
       height: 15px;
       margin-top: 2px;
     }
+    
+    .date {
+      color: #909090;
+      font-size: 14px;
+    }
+
     .dropdown {
     position: absolute;
     top: 0; /* 이미지 버튼 바로 아래에 위치 */

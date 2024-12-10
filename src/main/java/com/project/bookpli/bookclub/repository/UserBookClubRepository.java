@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserBookClubRepository extends JpaRepository<UserBookClub, Integer> {
+public interface UserBookClubRepository extends JpaRepository<UserBookClub, Long> {
 
     //유저가 등록한 북클럽 리스트 조회
     @Query("SELECT ubc FROM UserBookClub ubc " +

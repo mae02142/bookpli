@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -59,7 +60,8 @@ public class ReviewController {
 
                 // 리뷰 수정
     @PatchMapping("/update")
-    public BaseResponse<ReviewDTO> updateReview( @RequestBody ReviewDTO review) {
+    public BaseResponse<ReviewDTO> updateReview(@RequestBody ReviewDTO review) {
+        log.info("우선 도착은 했니 ..?");
         try {
             ReviewDTO updatedReview = service.update(review);
             log.info("리뷰 업데이트 성공");

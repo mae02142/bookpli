@@ -24,12 +24,13 @@
     </div>
       <div class="bookclub-list">
         <!-- 북클럽 목록 -->
-        <RouterLink :to="{path : '/bookclub/community', query : {clubInfo : myclub}}">
         <div
           class="bookclub-item"
           v-for="myclub in myclubList"
           :key="myclub.userClubId"
         >
+        <RouterLink :to="{path : '/bookclub/community', 
+        query : {cover : myclub.cover , title : myclub.title, author : myclub.author , bookClubId : myclub.bookClubId}}">
           <img :src="myclub.cover" alt="icon" class="note-icon" />
           <div class="bookclub-details">
             <p class="bookclub-name">{{ myclub.title }}</p>
@@ -40,8 +41,8 @@
             v-show="showEdit"
             />
           </div>
+        </RouterLink>
         </div>
-      </RouterLink>
       </div>
     </div>
 

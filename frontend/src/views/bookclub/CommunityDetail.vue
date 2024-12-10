@@ -12,7 +12,10 @@
             <p class="author">{{ community.author }}</p>
         </div>
       </div>
-        <RouterLink to="/bookclub/mybookclub" style="display: flex; justify-self:flex-end; width: auto;">
+      <RouterLink :to="{path :'/bookclub/mybookclub' , 
+        query : { title : community.title, bookClubId : community.bookClubId}}"
+        class="link"
+        >
           <button class="Btn">
             <div class="svgWrapper">
               <svg
@@ -51,26 +54,34 @@
             <p class="description">책에 대한 이야기를 나눠보세요</p>
             <img class="add-icon" src="@/assets/icons/add.png" alt="추가 아이콘" />
     </div>
-      <PostForm :modelValue="addPost" @update:modelValue="addPost = $event" />
+      <PostForm :modelValue="addPost"
+       @update:modelValue="addPost = $event" 
+       :userId="authStore.user.userId" 
+       :bookclubId="community.bookClubId" 
+       @close="getPosts"
+       />
   
       <!-- 내용 -->
      <section class="post-section">
         <div class="post-container">
-        <article class="post" v-for="post,index in posts" :key="index">
+        <article class="post" v-for="post,index in posts" :key="post.postId">
             <div class="post-items">
                 <div class="post-header">
-                    <img class="post-profile" src="@/assets/icons/profile.png" alt="커뮤니티 이미지" />
-                    <p class="username">{{post.user}}</p>
+                    <img class="post-profile" :src="post.profilePath || profile" alt="커뮤니티 이미지" />
+                    <p class="username">{{post.userNickname == null ? '작성자' : 'post.userNickname'}}</p>
                 </div>
-                <div>
+                <div style="width: 100%;">
                     <p class="post-cnt">
-                    {{ post.content }}
+                    {{ post.postContent }}
                     </p>
                       <!-- 아이콘 섹션 -->
-                    <div class="icon-container">
-                        <img class="icon" @click="openComment(index)" src="@/assets/icons/chat.png" alt="댓글 아이콘" />
-                        <img class="like-icon" :src="post.likes.changeLike" @click="checkLike(index)" alt="좋아요 아이콘" />
+                    <div class="post-footer">
+                      <div class="footer-icon">
+                        <img class="icon" @click="openComment(post.postId)" src="@/assets/icons/chat.png" alt="댓글 아이콘" />
+                        <img class="like-icon" :src="post.likes.changeLike" @click="checkLike(post.postId)" alt="좋아요 아이콘" />
                         <p class="like-count">{{post.likeCount}}</p>
+                      </div>
+                      <p class="date">{{post.postDate.split('T')[0]}}</p>
                     </div> 
                 </div>
             </div>   
@@ -85,9 +96,12 @@
   import { onMounted, ref } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
+  import profile from "@/assets/icons/profile.png";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue"
   import { useRoute } from "vue-router";
+  import { useAuthStore } from '@/stores/auth';
+  import axios from "axios";
 
   export default {
     components : {
@@ -95,42 +109,46 @@
       Comment,
     },  
     setup() {
+      const authStore = useAuthStore();
+      const route = useRoute(); // 현재 라우트 정보
     
       onMounted(()=>{
-        const route = useRoute(); // 현재 라우트 정보
-
-        console.log(route.query.clubInfo);
-        console.log(route);
+        console.log(route.query);
+        getPosts();
       });
 
       const community = ref({
-        title: "크리스마스로 불리는 소년",
-        author: "매트 헤이그",
-        image: "boy-20.png",
+        title: route.query.title,
+        author: route.query.author,
+        image: route.query.cover,
+        bookClubId : Number(route.query.bookClubId),
       },
     );
-    const posts = ref([
-        { 
-            user: "작성자1",
-            content: `크리스마스로 불리는 소년은 크리스마스를 떠올리기에 딱 좋았던 책인 것 같다.
-            크리스마스를 좋아하는 내게 굉장히 흥미로웠고 영화를 먼저 봤었기 때문에
-            영화가 책의 내용을 잘 담아냈다고 생각한다.
-    
-            나처럼 크리스마스를 좋아하는 분들이 있다면 ‘크리스마스를 지켜라’ 라는 책을
-            추천하고 싶다.`,
-            likeCount: 0,
-            likes: {changeLike: dislike},
+    const serverPosts = ref([]); // 서버
+    const posts = ref([]); // 서버 + 추가된 데이터 
+  
+    const getPosts = async() =>{
+      console.log("bookclubId :"+ route.query.bookClubId);
+try{
+      const response = await axios.get("http://localhost:8081/api/post/bookclubs", {
+        params: {bookclubId : route.query.bookClubId},
+      });
+      console.log(response.data);
+      if(response.status == 200){
+        serverPosts.value = response.data.data;
+        if(Array.isArray(serverPosts.value)){
+          posts.value = serverPosts.value.map(post => ({
+            ...post,
+            likecount : 0,
+            likes : {changeLike : dislike},
             showComment : false,
-        },
-        {
-            user: "작성자2",
-            content: `영화도 재밌으니까 꼭 봐줬으면 해요!! 크리스마스처럼 따뜻한 분위기의
-            영화였어요!!`,
-            likeCount: 0,
-            likes: {changeLike: dislike},
-            showComment : false,
-        },
-    ]);
+          }));
+        };
+      }
+    }catch(error){
+      console.error(error, '에러 발생!');
+    }}
+
     const addPost = ref(false);
       // 부모에서 modelValue 값이 업데이트 될 때 호출되는 함수
 
@@ -144,6 +162,7 @@
             currentLike.likeCount -=1;
         }   
     };
+
     const openComment = (index) => {
       if(!posts.value[index].showComment){
         posts.value[index].showComment = true;
@@ -152,7 +171,14 @@
       }
     };
 
+    const closeModal = () => {
+
+    }
+
       return { 
+        authStore,
+        profile,
+        getPosts,
         dislike,
         like,
         checkLike,
@@ -185,7 +211,6 @@
   .book-cover {
     width: 180px;
     height: 200px;
-    object-fit: cover;
     border: 1px solid #909090;
   }
   
@@ -221,6 +246,12 @@
 
   }
   /* archive   */
+  .link {
+    display: flex; 
+    justify-self:flex-end; 
+    width: auto;
+  }
+
 .Btn {
   display: flex;
   align-items: center;
@@ -343,14 +374,16 @@
     border: none;
   }
   
-  .icon-container {
-    display: flex;
-    justify-content: flex-start;
-    gap: 30px;
-    margin-top: 20px;
-  }
-  .icon-container:hover {
+  .post-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+  .footer-icon:hover {
     cursor: pointer;
+    display: flex;
   }
   
   .add-icon {
@@ -361,14 +394,21 @@
   .icon {
     width: 18px;
     height: 18px;
+    margin : 0 10px;
   }
   .like-icon {
     width: 15px;
     height: 15px;
-    margin-top: 2px;
+    margin: 0 10px;
   }
   .like-count {
     margin-top: 3px;
   }
+
+  .date {
+      color: #909090;
+      font-size: 14px;
+    }
+
   </style>
   
