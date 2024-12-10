@@ -3,11 +3,27 @@
     <LeftSidebar />
     <div class="sidebar2">
       <div class="sidebar2-item">
-        <img src="@/assets/icons/search.png" class="search-icon">
+        <img src="@/assets/icons/search.png" class="search-icon" />
         <input type="text" placeholder="검색" class="search-bar" />
-        <img src="@/assets/icons/add2.png" class="add-icon">
+        <img src="@/assets/icons/add_pli.png" class="add-icon" @click="toggleAddMode"/>
       </div>
       <div class="playlist-list">
+        <!-- 입력창 -->
+        <div v-if="addMode" class="add-playlist-box">
+          <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
+          <div class="add-playlist-box-right">
+            <input
+              type="text"
+              placeholder="제목을 입력하세요"
+              v-model="newPlaylistName"
+              class="add-playlist-input"
+            />
+            <div class="add-playlist-btns">
+              <button @click="addPlaylist" class="add-playlist-button">추가</button>
+              <button @click="toggleAddMode" class="cancel-button">취소</button>
+            </div>
+          </div>
+        </div>
         <!-- 플레이리스트 목록 -->
         <div
           class="playlist-item"
@@ -24,16 +40,46 @@
       </div>
     </div>
     <div class="content">
-      <div class="song-list">
-        <h1 class="pli-header">플레이리스트</h1>
+      <div class="song-list" v-if="selectedPlaylist">
+        <div>
+          <!-- 타이틀 변경 input -->
+          <div v-if="isEditingTitle" class="edit-title-container">
+            <input
+              v-model="editedTitle"
+              type="text"
+              class="edit-title-input"
+              placeholder="새 타이틀 입력"
+            />
+            <button @click="updateTitle" class="save-title-button">완료</button>
+          </div>
+          <div v-else>
+            <h1 class="pli-header">{{ selectedPlaylist.name }}</h1>
+          </div>
+          <img
+            src="@/assets/icons/option.png"
+            alt="option-icon"
+            class="option-icon"
+            @click="toggleOptionMenu"
+          />
+
+          <!-- 옵션 메뉴 -->
+          <div v-if="showOptionMenu" class="option-menu">
+            <button @click="enableEditTitle" class="option-button">타이틀 변경</button>
+            <button @click="deletePlaylist" class="option-button delete">삭제하기</button>
+          </div>
+        </div>
         <table class="song-table">
           <thead>
             <tr>
               <th>#</th>
               <th>제목</th>
               <th>앨범</th>
-              <th><img src="@/assets/icons/time.png" class="time-icon"></th>
-              <th><img src="@/assets/icons/delete.png" class="delete-icon"></th>
+              <th>
+                <img src="@/assets/icons/time.png" class="time-icon" />
+              </th>
+              <th>
+                <img src="@/assets/icons/delete.png" class="delete-icon" />
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -58,30 +104,17 @@
                     class="album-cover"
                   />
                   <div class="song-details">
-                    <p class="song-title">{{ song.title }}</p>
-                    <p class="song-artist">{{ song.artist }}</p>
+                    <p class="song-title" @click="openSongDetail(song)">
+                      {{ song.name }}
+                    </p>
+                    <p class="song-artist">{{ song.artists }}</p>
                   </div>
                 </div>
               </td>
-              <td
-                class="song-album"
-                @mouseover="hoveredIndex = index"
-                @mouseleave="hoveredIndex = null"
-              >
-                {{ song.album }}
-              </td>
-              <td
-                class="song-duration"
-                @mouseover="hoveredIndex = index"
-                @mouseleave="hoveredIndex = null"
-              >
-                {{ formatDuration(song.duration) }}
-              </td>
+              <td class="song-album">{{ song.album }}</td>
+              <td class="song-duration">{{ formatDuration(song.duration) }}</td>
               <td class="delete-button-container">
-                <button
-                  class="delete-button"
-                  @click="deleteSong(song.id)"
-                >
+                <button class="delete-button" @click="deleteSongFromPlaylist(selectedPlaylist.id, song.id)">
                   삭제
                 </button>
               </td>
@@ -90,95 +123,208 @@
         </table>
       </div>
     </div>
+    <!-- 모달 컴포넌트 -->
+    <SongDetailModal
+      v-if="modalStore.activeModal === 'SongDetailModal'"
+      :song="selectedSong"
+      @close="modalStore.closeModal"
+    />
   </div>
 </template>
-
-
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
-import spotifyApi from '@/api/axiosInstance';
-import { jwtDecode } from 'jwt-decode';
+import { useModalStore } from '@/stores/modalState';
+import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
+import apiClient from '@/api/axiosInstance';
 
+// 상태 관리
 const authStore = useAuthStore();
+const modalStore = useModalStore();
 const hoveredIndex = ref(null);
-
-
 const playlists = ref([]); // 플레이리스트 목록
-const songs = ref([]); // 선택한 플레이리스트의 곡
+const selectedPlaylist = ref(null); // 선택된 플레이리스트
+const selectedSong = ref(null); // 선택된 노래
+const songs = ref([]); // 선택된 플레이리스트의 곡
+const addMode = ref(false); // 입력창 표시 여부
+const newPlaylistName = ref(""); // 새 플레이리스트 이름
+
+// 옵션 메뉴 상태
+const showOptionMenu = ref(false);
+const isEditingTitle = ref(false);
+const editedTitle = ref("");
+
+// 옵션 메뉴 토글
+const toggleOptionMenu = () => {
+  showOptionMenu.value = !showOptionMenu.value;
+};
+
+// 타이틀 변경 모드 활성화
+const enableEditTitle = () => {
+  isEditingTitle.value = true;
+  editedTitle.value = selectedPlaylist.value.name;
+  showOptionMenu.value = false; // 옵션 메뉴 닫기
+};
+
+// 타이틀 업데이트
+const updateTitle = async () => {
+  if (!editedTitle.value.trim()) {
+    alert("타이틀은 1글자 이상이어야 합니다.");
+    return;
+  }
+
+  try {
+    // API 호출
+    await apiClient.put(`/api/mypli/${selectedPlaylist.value.id}`, {
+      name: editedTitle.value,
+    });
+
+    // 타이틀 업데이트
+    selectedPlaylist.value.name = editedTitle.value;
+    isEditingTitle.value = false;
+  } catch (error) {
+    console.error("타이틀 변경 실패:", error);
+  }
+};
+
+// 플레이리스트 삭제
+const deletePlaylist = async () => {
+  try {
+    await apiClient.delete(`/api/mypli/${selectedPlaylist.value.id}`);
+    alert("플레이리스트가 삭제되었습니다.");
+    // 여기서 플레이리스트 목록 갱신 로직 추가
+  } catch (error) {
+    console.error("플레이리스트 삭제 실패:", error);
+  }
+};
+
+// 유틸 함수: 곡 길이 포맷
 const formatDuration = (ms) => {
   const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+  const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
 };
 
-// 사용자 플레이리스트 가져오기
+// 노래 세부 정보 열기
+const openSongDetail = (song) => {
+  selectedSong.value = song;
+  modalStore.openModal("SongDetailModal");
+};
+
+// 플레이리스트 로드
+const loadTracks = async (playlistId) => {
+  try {
+    songs.value = await getPlaylistTracks(playlistId); // 트랙 가져오기
+    selectedPlaylist.value = playlists.value.find(
+      (playlist) => playlist.id === playlistId
+    );
+  } catch (error) {
+    console.error("플레이리스트 로드 실패:", error);
+  }
+};
+
+// Spotify API: 플레이리스트 가져오기
 const getUserPlaylist = async () => {
   try {
-    const response = await spotifyApi.get('/me/playlists'); // Spotify API 호출
-    playlists.value = response.data.items.map((item) => ({
+    const response = await apiClient.get("/api/mypli");
+    playlists.value = response.data.data.items.map((item) => ({
       id: item.id,
       name: item.name,
       count: item.tracks.total,
     }));
   } catch (error) {
-    console.error('플레이리스트를 가져오는 중 오류 발생:', error);
+    console.error("플레이리스트 가져오기 실패:", error);
   }
 };
 
-// 플레이리스트 클릭 시 해당 곡 로드
-const loadTracks = async (playlistId) => {
-  songs.value = await getPlaylistTracks(playlistId); // 곡 데이터 로드
-};
-
-// 특정 플레이리스트의 트랙 가져오기
+// Spotify API: 특정 플레이리스트의 트랙 가져오기
 const getPlaylistTracks = async (playlistId) => {
   try {
-    const response = await spotifyApi.get(`/playlists/${playlistId}/tracks`);
-    console.log("트랙 확인 >> " + response.data.items);
-    return response.data.items.map((item) => {
+    const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
+    return response.data.data.items.map((item) => {
       const track = item.track;
       return {
         id: track.id,
         name: track.name,
         album: track.album.name,
-        artists: track.artists.map((artist) => artist.name).join(', '),
+        artists: track.artists.map((artist) => artist.name).join(", "),
         duration: track.duration_ms,
-        albumCover: track.album.images[0]?.url || '',
+        albumCover: track.album.images[0]?.url || "",
       };
     });
   } catch (error) {
-    console.error('플레이리스트 트랙 가져오기 실패:', error);
+    console.error("트랙 가져오기 실패:", error);
     return [];
+  }
+};
+
+const getUserInfo = async() => {
+  try {
+    const response = await apiClient.get("/api/auth/user-info");
+
+    if (response.data.data) {
+      const userInfo = {
+        spotifyId: response.data.data.spotifyId,
+        userId: response.data.data.userId,
+      };
+
+      authStore.setUser(userInfo);
+    }
+  } catch (error) {
+    console.error("사용자 정보 요청 실패:", error);
   }
 };
 
 // 페이지 로드 시 실행
 onMounted(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const jwtToken = urlParams.get('token');
-
-  if (jwtToken) {
-    // URL에서 토큰 가져와 상태 저장
-    const decodedToken = jwtDecode(jwtToken);
-    const userInfo = {
-      spotifyId: decodedToken.sub,
-      userId: decodedToken.userId,
-    };
-    authStore.setUser(decodedToken.accessToken, userInfo);
-
-    // URL에서 토큰 파라미터 제거
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-
+  getUserInfo();
   getUserPlaylist(); // 플레이리스트 가져오기
 });
 
-// 노래 삭제 (임시 함수)
-const deleteSong = (songId) => {
-  songs.value = songs.value.filter((song) => song.id !== songId);
+// 노래 삭제
+const deleteSongFromPlaylist = async (playlistId, songId) => {
+  const songUri = `spotify:track:${songId}`; // Spotify 트랙 URI 형식
+  try {
+    await apiClient.delete(`/api/mypli/playlist/${playlistId}/tracks`, {
+      data: { uri: songUri },
+    });
+    songs.value = songs.value.filter((song) => song.id !== songId);
+  } catch (error) {
+    console.error("플레이리스트에서 노래 삭제 실패:", error);
+  }
+};
+
+const toggleAddMode = () => {
+  addMode.value = !addMode.value; // 입력창 표시 여부 토글
+  if (!addMode.value) {
+    newPlaylistName.value = ""; // 취소 시 초기화
+  }
+};
+
+const addPlaylist = async () => {
+  if (!newPlaylistName.value.trim()) {
+    alert("플레이리스트명은 1글자 이상입니다.");
+    return;
+  }
+
+  try {
+    const response = await apiClient.post(`/api/mypli/${authStore.user.spotifyId}`, {
+      name: newPlaylistName.value,
+    });
+console.log(response.data.data);
+    playlists.value.push({
+      id: response.data.data.id,
+      name: response.data.data.name,
+      count: 0,
+    });
+
+    addMode.value = false;
+    newPlaylistName.value = "";
+  } catch (error) {
+    console.error("플레이리스트 추가 실패:", error);
+  }
 };
 
 
@@ -192,7 +338,8 @@ const deleteSong = (songId) => {
 
 .sidebar2 {
   width: 250px;
-  padding: 10px 20px;
+  margin-left: 20px;
+  margin-top: 10px;
 }
 
 .sidebar2-item {
@@ -230,6 +377,7 @@ const deleteSong = (songId) => {
   width: 25px;
   height: 25px;
   margin-right: 13px;
+  margin-left: 5px;
 }
 
 .playlist-details {
@@ -251,6 +399,8 @@ const deleteSong = (songId) => {
 .content {
   width: 60%;
   margin-top: 10px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .header {
@@ -346,12 +496,12 @@ text-align: center;
 }
 
 .song-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
 }
 
 .song-artist {
-  font-size: 14px;
+  font-size: 13px;
   color: #4c4c4c;
 }
 
@@ -378,6 +528,10 @@ text-align: center;
   height: 20px;
 }
 
+.add-icon:hover {
+  cursor: pointer;
+}
+
 .time-icon{
   width: 20px;
   margin-left: 5px;
@@ -391,7 +545,127 @@ text-align: center;
 .pli-header {
     font-weight: bold;
     font-size: 25px;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     text-align: center;
 }
+
+.add-playlist-box {
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: 70px;
+}
+
+.add-playlist-input {
+  flex: 1;
+    border: none;
+    font-size: 14px;
+}
+
+.add-playlist-button {
+  background-color: #252525;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+.cancel-button {
+  background-color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    border: 1px solid #ababab;
+}
+
+.add-playlist-box-right {
+  display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 5px;
+}
+
+.add-playlist-btns {
+  align-self: end;
+  margin-right: 10px;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.option-icon {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.option-menu {
+  position: absolute;
+  top: 106px;
+  right: 740px;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 1000;
+}
+
+.option-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.option-button:hover {
+  background-color: #f5f5f5;
+}
+
+.option-button.delete {
+  color: red;
+}
+
+.edit-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+}
+
+.edit-title-input {
+  font-size: 16px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.save-title-button {
+  padding: 5px 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-title-button:hover {
+  background-color: #218838;
+}
+
+
+
 </style>
