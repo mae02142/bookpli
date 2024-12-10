@@ -23,7 +23,7 @@
           <div class="img-btn">
             <img :src="item.image" :alt="item.title" class="item-image" />
             <span class="add-community" @click="addCommunity">
-                <img class="add-icon" src="@/assets/icons/add.png"><p>커뮤니티 추가</p>
+                <img class="add-icon" src="@/assets/icons/plus.png"><p>커뮤니티 추가</p>
              </span>
           </div>  
           <div class="item-details">
@@ -166,10 +166,9 @@ body {
   margin-top: 90px;
 }
 .community-list {
-  margin-top: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 한 줄에 3개 */
+  gap: 20px; /* 아이템 간의 간격 */
 }
 .list-title {
   font-size: 24px;
@@ -185,13 +184,16 @@ body {
   margin-bottom: 20px;
 }
 
-/* Community Item */
+/* Community List */
+
 .community-item {
   display: flex;
+  flex-direction: row; /* 아이템을 세로로 정렬 */
   align-items: center;
-  margin-bottom: 20px;
   padding: 10px;
+  background-color: #fff;
 }
+
 .item-image {
   width: 115px;
   height: 130px;
@@ -228,7 +230,16 @@ body {
     height: 15px;
     margin-right: 7px;
 }
+.add-icon:hover{
+  width: 17px;
+  height: 17px;
+  transform: rotate(45deg);
+  transition: all 0.2s ease;
+  
+}
 .add-community:hover {
+  transition: all 0.3s ease;
+  transform: scale(1.1);
     cursor: pointer;
 }
 .add-community {

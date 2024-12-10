@@ -3,7 +3,6 @@
     <header v-if="!isAuthLoginPage">
       <Header></Header>
     </header>
-    <img src="@/assets/banners/thumbnail2.png" class="main-thumbnail" v-if="isMainPage">
     <div class="wrapper">
       <router-view></router-view>
     </div>
