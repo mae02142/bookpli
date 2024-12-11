@@ -94,7 +94,7 @@
               class="option-icon"
               @click="toggleOptionMenu"
             />
-  
+
             <!-- 옵션 메뉴 -->
             <div v-if="showOptionMenu" class="option-menu" @click.self="closeOptionMenu">
               <button v-if="selectedPlaylist.owner === authStore.user.spotifyId" @click="enableEditTitle" class="option-button">
@@ -177,9 +177,12 @@ import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
+import { useUserStore } from '@/stores/user.js';
+
 import { useUtilModalStore } from '@/stores/utilModalStore';
 
 // 상태 관리
+const userStore = useUserStore()
 const authStore = useAuthStore();
 const modalStore = useModalStore();
 const hoveredIndex = ref(null);
@@ -367,9 +370,25 @@ const getUserInfo = async() => {
   }
 };
 
+const getToken = async() => {
+  const spotifyId = authStore.user.spotifyId;
+
+  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to fetch access token')
+  }
+
+  const data = await response.json()
+  const accessToken = data.access_token
+  userStore.setAccessToken(accessToken)
+}
+
 // 페이지 로드 시 실행
 onMounted(() => {
   getUserInfo();
+  getToken();
   getUserPlaylist(); // 플레이리스트 가져오기
 });
 
@@ -777,7 +796,6 @@ text-align: center;
 
 .cancel-title-button {
   background-color: #ffffff;
-    border: none;
     border-radius: 30px;
     padding: 5px 10px;
     cursor: pointer;
