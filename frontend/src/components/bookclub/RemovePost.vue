@@ -1,5 +1,5 @@
 <template>
-    <div class="modal-wrap" v-if="isVisible" @click="closeModal">
+    <div class="modal-wrap" @click="closeModal">
         <div class="modal-content">
             <div class="modal-item">
                 <h3 style="font-weight: 400; font-size: 20px;">게시글 삭제</h3>
@@ -15,6 +15,9 @@
     </div>
     </template>
     <script>
+import apiClient from '@/api/axiosInstance';
+import { onMounted } from 'vue';
+
     
     export default {
         props : {
@@ -30,17 +33,30 @@
         emits : ["update:isVisible", "delete-post"],
         // setup 첫번째 매개변수 _ 는 props 근데 props를 밑에서 사용안하면 _ 로 사용하지 않는 매개변수라고 나타냄 
         setup(props, {emit}) {
+            
+            onMounted(()=>{
+                console.log('삭제할 게시글 : '+ props.deleteId);
+            })
     
             const closeModal = () =>{
+                emit("delete-post"); //해당 게시글 제거
                 emit("update:isVisible",false);
                 // 부모 컴포넌트에 상태 변경 요청하는 거
             };
     
-            const deleteList = () => {
+            // 서버로 삭제 요청
+            const deleteList = async() => {
+            try{
                 console.log("자식컴포에서 확인 :"+props.deleteId);
-                emit("delete-post", props.deleteId); //삭제 요청을 부모로 보내기
-                closeModal();
-            }
+                const response = await apiClient.delete("/api/post/delete", {
+                    params : {postId :props.deleteId },
+                });
+                if(response.data.data == true){
+                    closeModal();
+                } 
+            }catch(error){
+                console.error(error +'에러발생 !');
+            }}
             
             return {
                 closeModal,

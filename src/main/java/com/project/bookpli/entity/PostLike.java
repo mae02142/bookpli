@@ -16,5 +16,5 @@ public class PostLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postLikeId;
     private Long postId;
-    private String userId;
+    private Long userId;
 }

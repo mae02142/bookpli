@@ -2,17 +2,22 @@
     <div class="community-post">
       <div class="community-label">커뮤니티</div>
       <header class="header">
-        <img class="profile-image" :src="info.profile" alt="Profile" />
+        <img class="profile-image" :src="info.profile || Profile" alt="Profile" />
         <div class="title-icon">
             <div class="post-header">
-                <div class="post-title">{{ info.title }}</div>
-                <div class="title">{{ info.nickname }} 님의 활동</div> 
+                <div class="post-title">{{ info.title}}</div>
+                <div class="title">{{ info.nickname || '아무개' }} 님의 활동</div> 
             </div>
           </div>
                 <nav class="nav-container">
                   <ul class="nav-list">
                     <li v-for="(item, index) in navItems" :key="index" class="nav-item">
-                      <RouterLink v-if="index === 0" :to="item.link">  <!-- 첫 번째 항목은 라우터 링크로 이동 -->
+                       <!-- 첫 번째 항목은 라우터 링크로 이동 -->
+                      <RouterLink v-if="index === 0" :to="{path : item.link, 
+                        query : {title: info.title, author : info.author,
+                          cover : info.cover, bookClubId : info.bookclubId
+                        }
+                      }"> 
                         <svg
                           :class="['nav-icon', { 'nav-icon--active': selected === index }]"
                           fill="none"
@@ -21,7 +26,8 @@
                           v-html="item.icon"
                         ></svg>
                       </RouterLink>
-                 <div v-else>  <!-- 두 번째와 세 번째 항목은 컴포넌트를 표시 -->
+                       <!-- 두 번째와 세 번째 항목은 컴포넌트를 표시 -->
+                 <div v-else> 
                   <svg
                     :class="['nav-icon', { 'nav-icon--active': selected === index }]"
                     fill="none"
@@ -45,6 +51,7 @@
        @update:modelValue="addPost = $event" 
        :userId="info.userId" 
        :bookclubId="info.bookclubId" 
+       @reload="reloadpost"
        />
              <!-- 게시글 리스트 -->
     <MyPost 
@@ -53,8 +60,13 @@
       :bookclubId="info.bookclubId" 
       :nickname="info.nickname" 
       :profile="info.profile" 
+      ref="myPostComponent"
     />
-             <MyComment v-if="selected === 2" />
+    <MyComment
+     v-if="selected === 2"
+     :userId="info.userId"
+     :bookclubId="info.bookclubId"
+    />
     </div>
   </template>
   
@@ -65,7 +77,8 @@
   import MyComment from "@/components/bookclub/MyComment.vue";
   import { useRoute } from "vue-router";
   import { useAuthStore } from '@/stores/auth';
-import axios from "axios";
+  import Profile from"@/assets/icons/profile.png";
+
 
 
   export default {
@@ -111,20 +124,32 @@ import axios from "axios";
       const info = ref(
           { title : route.query.title,
           userId : authStore.user.userId,
-          nickname : "독서광", 
-          profile : `@/assets/icons/profile.png`,
+          nickname : "", 
+          profile : "",
           bookclubId: Number(route.query.bookClubId),
+          author : route.query.author,
+          cover : route.query.cover,
           });  
        
         const addPost = ref(false);
         //버튼도 각각 지정해야하기 때문에 배열로...
     
+           /* mypost로 게시글 리로딩 전달 */
+        const myPostComponent = ref(null);
+        const reloadpost = ( ) => {
+          if(myPostComponent.value){
+            myPostComponent.value.getMyposts();
+          }
+        }
       return {
+        Profile,
         handleItemClick,
         selected,
         navItems,
         addPost,
         info,
+        myPostComponent,
+        reloadpost,
       };
     },
   };

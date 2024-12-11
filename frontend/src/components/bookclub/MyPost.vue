@@ -3,8 +3,8 @@
       <article class="post-article" v-for="item, index in posts" :key="item.postId">
           <div class="post-body">
           <div class="author-info">
-              <img class="author-image" :src="item.profilePath || profile" alt="Author" />
-              <h3>{{item.author || '아무개'}}</h3>
+              <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
+              <h3>{{item.userNickname || 'USER'}}</h3>
           </div>
           <div class="post-text"> 
               <p>{{item.postContent}}</p>
@@ -21,15 +21,18 @@
               <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
               <div v-show="showBtn[index]" class="dropdown">
                   <button @click="item.editCheck= true" class="show-btn">수정</button>
-                  <EditPost v-model="item.editCheck" :editId="item.postId" @edit-post="EditPost" />
+                  <EditPost v-if="item.editCheck" 
+                  :editId="item.postId" @edit-post="EditPost"
+                   @close="getMyposts" />
                   <hr class="btn-line">
                   <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                   <!-- 삭제 컴포넌트 -->
-                  <RemovePost v-model:isVisible="item.deleteCheck" :deleteId="index" @delete-post="deletePost" />
+                  <RemovePost v-if:isVisible="item.deleteCheck" 
+                  :deleteId="item.postId" @delete-post="getMyposts" />
               </div>
           </div> 
           </div>   
-          <Comment v-model:showComments="item.showComment" :postId="index" />
+          <Comment v-if:showComments="item.showComment" :postId="index" />
         <hr class="divider" /> 
       </article>
     </section>
@@ -44,8 +47,8 @@
   import EditPost from "@/components/bookclub/EditPost.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import { useAuthStore } from "@/stores/auth";
-  import axios from "axios";
-  
+  import apiClient from '@/api/axiosInstance';
+
   export default {
     props: {
   userId: {
@@ -88,7 +91,7 @@
         console.log('불러올 데이터의 유저 :' + props.userId);
         console.log('북클럽 : '+ props.bookclubId);
 
-        const response = await axios.get("http://localhost:8081/api/post/bookclub/mypost", {
+        const response = await apiClient.get(`/api/post/bookclub/mypost`, {
           params : {userId : props.userId, 
             bookClubId : props.bookclubId }
         });
@@ -105,7 +108,7 @@
               editCheck: false,
               showComment: false,
           }));
-          console.log(posts.value);
+          console.log('최종 출력 값 :'+ JSON.stringify(posts.value));
       } else {
           console.error('serverPosts는 배열이 아닙니다.');
       }
@@ -126,11 +129,6 @@
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
         }
-       
-        const deletePost = (index) => {
-          console.log("삭제하려는 게시글 : "+ index);
-            posts.value.splice(index, 1); // 리뷰 삭제
-       };
       return {
         dislike,
         like,
@@ -141,7 +139,6 @@
         checkLike,
         showBtn,
         dropdown,
-        deletePost,
       };
     },
   };

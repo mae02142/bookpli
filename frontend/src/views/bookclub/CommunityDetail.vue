@@ -8,12 +8,13 @@
         <img class="book-cover" :src="community.image" :alt="community.title" />
         <!-- 제목과 저자 -->
         <div class="content">
-            <h1 class="title">{{ community.title }}</h1>
-            <p class="author">{{ community.author }}</p>
+            <h1 class="title">{{ community.title.replace(/\(.*?\)/g, '').trim() }}</h1>
+            <p class="author">{{ community.author.replace(/\(.*?\)/g, '').trim() }}</p>
         </div>
       </div>
       <RouterLink :to="{path :'/bookclub/mybookclub' , 
-        query : { title : community.title, bookClubId : community.bookClubId}}"
+        query : { title : community.title, bookClubId : community.bookClubId, 
+        author : community.author, cover: community.image}}"
         class="link"
         >
           <button class="Btn">
@@ -68,7 +69,7 @@
             <div class="post-items">
                 <div class="post-header">
                     <img class="post-profile" :src="post.profilePath || profile" alt="커뮤니티 이미지" />
-                    <p class="username">{{post.userNickname == null ? '작성자' : 'post.userNickname'}}</p>
+                    <p class="username">{{post.userNickname == null ? 'USER' : 'post.userNickname'}}</p>
                 </div>
                 <div style="width: 100%;">
                     <p class="post-cnt">
@@ -77,15 +78,22 @@
                       <!-- 아이콘 섹션 -->
                     <div class="post-footer">
                       <div class="footer-icon">
-                        <img class="icon" @click="openComment(post.postId)" src="@/assets/icons/chat.png" alt="댓글 아이콘" />
-                        <img class="like-icon" :src="post.likes.changeLike" @click="checkLike(post.postId)" alt="좋아요 아이콘" />
-                        <p class="like-count">{{post.likeCount}}</p>
+                        <img class="icon" 
+                        @click="openComment(index)" 
+                        src="@/assets/icons/chat.png"
+                        alt="댓글 아이콘" />
+
+                        <img class="like-icon" 
+                        :src="post.likes.changeLike"
+                        @click="checkLike(post.postId, post.userId,index)" 
+                        alt="좋아요 아이콘" />
+                        <p v-show="post.likeCount > 0" class="like-count">{{post.likeCount }}</p>
                       </div>
                       <p class="date">{{post.postDate.split('T')[0]}}</p>
                     </div> 
                 </div>
             </div>   
-            <Comment v-model:showComments="post.showComment" :postId="index" />
+            <Comment v-if:showComments="post.showComment" :postId="post.postId" />
         <hr class="divider" />
         </article>
       </div>
@@ -101,7 +109,7 @@
   import Comment from "@/components/bookclub/Comment.vue"
   import { useRoute } from "vue-router";
   import { useAuthStore } from '@/stores/auth';
-  import axios from "axios";
+  import apiClient from '@/api/axiosInstance';
 
   export default {
     components : {
@@ -113,7 +121,7 @@
       const route = useRoute(); // 현재 라우트 정보
     
       onMounted(()=>{
-        console.log(route.query);
+        console.log('북클럽 상세 :' + JSON.stringify(route.query));
         getPosts();
       });
 
@@ -126,54 +134,79 @@
     );
     const serverPosts = ref([]); // 서버
     const posts = ref([]); // 서버 + 추가된 데이터 
+    const addPost = ref(false);
+    // 부모에서 modelValue 값이 업데이트 될 때 호출되는 함수
   
+          /* 게시글 조회  */
     const getPosts = async() =>{
       console.log("bookclubId :"+ route.query.bookClubId);
-try{
-      const response = await axios.get("http://localhost:8081/api/post/bookclubs", {
+    try{
+      const response = await apiClient.get("/api/post/bookclubs", {
         params: {bookclubId : route.query.bookClubId},
       });
       console.log(response.data);
       if(response.status == 200){
         serverPosts.value = response.data.data;
-        if(Array.isArray(serverPosts.value)){
-          posts.value = serverPosts.value.map(post => ({
-            ...post,
-            likecount : 0,
-            likes : {changeLike : dislike},
-            showComment : false,
-          }));
+        if (Array.isArray(serverPosts.value)) {
+        // 각 게시글에 대해 좋아요 수를 가져오고 추가
+        posts.value = await Promise.all(
+          serverPosts.value.map(async (post) => {
+            const likeCount = await getLikes(post.postId);  // getLikes 비동기 호출
+            return {
+              ...post,
+              likeCount: likeCount || 0,
+              likes: { changeLike: dislike },
+              showComment: false,
+            };
+          })
+        );
         };
       }
     }catch(error){
       console.error(error, '에러 발생!');
-    }}
+    }};
+            /* 좋아요 수 조회 */
+    const getLikes = async(postId)=> {
+      try{
+        const response = await apiClient.get(`/api/postlike/${postId}`);
+        console.log('getlikes : '+ response.data)
+        return response.data.data;
+      }catch(error){
+        console.error(error, "에러발생");
+        return 0;
+      }
+    }
 
-    const addPost = ref(false);
-      // 부모에서 modelValue 값이 업데이트 될 때 호출되는 함수
-
-    const checkLike = (index) => { 
-        let currentLike = posts.value[index];
-        if(currentLike.likes.changeLike == dislike){
-            currentLike.likes.changeLike = like;
-            currentLike.likeCount +=1;
-        }else{
-            currentLike.likes.changeLike = dislike;
-            currentLike.likeCount -=1;
-        }   
-    };
-
-    const openComment = (index) => {
+         /* 좋아요 처리 기능 */
+    const checkLike = async(postId,userId,index) => { 
+      console.log('postId :' + postId + 'userId : '+ userId);
+      console.log(posts.value);
+      const checking = {
+        postId : postId,
+        userId : userId,
+      }
+      try{
+        const response = await apiClient.post(`api/postlike/mylike` ,checking );
+        console.log('checkLike :'+JSON.stringify(response.data));
+        if(response.data.data !== undefined){
+          posts.value[index].likes.changeLike = response.data.data  ? like : dislike;
+          posts.value[index].likeCount += response.data.data ? 1 : -1;
+        } else {
+          console.error("좋아요 여부를 가져오지 못했습니다.");
+        } 
+       }catch(error) {
+        console.error("API 호출 중 에러 발생: ", error);
+        }
+      };
+       
+              /* 댓글 오픈 */
+        const openComment = (index) => {
       if(!posts.value[index].showComment){
         posts.value[index].showComment = true;
       }else{
         posts.value[index].showComment = false;
       }
     };
-
-    const closeModal = () => {
-
-    }
 
       return { 
         authStore,
@@ -385,6 +418,11 @@ try{
     cursor: pointer;
     display: flex;
   }
+
+  .footer-icon{
+    display: flex;
+    gap: 5px;
+  }
   
   .add-icon {
     width: 15px;
@@ -399,7 +437,7 @@ try{
   .like-icon {
     width: 15px;
     height: 15px;
-    margin: 0 10px;
+    margin: 2px 10px;
   }
   .like-count {
     margin-top: 3px;

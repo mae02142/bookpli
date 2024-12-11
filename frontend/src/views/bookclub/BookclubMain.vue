@@ -33,7 +33,7 @@
         query : {cover : myclub.cover , title : myclub.title, author : myclub.author , bookClubId : myclub.bookClubId}}">
           <img :src="myclub.cover" alt="icon" class="note-icon" />
           <div class="bookclub-details">
-            <p class="bookclub-name">{{ myclub.title }}</p>
+            <p class="bookclub-name">{{ myclub.title.replace(/\(.*?\)/g, '').trim() }}</p>
             <img @click="removeClub(myclub.userClubId)" 
             src="@/assets/icons/close.png" 
             alt="remove club" 

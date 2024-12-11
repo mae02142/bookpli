@@ -9,7 +9,7 @@
       v-for="review in reviews" 
       :key="review.reviewId"
     >
-      <img class="review-image" :src="review.image" :alt="review.title" />
+      <img class="review-image" :src="review.cover" :alt="review.title" />
       <div class="review-content">
         <div class="remove-review">
           <img src="@/assets/icons/close.png" @click="review.showModal = true" class="removeIcon">
@@ -75,7 +75,7 @@ import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
 import RemoveReview from "@/components/review/RemoveReview.vue";
 import { onMounted, ref} from "vue";
-import axios from "axios";
+import apiClient from '@/api/axiosInstance';
 import { useAuthStore } from '@/stores/auth';
 
 export default {
@@ -105,7 +105,7 @@ export default {
             /*  리뷰  조회  */
     const getMyList = async (checkUser) => {
       try{
-        const response = await axios.get(`http://localhost:8081/api/review/myreview/${checkUser}`)
+        const response = await apiClient.get(`/api/review/myreview/${checkUser}`)
         if(response.status != 200){
           console.log("리뷰를 불러오는데 오류가 발생했습니다.");
           console.log(response.status);
@@ -151,7 +151,7 @@ export default {
       };
       console.log(review);
 
-       const response = await axios.patch(`http://localhost:8081/api/review/update`, review);
+       const response = await apiClient.put(`/api/review/update`, review);
          console.log("리뷰 수정 상태 : "+ response.status);
         
       const index = reviews.value.findIndex((item) => item.reviewId === review.reviewId);
@@ -168,7 +168,7 @@ export default {
     const deleteReview = async(reviewId) => {
       console.log("삭제하려는 값 : "+ reviewId);
       try{
-        const response = await axios.delete(`http://localhost:8081/api/review/delete/${reviewId}`)
+        const response = await apiClient.delete(`/api/review/delete/${reviewId}`)
         console.log(response.status);
 
         if(response.status=== 200){
@@ -241,7 +241,6 @@ export default {
   .review-image {
     width: 120px;
     height: 140px;
-    object-fit: cover;
     border: 1px solid #c0c0c0;
     border-radius: 5px;
   }
@@ -270,9 +269,9 @@ export default {
 
   .title {
     font-family: "Inter-Bold", sans-serif;
-    font-size: 23px;
+    font-size: 16px;
     font-weight: 500;
-    color: #000000;
+    color: #909090;
     margin: 0 0 10px;
   }
   
@@ -309,7 +308,7 @@ export default {
     font-size: 20px;
     font-weight: 400;
     color: #000000;
-    margin: 0 0 10px;
+    margin: 15px 0 10px;
   }
   
   .date {
@@ -334,8 +333,8 @@ export default {
     width: 400px;
     height: auto;
     font-size: 16px;
-    border: none;
-    background-color: #dcdcdc;
+    border: 1px solid #dcdcdc;
+    outline: none;
     text-indent: 10px;
     line-height: 1.5;
     padding-top: 10px;

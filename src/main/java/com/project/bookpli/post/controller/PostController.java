@@ -1,7 +1,6 @@
 package com.project.bookpli.post.controller;
 
 import com.project.bookpli.common.response.BaseResponse;
-import com.project.bookpli.entity.Post;
 import com.project.bookpli.post.dto.PostDTO;
 import com.project.bookpli.post.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ public class PostController {
 
     private final PostService postService;
 
+        // 해당 북클럽 전체 게시글 조회
     @GetMapping("/bookclubs")
     public BaseResponse<List<PostDTO>> readPosts(@RequestParam  Long bookclubId){
        try {
@@ -86,4 +86,38 @@ public class PostController {
         }
     }
 
+    @PutMapping("/edit")
+    public BaseResponse<Boolean> postEdit(@RequestBody PostDTO postDTO){
+        try {
+            System.out.println("수정하려는 게시글 : " + postDTO.getPostId());
+            boolean result = postService.update(postDTO);
+            if (!result) {
+                throw new IllegalArgumentException("수정하는데 실패하였습니다");
+            }
+            log.info("수정 성공");
+            return new BaseResponse<>(result);
+        }catch (Exception e){
+            log.error("에러 발생");
+            e.printStackTrace();
+            return new BaseResponse<>(false);
+        }
+    }
+
+    // 게시글 삭제
+    @DeleteMapping("/delete")
+    public BaseResponse<Boolean> postRemove(@RequestParam Long postId){
+        try {
+            System.out.println("삭제하려는 게시글 : "+ postId);
+            boolean result = postService.delete(postId);
+            if(!result){
+                throw new IllegalArgumentException("게시글 삭제 실패");
+            }
+            log.info("삭제 성공");
+            return new BaseResponse<>(result);
+        }catch (Exception e){
+            log.error("컨트롤러 : 에러 발생!");
+            e.printStackTrace();
+            return new BaseResponse<>(false);
+        }
+    }
 }

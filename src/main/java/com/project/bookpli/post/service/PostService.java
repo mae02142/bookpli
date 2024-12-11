@@ -77,15 +77,16 @@ public class PostService {
     public boolean save(PostDTO postDTO){
 
         try {
-            Post post = postDTO.toEntity();
-            if(post == null){
+            if(postDTO == null){
                 throw new NoSuchElementException("데이터가 없습니다.");
             }
 
+            Post post = postDTO.toEntity();
             postRepository.save(post);
             System.out.println("서비스단: 게시글 등록 성공");
 
             return true;
+
         }catch (Exception e){
             System.out.println("서비스단: 오류 발생");
             e.printStackTrace();

@@ -1,6 +1,6 @@
 <template>
     <section class="comment-content">
-      <article class="comment-article" v-for="item, index in comments" :key="index">
+      <article class="comment-article" v-for="item, index in comments" :key="item.commentId">
         <div class="comment-body">
           <button class="cta" @click="showPost(index)">
             <span v-if="item.openPost ===true">게시글 닫기</span>
@@ -34,7 +34,7 @@
           <div style="display: flex; flex-direction: row;">
             <div class="author-info">
               <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
-              <h3>{{ item.author }}</h3>
+              <h3>{{ item.userNickname || 'USER' }}</h3>
             </div>
   
             <div class="comment-text">
@@ -43,8 +43,8 @@
                 class="edit-comment"
                 @input="adjustHeight"
                 v-model="editComment.content"></textarea>
-              <p v-else>{{ item.content }}</p>
-              <p class="comment-date">{{ item.commentDate }}</p>
+              <p v-else>{{ item.commentContent }}</p>
+              <p class="comment-date">{{ item.commentDate.split('T')[0] }}</p>
   
               <div v-if="editIndex === index" class="comment-footer">
                 <img
@@ -101,7 +101,8 @@
   </template>
   
   <script>
-  import { ref } from "vue"; 
+  import apiClient from "@/api/axiosInstance";
+  import { onMounted, ref } from "vue"; 
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
   import PostForm from "@/components/bookclub/PostForm.vue";
@@ -110,9 +111,13 @@
   
   export default {
      props: {
-      userInfo : {
-          type : Object,
+      userId : {
+          type : Number,
           required : true,
+      },
+      bookclubId : {
+        type : Number,
+        required : true,
       },
      },
     components: {
@@ -120,35 +125,46 @@
         PostForm,
         Comment,
     },
-    setup() {
+    setup(props) {
+      onMounted(() => {
+        console.log('userId'+ props.userId);
+        console.log('bookclubId'+ props.bookclubId);
+        getComments();
+      })
     
-      const serverComments = ref([ //서버에서 받아온 데이터
-          {  
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          commentDate: `2024-11-27`,
-          content: `저도 그 도서 너무 감명깊게 봤습니다~~@@!.`,
-          },
-          {
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          commentDate: `2024-11-29`,
-          content: `혹시 크리스마스 관련된 도서 중 미스테리장르의 도서도 있을까요?`,
-          },
-      ]);
-      const comments = ref([]);
-      // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
-      if (Array.isArray(serverComments.value)) {
-          comments.value = serverComments.value.map(post => ({
-              ...post,
-              likeCount: 0,
-              likes: { changeLike: dislike },
-              deleteCheck: false,
-              openPost : false,
-          }));
-      } else {
-          console.error('serverPosts는 배열이 아닙니다.');
-      }
+      const serverComments = ref([]);   //서버에서 받아온 데이터
+      const comments = ref([]);     // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
+      
+      const getComments = async() => {
+        try{
+          const response = await apiClient.get(`/api/comment/user`, {
+            params : {
+              userId : props.userId,
+              bookClubId : props.bookclubId
+            }, 
+          });
+
+          if(response.status == 200){ // 요청 성공 시
+            serverComments.value = response.data.data;
+            console.log('서버 :'+ JSON.stringify(serverComments.value));
+
+            if(Array.isArray(serverComments.value)){  // 추가 값 더하기 
+              comments.value = serverComments.value.map(comment => ({
+                ...comment,
+                likeCount : 0,
+                likes : {changeLike : dislike},
+                deleteCheck : false,
+                openPost : false,
+              }));
+            }else{
+              console.log('배열이 아닙니다');
+            }
+          }
+        }catch(error){
+          console.error(error, '에러 발생');
+        }
+      };
+     
             // 좋아요 카운팅 
         const checkLike = (index) => {
             let currentLike = comments.value[index];
@@ -226,6 +242,7 @@
 
 
       return {
+        getComments,
         serverPost,
         showPost,
         dislike,
@@ -455,6 +472,7 @@
     margin: 10px 0;
     line-height: 1.6;
     border: none;
+    white-space: pre-wrap; /* 줄바꿈과 공백 유지 */
   }
   
   .icon-container {
