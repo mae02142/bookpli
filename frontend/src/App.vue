@@ -5,6 +5,8 @@
     </header>
     <div class="wrapper">
       <router-view></router-view>
+      <ConfirmModal></ConfirmModal>
+      <UtilModal></UtilModal>
     </div>
   </div>
 </template>
@@ -12,6 +14,8 @@
 <script setup>
 import { useRoute } from "vue-router";
 import { computed } from "vue";
+import ConfirmModal from "./components/modal/ConfirmModal.vue";
+import UtilModal from "./components/modal/UtilModal.vue";
 
 const route = useRoute();
 

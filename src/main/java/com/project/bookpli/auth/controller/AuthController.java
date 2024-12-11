@@ -46,7 +46,8 @@ public class AuthController {
                 "?client_id=" + clientId +
                 "&response_type=code" +
                 "&redirect_uri=" + redirectUri +
-                "&scope=user-read-private user-read-email playlist-read-private streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-modify-private";
+                "&scope=user-read-private user-read-email playlist-read-private streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-modify-private "+
+                "playlist-modify-public";
         System.out.println("spotifyAuthUrl>>>>>>>>"+spotifyAuthUrl);
         return ResponseEntity.ok(spotifyAuthUrl); // URL 반환
     }
