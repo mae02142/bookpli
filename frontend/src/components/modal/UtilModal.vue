@@ -28,8 +28,10 @@ const modalImage = computed(() => {
   switch (modalStore.type) {
     case "already-exist":
       return new URL('@/assets/modal/already-exist.gif', import.meta.url).href;
-    default:
+    case "alert":
       return new URL('@/assets/modal/warning.gif', import.meta.url).href;
+    default:
+      return new URL('@/assets/modal/success.gif', import.meta.url).href;
   }
 });
 </script>
