@@ -20,7 +20,7 @@
           @input="onSeekTrack"
         />
         <div class="time-info">
-          <span>{{ formatTime(playerStore.currentTime) }}</span> / 
+          <span>{{ formatTime(playerStore.currentTime) }}</span> /
           <span>{{ formatTime(playerStore.currentTrack.duration) }}</span>
         </div>
       </div>
@@ -66,10 +66,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 import { usePlayerStore } from "@/stores/playerStore.js";
 
-const authStore = useAuthStore();
+const userStore = useUserStore();
 const playerStore = usePlayerStore();
 const fold = ref(false);
 
@@ -93,8 +93,8 @@ const toggleFold = () => {
 };
 
 onMounted(() => {
-  if (authStore.token) {
-    playerStore.initPlayer(authStore.token);
+  if (userStore.accessToken) {
+    playerStore.initPlayer(userStore.token);
   }
 });
 </script>
@@ -116,7 +116,7 @@ onMounted(() => {
 }
 
 .fold-button {
-  text-align: center;
+  text-align: left;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;

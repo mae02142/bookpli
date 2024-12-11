@@ -1,7 +1,6 @@
 package com.project.bookpli.mypli.service;
 
 import com.project.bookpli.auth.client.SpotifyApiClient;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,5 +33,20 @@ public class MypliService {
     public Map<String, Object> createPlaylist(String spotifyId, Map<String, Object> request) {
         String endPoint = "/users/" + spotifyId + "/playlists";
         return spotifyApiClient.sendPostRequest(endPoint, request);
+    }
+
+    public void updatePlaylistTitle(String playlistId, Map<String, String> request) {
+        String endPoint = "/playlists/" + playlistId;
+        spotifyApiClient.sendPutRequest(endPoint, request);
+    }
+
+    public void deletePlaylist(String playlistId) {
+        String endPoint = "/playlists/" + playlistId + "/followers";
+        spotifyApiClient.sendDeleteRequestWithoutBody(endPoint);
+    }
+
+    public void addPlaylist(String playlistId, Map<String, Object> request) {
+        String endPoint = "/playlists/" + playlistId + "/tracks";
+        spotifyApiClient.sendPostRequest(endPoint, request);
     }
 }
