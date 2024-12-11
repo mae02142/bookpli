@@ -22,12 +22,47 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import bookSection from "@/components/bookSection.vue";
-import musicSection from "@/components/musicSection.vue";
-import MusicPlayer from "@/components/layouts/musicPlayer.vue";
+  import { ref, onMounted } from "vue";
+  import { useUserStore } from "@/stores/user.js";
+  import { useAuthStore } from '@/stores/auth.js';
+  import bookSection from "@/components/bookSection.vue";
+  import musicSection from "@/components/musicSection.vue";
+  import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
-const isMusicSection = ref(false); // Default to 'Book Page' 
+  const isMusicSection = ref(false); // Default to 'Book Page' 
+  const authStore = useAuthStore();
+  const loginStat = false;
+
+  const getToken = async() => {
+    try {
+        const spotifyId = authStore.user.spotifyId;
+
+        const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+            credentials: 'include',
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch access token');
+        }
+
+        console.log("로그인 성공띠 ~!~!~!~!~!");
+        const data = await response.json();
+        const accessToken = data.access_token;
+        
+        // Get the user store instance here
+        const userStore = useUserStore(); 
+        
+        userStore.setAccessToken(accessToken);
+        loginStat = true;
+    } catch {
+        console.log("로그인되지 않음");
+    }
+  };
+
+  onMounted(async () => {
+    getToken();
+    loginStat;
+  });
 </script>
 
 <style scoped>

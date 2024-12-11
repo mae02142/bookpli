@@ -55,7 +55,6 @@ import { ref, onMounted } from "vue";
 
 export default {
     setup() {
-        
     const newBooks = ref([]);
     const bestBooks = ref([]);
     const blogBooks = ref([]);
@@ -178,9 +177,6 @@ export default {
         await fetchNewBooks();
         await fetchBestBooks();
         await fetchBlogBooks();
-        console.log("New Books after fetch:", newBooks.value);
-        console.log("Best Books after fetch:", bestBooks.value);
-        console.log("Blog Books after fetch:", blogBooks.value);
     });
 
     return { newBooks, bestBooks, blogBooks };

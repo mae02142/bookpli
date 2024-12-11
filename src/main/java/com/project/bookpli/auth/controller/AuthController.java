@@ -1,5 +1,6 @@
 package com.project.bookpli.auth.controller;
 
+import com.project.bookpli.auth.manager.TokenManager;
 import com.project.bookpli.auth.service.AuthService;
 import com.project.bookpli.auth.service.JwtService;
 import com.project.bookpli.common.exception.BaseException;
@@ -46,8 +47,8 @@ public class AuthController {
                 "?client_id=" + clientId +
                 "&response_type=code" +
                 "&redirect_uri=" + redirectUri +
-                "&scope=user-read-private user-read-email playlist-read-private streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-modify-private";
-        System.out.println("spotifyAuthUrl>>>>>>>>"+spotifyAuthUrl);
+                "&scope=user-read-private user-read-email playlist-read-private streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-modify-private playlist-modify-public";
+        System.out.println("spotifyAuthUrl>>>>>>>>" + spotifyAuthUrl);
         return ResponseEntity.ok(spotifyAuthUrl); // URL 반환
     }
 
@@ -90,27 +91,20 @@ public class AuthController {
         }
 
         // JWT 검증 및 디코딩
-            Map<String, Object> decodedToken = jwtService.verifyToken(jwt);
+        Map<String, Object> decodedToken = jwtService.verifyToken(jwt);
 
-            // 사용자 정보 조회
-            String spotifyId = (String) decodedToken.get("spotifyId");
-            User user = mypageService.findBySpotifyId(spotifyId)
-                    .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        // 사용자 정보 조회
+        String spotifyId = (String) decodedToken.get("spotifyId");
+        User user = mypageService.findBySpotifyId(spotifyId)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-            // 필요한 사용자 정보만 반환
-            Map<String, Object> userInfo = Map.of(
-                    "spotifyId", user.getSpotifyId(),
-                    "userId", user.getUserId()
-            );
+        // 필요한 사용자 정보만 반환
+        Map<String, Object> userInfo = Map.of(
+                "spotifyId", user.getSpotifyId(),
+                "userId", user.getUserId()
+        );
 
-            return new BaseResponse<>(userInfo);
+        return new BaseResponse<>(userInfo);
 
     }
-
-
-
-
-
-
-
 }

@@ -83,7 +83,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(song, index) in songs" :key="song.id">
+            <tr v-for="(song, index) in songs" :key="`${song.id}-${index}`">
               <td class="song-index">
                 <img
                   v-if="hoveredIndex === index"
@@ -139,8 +139,11 @@ import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
+import { useUserStore } from '@/stores/user.js';
+
 
 // 상태 관리
+const userStore = useUserStore()
 const authStore = useAuthStore();
 const modalStore = useModalStore();
 const hoveredIndex = ref(null);
@@ -241,24 +244,56 @@ const getUserPlaylist = async () => {
 
 // Spotify API: 특정 플레이리스트의 트랙 가져오기
 const getPlaylistTracks = async (playlistId) => {
+  const limit = 100;
+  let offset = 0;
+  let allTracks = [];
+
   try {
-    const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
-    return response.data.data.items.map((item) => {
-      const track = item.track;
-      return {
-        id: track.id,
-        name: track.name,
-        album: track.album.name,
-        artists: track.artists.map((artist) => artist.name).join(", "),
-        duration: track.duration_ms,
-        albumCover: track.album.images[0]?.url || "",
-      };
-    });
+    // 첫 요청에서 total과
+    const firstResponse = await apiClient.get(`/api/mypli/playlist/${playlistId}?offset=${offset}&limit=${limit}`);
+    const firstData = firstResponse.data.data;
+    const total = firstData.total;
+    let items = firstData.items;
+
+    // 첫 batch 처리
+    allTracks = items.map(mapTrack);
+    offset += limit;
+    // 남은 곡이 있으면 반복적으로 요청
+    while (allTracks.length < total) {
+      const response = await apiClient.get(`/api/mypli/playlist/${playlistId}?offset=${offset}&limit=${limit}`);
+      const data = response.data.data;
+      items = data.items;
+
+      // 더 이상 가져올 아이템이 없으면 중단
+      if (items.length === 0) {
+        break;
+      }
+
+      const newTracks = items.map(mapTrack);
+      allTracks = allTracks.concat(newTracks);
+      console.log("offset : " + offset);
+      offset += limit;
+    }
+
+    return allTracks;
   } catch (error) {
     console.error("트랙 가져오기 실패:", error);
     return [];
   }
 };
+
+function mapTrack(item) {
+  const track = item.track;
+  return {
+    id: track.id,
+    name: track.name,
+    album: track.album.name,
+    artists: track.artists.map((artist) => artist.name).join(", "),
+    duration: track.duration_ms,
+    albumCover: track.album.images[0]?.url || "",
+  };
+}
+
 
 const getUserInfo = async() => {
   try {
@@ -277,9 +312,25 @@ const getUserInfo = async() => {
   }
 };
 
+const getToken = async() => {
+  const spotifyId = authStore.user.spotifyId;
+
+  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to fetch access token')
+  }
+
+  const data = await response.json()
+  const accessToken = data.access_token
+  userStore.setAccessToken(accessToken)
+}
+
 // 페이지 로드 시 실행
 onMounted(() => {
   getUserInfo();
+  getToken();
   getUserPlaylist(); // 플레이리스트 가져오기
 });
 

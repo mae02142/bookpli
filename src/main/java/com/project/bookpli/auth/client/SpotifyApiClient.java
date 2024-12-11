@@ -17,7 +17,9 @@ public class SpotifyApiClient {
     private final TokenManager tokenManager;
 
     public SpotifyApiClient(WebClient.Builder webClientBuilder, TokenManager tokenManager) {
-        this.webClient = webClientBuilder.baseUrl("https://api.spotify.com/v1").build();
+        this.webClient = webClientBuilder.baseUrl("https://api.spotify.com/v1")
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+                .build();
         this.tokenManager = tokenManager;
     }
 

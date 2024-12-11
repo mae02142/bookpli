@@ -34,7 +34,7 @@
     <section class="rankings" style="padding-top: 50px;">
         <h2 class="section-title">음악 순위</h2>
         <hr />
-        <div class="rankings-container" style="width: 90%;">
+        <div class="rankings-container" style="width: 100%;">
             <!-- Domestic Rankings -->
             <div class="ranking" style="padding-top: 30px;">
                 <h3 class="ranking-title">국내</h3>
@@ -44,7 +44,7 @@
                         v-for="(song, index) in domesticRankingPli.slice(0, 5)"
                         :key="song.uri"
                     >
-                        <td style="width: 30px;">{{ index + 1 }}</td>
+                        <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
                         <td>
                             <img
                                 :src="song.image"
@@ -56,6 +56,7 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
+                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮</td>
                     </tr>
                 </table>
             </div>
@@ -68,7 +69,7 @@
                         v-for="(song, index) in internationalRankingPli.slice(0, 5)"
                         :key="song.uri"
                     >
-                        <td style="width: 30px;">{{ index + 1 }}</td>
+                        <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
                         <td>
                             <img
                                 :src="song.image"
@@ -78,8 +79,9 @@
                                 :title="`재생: ${song.title} - ${song.artist}`"
                             />
                         </td>
-                        <td class="song-title"  @click="playSong(song.uri)">{{ song.title }}</td>
+                        <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
+                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮</td>
                     </tr>
                 </table>
             </div>
@@ -94,20 +96,22 @@
 <script>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { useAuthStore } from "@/stores/auth";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
+import { useUserStore } from "@/stores/user";
+
 
 export default {
     components: {
         MusicPlayer,
     },
     setup() {
-        const authStore = useAuthStore();
         const recommendedPli = ref([]);
         const domesticRankingPli = ref([]);
         const internationalRankingPli = ref([]);
-
-        const token = authStore.token; // Spotify API token from auth store
+        const userStore = useUserStore();
+        
+        const token = userStore.accessToken;
+        
         const recommendPliApiUrl =
             "https://api.spotify.com/v1/search?q=book&type=playlist&include_external=audio";
         const domesticRankingsApiUrl =
@@ -257,7 +261,6 @@ export default {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log("Active Devices:", response.data.devices);
                 return response.data.devices;
             } catch (error) {
                 console.error(
@@ -321,7 +324,7 @@ export default {
                     playUrl,
                     {
                         context_uri: playlistUri,
-                        offset: { position: 0 }, // 첫 번째 곡부터 재생
+                        offset: { position: 0 },
                     },
                     {
                         headers: {
@@ -461,12 +464,17 @@ body {
     cursor: pointer;
     transition: transform 0.2s;
 }
+
 .song-artist {
     max-width: 100px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
+}
+
+.song-details:hover {
+    cursor:pointer;
 }
 
 .album-cover {
