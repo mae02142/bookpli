@@ -27,8 +27,8 @@
         <!-- 플레이리스트 목록 -->
         <div
           class="playlist-item"
-          v-for="playlist in playlists"
-          :key="playlist.id"
+          v-for="(playlist, index) in playlists"
+          :key="`${playlist.id}-${index}`"
           @click="loadTracks(playlist.id)"
         >
           <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
@@ -50,22 +50,26 @@
               class="edit-title-input"
               placeholder="새 타이틀 입력"
             />
-            <button @click="updateTitle" class="save-title-button">완료</button>
+            <button @click="updateTitle" class="save-title-button">수정</button>
+            <button @click="cancelTitle" class="cancel-title-button">취소</button>
           </div>
           <div v-else>
             <h1 class="pli-header">{{ selectedPlaylist.name }}</h1>
           </div>
-          <img
-            src="@/assets/icons/option.png"
-            alt="option-icon"
-            class="option-icon"
-            @click="toggleOptionMenu"
-          />
+          <div class="option-grid">
+            <img
+              src="@/assets/icons/option.png"
+              alt="option-icon"
+              class="option-icon"
+              @click="toggleOptionMenu"
+            />
 
-          <!-- 옵션 메뉴 -->
-          <div v-if="showOptionMenu" class="option-menu">
-            <button @click="enableEditTitle" class="option-button">타이틀 변경</button>
-            <button @click="deletePlaylist" class="option-button delete">삭제하기</button>
+            <!-- 옵션 메뉴 -->
+            <div v-if="showOptionMenu" class="option-menu" @click.self="closeOptionMenu">
+              <button @click="enableEditTitle" class="option-button">타이틀 변경</button>
+              <button @click="confirmDeletePlaylist" class="option-button delete">삭제하기</button>
+            </div>
+
           </div>
         </div>
         <table class="song-table">
@@ -128,6 +132,8 @@
       v-if="modalStore.activeModal === 'SongDetailModal'"
       :song="selectedSong"
       @close="modalStore.closeModal"
+      @update-playlist="getUserPlaylist"
+      @update-tracks="refreshPlaylistTracks"
     />
   </div>
 </template>
@@ -139,6 +145,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
+import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUserStore } from '@/stores/user.js';
 
 
@@ -164,6 +171,11 @@ const toggleOptionMenu = () => {
   showOptionMenu.value = !showOptionMenu.value;
 };
 
+// 옵션 메뉴 토글
+const closeOptionMenu = () => {
+  showOptionMenu.value = !showOptionMenu.value;
+};
+
 // 타이틀 변경 모드 활성화
 const enableEditTitle = () => {
   isEditingTitle.value = true;
@@ -177,14 +189,13 @@ const updateTitle = async () => {
     alert("타이틀은 1글자 이상이어야 합니다.");
     return;
   }
-
   try {
-    // API 호출
-    await apiClient.put(`/api/mypli/${selectedPlaylist.value.id}`, {
+    const response = await apiClient.put(`/api/mypli/playlist/${selectedPlaylist.value.id}`, {
       name: editedTitle.value,
     });
 
     // 타이틀 업데이트
+    console.log("타이틀 변경후>>>>>>>>>>",response.data.data);
     selectedPlaylist.value.name = editedTitle.value;
     isEditingTitle.value = false;
   } catch (error) {
@@ -192,16 +203,35 @@ const updateTitle = async () => {
   }
 };
 
+//타이틀 변경 취소
+const cancelTitle = () => {
+  showOptionMenu.value = false;
+  editedTitle.value = selectedPlaylist.value.name;
+  isEditingTitle.value = false;
+}
+
 // 플레이리스트 삭제
-const deletePlaylist = async () => {
-  try {
-    await apiClient.delete(`/api/mypli/${selectedPlaylist.value.id}`);
-    alert("플레이리스트가 삭제되었습니다.");
-    // 여기서 플레이리스트 목록 갱신 로직 추가
-  } catch (error) {
-    console.error("플레이리스트 삭제 실패:", error);
-  }
-};
+const confirmDeletePlaylist = () => {
+    const confirmModalStore = useConfirmModalStore();
+    confirmModalStore.showModal(
+    '플레이리스트 삭제',
+    '선택하신 플레이리스트를 삭제하시겠습니까?',
+    '삭제 후 복원할 수 없습니다.',
+    '삭제하기',
+    () => deletePlaylist()
+    )
+  };
+
+  const deletePlaylist = async() => {
+    try {
+      await apiClient.delete(`/api/mypli/playlist/${selectedPlaylist.value.id}`);
+      getUserPlaylist();
+      selectedPlaylist.value=null;
+      showOptionMenu.value = false;
+    } catch (error) {
+      console.log(error);
+    }
+}
 
 // 유틸 함수: 곡 길이 포맷
 const formatDuration = (ms) => {
@@ -213,6 +243,7 @@ const formatDuration = (ms) => {
 // 노래 세부 정보 열기
 const openSongDetail = (song) => {
   selectedSong.value = song;
+  console.log(">>>>>>>>>>>>.",selectedSong.value);
   modalStore.openModal("SongDetailModal");
 };
 
@@ -237,6 +268,7 @@ const getUserPlaylist = async () => {
       name: item.name,
       count: item.tracks.total,
     }));
+    console.log("플레이리스트ID>>>>>>", playlists.value.id);
   } catch (error) {
     console.error("플레이리스트 가져오기 실패:", error);
   }
@@ -249,51 +281,24 @@ const getPlaylistTracks = async (playlistId) => {
   let allTracks = [];
 
   try {
-    // 첫 요청에서 total과
-    const firstResponse = await apiClient.get(`/api/mypli/playlist/${playlistId}?offset=${offset}&limit=${limit}`);
-    const firstData = firstResponse.data.data;
-    const total = firstData.total;
-    let items = firstData.items;
-
-    // 첫 batch 처리
-    allTracks = items.map(mapTrack);
-    offset += limit;
-    // 남은 곡이 있으면 반복적으로 요청
-    while (allTracks.length < total) {
-      const response = await apiClient.get(`/api/mypli/playlist/${playlistId}?offset=${offset}&limit=${limit}`);
-      const data = response.data.data;
-      items = data.items;
-
-      // 더 이상 가져올 아이템이 없으면 중단
-      if (items.length === 0) {
-        break;
-      }
-
-      const newTracks = items.map(mapTrack);
-      allTracks = allTracks.concat(newTracks);
-      console.log("offset : " + offset);
-      offset += limit;
-    }
-
-    return allTracks;
+    const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
+    return response.data.data.items.map((item) => {
+      const track = item.track;
+      return {
+        id: track.id,
+        name: track.name,
+        album: track.album.name,
+        albumId: track.album.id,
+        artists: track.artists.map((artist) => artist.name).join(", "),
+        duration: track.duration_ms,
+        albumCover: track.album.images[0]?.url || "",
+      };
+    });
   } catch (error) {
     console.error("트랙 가져오기 실패:", error);
     return [];
   }
 };
-
-function mapTrack(item) {
-  const track = item.track;
-  return {
-    id: track.id,
-    name: track.name,
-    album: track.album.name,
-    artists: track.artists.map((artist) => artist.name).join(", "),
-    duration: track.duration_ms,
-    albumCover: track.album.images[0]?.url || "",
-  };
-}
-
 
 const getUserInfo = async() => {
   try {
@@ -375,6 +380,14 @@ console.log(response.data.data);
     newPlaylistName.value = "";
   } catch (error) {
     console.error("플레이리스트 추가 실패:", error);
+  }
+};
+
+const refreshPlaylistTracks = async () => {
+  if (selectedPlaylist.value?.id) {
+    songs.value = await getPlaylistTracks(selectedPlaylist.value.id);
+  } else {
+    console.error("선택된 플레이리스트가 없습니다.");
   }
 };
 
@@ -596,7 +609,6 @@ text-align: center;
 .pli-header {
     font-weight: bold;
     font-size: 25px;
-    margin-bottom: 30px;
     text-align: center;
 }
 
@@ -658,17 +670,18 @@ text-align: center;
 .option-icon {
   cursor: pointer;
   margin-bottom: 10px;
+  width: 21px;
+  height: 17px;
 }
 
 .option-menu {
-  position: absolute;
-  top: 106px;
-  right: 740px;
   background-color: white;
   border: 1px solid #ddd;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   z-index: 1000;
+  margin-left: 12px;
+  margin-bottom: 5px;
 }
 
 .option-button {
@@ -693,7 +706,7 @@ text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
 
 }
 
@@ -704,19 +717,33 @@ text-align: center;
   border-radius: 4px;
 }
 
-.save-title-button {
-  padding: 5px 10px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .save-title-button:hover {
   background-color: #218838;
 }
 
+.option-grid {
+  display: flex;
+  align-items: end;
+  min-height: 85px;
+}
 
+.save-title-button {
+  background-color: #252525;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
 
+.cancel-title-button {
+  background-color: #ffffff;
+    border: none;
+    border-radius: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    border: 1px solid #ababab;
+}
 </style>

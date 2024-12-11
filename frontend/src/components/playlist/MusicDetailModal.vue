@@ -1,110 +1,235 @@
 <template>
-    <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
+  <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content">
+      <div>
+        <div class="modal-header">
+          <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal" />
+        </div>
         <div class="modal-content-grid">
-          <div class="modal-header">
-              <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal"/>
-          </div>
           <div class="album-grid">
-              <img src="@/assets/icons/music/album.png" class="album-img">
-              <div class="album-grid-right">
-                  <p class="album-grid-title">LOVE LOVE LOVE</p>
-                  <p class="album-grid-artist">에픽하이</p>
-                  <img src="@/assets/icons/music/add_playlist.png" class="add-playlist-icon">
+            <img src="@/assets/icons/music/album.png" class="album-img" />
+            <div class="album-grid-right">
+              <p class="album-grid-title">{{ songData.name }}</p>
+              <p class="album-grid-artist">{{ songData.artists }}</p>
+              <div class="add-to-playlist-block" ref="playlistBlock">
+                <img
+                  src="@/assets/icons/music/add_playlist.png"
+                  class="add-playlist-icon"
+                  @click="togglePlaylistModal"
+                />
+                <span>플레이리스트에 추가</span>
+                <!-- 플레이리스트 선택창 -->
+                <div v-if="showPlaylistModal" class="add-music-playlist-modal">
+                    <p
+                      v-for="(playlist) in playlists"
+                      :key="playlist.id"
+                      @click="selectPlaylist(playlist.id)"
+                    >
+                      {{ playlist.name }}
+                    </p>
+                </div>
               </div>
             </div>
-          <div class="album-title-grid">
-              <p>앨범</p>
-              <p>Remapping the Human Soul</p>
           </div>
-          <div class="modal-body">
-            <div class="song-info">
-              <table class="song-detail-table">
-                  <thead class="song-detail-thead">
-                  <tr>
-                      <th class="column-index">#</th>
-                      <th class="column-title">제목</th>
-                      <th class="column-duration">
-                      <img src="@/assets/icons/time.png" alt="Duration Icon" class="icon-duration" />
-                      </th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr v-for="(song, index) in songs" :key="song.id">
-                      <td class="song-index">{{ index + 1 }}</td>
-                      <td class="song-title">{{ song.name }}</td>
-                      <td class="song-artist">{{ song.artist }}</td>
-                      <td class="song-duration">{{ song.duration }}</td>
-                  </tr>
-                  </tbody>
-              </table>
+          <div class="album-title-grid">
+            <div>
+              <p>앨범</p>
+              <p>{{ songData.album }}</p>
             </div>
-            <div class="modal-actions">
-              <button class="play-button" @click="playSong">
-                <img src="@/assets/icons/music/album_play.png" alt="Play" />
-                재생
-              </button>
-              <button class="save-button" @click="saveSong">
-                <img src="@/assets/icons/music/add_playlist.png" alt="Save" />
-                저장하기
-              </button>
+            <img
+              @click="playSong"
+              src="@/assets/icons/music/album_play.png"
+              alt="Play"
+              class="play-button"
+            />
+          </div>
+          <div class="table-body">
+            <div class="song-table">
+              <table class="song-detail-table">
+                <thead class="song-detail-thead">
+                  <tr>
+                    <th class="column-index">#</th>
+                    <th class="column-title">제목</th>
+                    <th class="column-duration">
+                      <img
+                        src="@/assets/icons/time.png"
+                        alt="Duration Icon"
+                        class="icon-duration"
+                      />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(track, index) in tracks" :key="track.id" @click="selectSong(track)">
+                    <td class="song-index">{{ index + 1 }}</td>
+                    <td>
+                      <div class="song-info">
+                        <span class="song-title">{{ track.name }}</span>
+                        <span class="song-artists">{{ track.artists }}</span>
+                      </div>
+                    </td>
+                    <td class="song-duration">{{ track.duration }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { computed, ref } from "vue";
-  import { useModalStore } from "@/stores/modalState";
-  
-  // Pinia store
-  const modalStore = useModalStore();
-  
-  // 현재 모달이 활성화 상태인지 확인
-  const isActive = computed(() => modalStore.activeModal === "SongDetailModal");
-  
-  // 부모에서 전달받는 `props`
-  const props = defineProps({
-    songs: {
-      type: Object,
-      required: false,
-      default: () => ({
-        name: "",
-        album: "",
-        duration: 0,
-        albumCover: "",
-      }),
-    },
-  });
-  
-  // 로컬 데이터로 변환
-  const songData = ref(props.song);
-  
-  // Pinia를 활용한 모달 닫기
-  const closeModal = () => {
-    modalStore.closeModal();
+    <div v-if="showNotification" class="notification-box">
+    {{ notificationMessage }}
+  </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, defineProps, defineEmits } from "vue";
+import { useModalStore } from "@/stores/modalState";
+import apiClient from "@/api/axiosInstance";
+import { useUtilModalStore } from "@/stores/utilModalStore";
+
+// Pinia store
+const modalStore = useModalStore();
+
+// 현재 모달이 활성화 상태인지 확인
+const isActive = computed(() => modalStore.activeModal === "SongDetailModal");
+
+// 부모에서 전달받는 `props`
+const props = defineProps({
+  song: {
+    type: Object,
+    required: false,
+    default: () => ({
+      id: "",
+      name: "",
+      album: "",
+      albumId: "",
+      artists: "",
+    }),
+  },
+});
+const emit = defineEmits(["update-tracks", "update-playlist"]);
+const songData = ref(props.song);
+const tracks = ref([]);
+const playlists = ref([]);
+const showPlaylistModal = ref(false);
+const notificationMessage = ref(""); // 알림 메시지
+const showNotification = ref(false); // 알림 표시 여부
+
+const selectSong = (track) => {
+  songData.value = {
+    id: track.id,
+    name: track.name,
+    album: songData.value.album, // 기존 앨범명 유지
+    albumId: songData.value.albumId, // 기존 앨범 ID 유지
+    artists: track.artists, // 트랙의 아티스트 정보
   };
-  
-  // 노래 재생 함수
-  const playSong = () => {
-    console.log(`Playing song: ${songData.value.name}`);
-  };
-  
-  // 노래 저장 함수
-  const saveSong = () => {
-    console.log(`Saving song: ${songData.value.name}`);
-  };
-  
-  // 시간을 포맷팅하는 함수
-  const formatDuration = (ms) => {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
-  </script>
-  
+};
+
+const displayNotification = (message) => {
+  notificationMessage.value = message;
+  showNotification.value = true;
+
+  // 3초 후 알림 숨김 처리
+  setTimeout(() => {
+    showNotification.value = false;
+  }, 2000);
+};
+
+// Pinia를 활용한 모달 닫기
+const closeModal = () => {
+  modalStore.closeModal();
+};
+
+// 시간을 포맷팅하는 함수
+const formatDuration = (ms) => {
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
+};
+
+// 앨범 트랙 가져오기
+const getAlbumTracks = async () => {
+  try {
+    const response = await apiClient.get(`/api/music/album/${songData.value.albumId}`);
+    tracks.value = response.data.data.items.map((track) => ({
+      id: track.id,
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name).join(", "),
+      duration: formatDuration(track.duration_ms),
+    }));
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// 플레이리스트 가져오기
+const getMyPlaylist = async () => {
+  try {
+    const response = await apiClient.get("api/mypli");
+    playlists.value = response.data.data.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+    }));
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// 플레이리스트 모달 토글
+const togglePlaylistModal = async () => {
+  showPlaylistModal.value = !showPlaylistModal.value;
+  getMyPlaylist();
+};
+
+// 플레이리스트 선택
+const selectPlaylist = async (playlistId) => {
+  try {
+    // 1. 선택한 플레이리스트에 곡 존재 여부 확인
+    const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
+
+    // 2. 곡이 이미 존재하면 확인 창 표시
+    const utilModalStore = useUtilModalStore();
+    const tracks = response.data.data.items.map((item) => item.track.id);
+    
+    if (tracks.includes(songData.value.id)) {
+      utilModalStore.showModal(
+        '플레이리스트 담기',
+        `"${playlists.value.find((p) => p.id === playlistId)?.name}"에 이미 존재하는 곡입니다.`,
+        'already-exist'
+      );
+    } else {
+      await addMusicToPlaylist(playlistId);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  showPlaylistModal.value = false; // 선택 후 모달 닫기
+};
+
+const addMusicToPlaylist = async(playlistId) => {
+  const songUri = `spotify:track:${songData.value.id}`;
+  try {
+    await apiClient.post(`/api/mypli/playlist/${playlistId}`, {
+        uris: [songUri],
+      });
+
+    const playlist = playlists.value.find((p) => p.id === playlistId);
+    displayNotification(`"${playlist.name}"에 추가되었습니다.`);
+    emit('update-playlist');
+    emit('update-tracks');
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+onMounted(() => {
+  getAlbumTracks();
+});
+</script>
+
   <style scoped>
   .modal-overlay {
     position: fixed;
@@ -122,19 +247,16 @@
   .modal-content {
     background: white;
     border-radius: 10px;
-    width: 400px;
+    width: 450px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
     position: relative;
-    display: grid;
-    justify-content: center;
   }
   
   .modal-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end;
     margin-bottom: 20px;
   }
   
@@ -142,6 +264,7 @@
     background: none;
     border: none;
     cursor: pointer;
+    width: 13px;
   }
   
   .album-cover {
@@ -151,6 +274,12 @@
     margin-bottom: 20px;
   }
 
+  td {
+    vertical-align: middle;
+    padding: 10px 7px;
+    font-size: 13px;
+  }
+
   .song-detail-table {
     width: 100%;
     border-collapse: collapse;
@@ -158,43 +287,64 @@
 
   .song-detail-table th {
     border-bottom: 1px solid #e0e0e0;
-    padding: 10px 0px;
+    padding: 10px 7px;
     font-size: 14px;
   }
   
+  .song-table {
+    max-height: 400px; /* 테이블 높이 제한 */
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+  }
+
+  .song-artists {
+    font-size: 13px;
+  }
+
+  /* 스크롤바 스타일 */
+.song-table::-webkit-scrollbar {
+  width: 8px;
+}
+
+.song-table::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+  width: 400px;
+}
+
+.song-table::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.song-table::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+/* 스크롤바 기본 스타일 */
+.song-table {
+  scrollbar-width: thin; /* Firefox: 스크롤바 얇게 설정 */
+}
+
+
+  
   .song-info {
     text-align: left;
-    margin-bottom: 20px;
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    gap: 3px;
   }
   
   .song-info p {
     margin: 5px 0;
   }
+
   
-  .modal-actions {
-    display: flex;
-    justify-content: space-around;
-  }
-  
-  .play-button,
-  .save-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+  .play-button {
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    width: 36px;
   }
   
-  .play-button:hover,
-  .save-button:hover {
-    background: #0056b3;
-  }
 
   .album-grid {
     display: flex;
@@ -209,14 +359,15 @@
   }
 
   .add-playlist-icon {
-    width: 16px;
-    height: 17px;
-    margin-top: 5px;
+    width: 14px;
+    height: 15px;
+    cursor: pointer;
   }
 
   .album-grid-title {
     font-size: 16px;
     font-weight: bold;
+    text-align: start;
   }
 
   .album-grid-artist {
@@ -233,9 +384,13 @@
   }
 
   .album-title-grid{
-    display: grid;
     margin-top: 15px;
-    justify-items: flex-start;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    text-align: start;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .album-title-grid p:first-child{
@@ -243,8 +398,87 @@
   }
   
   .album-title-grid p:last-child{
-    font-size: 20px;
+    font-size: 19px;
+    font-weight: bold;
+    margin-top: 3px;
+  }
+
+  .table-body {
+    text-align-last: start;
+  }
+
+  .icon-duration {
+    width: 18px;
+    height: 18px;
+  }
+
+  .modal-content-grid {
+    width: 380px;
+    display: grid;
+    place-self: center;
+  }
+
+  .song-title {
+    font-size: 14px;
     font-weight: bold;
   }
+
+  .add-to-playlist-block {
+    display: flex;
+    margin-top: 10px;
+    font-size: 13px;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+  }
+
+  /* .playlist-modal {
+    display: flex;
+    flex-flow: column;
+  } */
+
+  .add-music-playlist-modal {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    top: -2px;
+    left: 20px;
+    display: flex
+;
+    flex-direction: column;
+    width: max-content;
+}
+
+.add-music-playlist-modal p {
+  padding: 10px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: start;
+}
+
+.add-music-playlist-modal p:hover {
+  background: #f0f0f0;
+}
+
+.notification-box {
+  position: absolute;
+  bottom: 70px;
+  left: 50%; /* 화면 가로의 중앙 */
+  transform: translateX(-50%); /* 가로 중앙 정렬 */
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #000000;
+  color: white;
+}
+
+.song-info:hover {
+  cursor: pointer;
+  color: #1db954; /* Spotify 녹색 강조 */
+}
   </style>
   

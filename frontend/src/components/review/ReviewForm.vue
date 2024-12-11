@@ -1,6 +1,6 @@
 <template>
     <!-- 모달 배경 -->
-    <section v-if="isVisible" class="modal-overlay" @click="closeModal">
+    <section v-if="isVisible" class="modal-overlay" @click="cancelForm">
       <div class="modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
         <!-- 모달 내용 -->
       <div class="review-form">
@@ -20,20 +20,21 @@
           </div>
         </div>
   
-          <div class="form-summary">
-            <label for="summary">한 줄 독서</label>
+          <div class="form-reviewContent">
+            <label for="reviewContent">한 줄 독서</label>
             <textarea
-              id="summary"
-              v-model="summary"
+              id="reviewContent"
+              v-model="reviewContent"
               maxlength="150"
               placeholder="책을 읽으면서 느꼈던 생각이나 감상을 자유롭게 기록해보세요"
+              @input="handleSummaryInput"
             />
             <div class="char-count">{{ charCount }}/150</div>
           </div>
   
           <div class="form-actions">
+            <button class="submit-btn" @click.prevent="submitForm">등록</button>
             <button class="cancel-btn" @click="cancelForm">취소</button>
-            <button class="submit-btn" @click="submitForm">등록</button>
           </div>
         </div>
       </div>
@@ -43,30 +44,44 @@
   <script>
   import fullStarImage from "@/assets/icons/full_star.png";
   import emptyStarImage from "@/assets/icons/empty_star.png"
+  import { onMounted, ref } from "vue";
+  import axios from "axios";
 
-  import { ref } from "vue";
-  
   export default {
     props: {
-      // 모달 표시 여부를 부모로부터 받음
       isVisible: {
         type: Boolean,
         default: false,
       },
+      userId: {
+        type : Number,
+        required: true,
+      },
+      bookId: {
+        type : String,
+        required: true,
+      }
     },
     emits: ['update:isVisible'],
     setup(props, { emit }) {
+      onMounted(() => {
+        console.log(props.bookId);
+        console.log(props.userId);
+      })
+
       const rating = ref(0);
-      const summary = ref("");
+      const reviewContent = ref("");
       const charCount = ref(0);
 
       // 모달 닫기
       const closeModal = () => {
         emit('update:isVisible', false);
+        return undefined;
       };
   
       // 별점 업데이트
       const updateRating = (index) => {
+        console.log("별점 변화 :" + index);
         rating.value = index;
       };
   
@@ -77,29 +92,37 @@
   
       // 취소 버튼 클릭 시
       const cancelForm = () => {
-        readingDate.value = "";
         rating.value = 0;
-        summary.value = "";
+        reviewContent.value = "";
         charCount.value = 0;
         closeModal();
+        return undefined;
       };
   
       // 폼 제출
-      const submitForm = () => {
-        if ( !summary.value || rating.value === 0) {
+      const submitForm = async() => {
+        if ( !reviewContent.value || rating.value === 0) {
           alert("모든 항목을 작성해주세요!");
-          return;
-        }
-        console.log("Form Submitted: ", {
-          rating: rating.value,
-          summary: summary.value,
-        });
-        cancelForm();
+          return undefined;
+        }else{
+          try{
+        const review =  {
+        userId : props.userId,
+        isbn13 : props.bookId,
+        reviewContent: reviewContent.value ,
+        rating: rating.value
       };
+        await axios.post("http://localhost:8081/api/review/post",review);
+      } catch(error){
+        console.log(error,"등록 중 에러 발생");
+      };
+    }
+      cancelForm();
+  };
   
       return {
         rating,
-        summary,
+        reviewContent,
         charCount,
         fullStarImage,
         emptyStarImage,
@@ -109,8 +132,8 @@
         submitForm,
         closeModal, 
       };
-    },
-  };
+  },
+};
   </script>
   
   <style scoped>
@@ -160,6 +183,8 @@
     resize: none;
     min-height: 100px;
     height: auto;
+    width: 100%;
+    outline: none;
   }
   
   .star-rating {

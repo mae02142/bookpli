@@ -15,7 +15,7 @@
                     </div>
                 </div>       
             </div>
-            <textarea class="post-text" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요."></textarea>
+            <textarea class="post-text" v-model="form.postContent" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요."></textarea>
             <div class="icon-btn">
                 <button class="open-file" @click="triggerFileInput">
                 <span class="file-wrapper">
@@ -39,16 +39,32 @@
 </div>
 </template>
 <script>
-import {ref} from "vue";
+import axios from "axios";
+import {onMounted, ref, toRaw} from "vue";
     export default {
         props: {
             modelValue : {
                 type : Boolean,
                 default : false,
             },
+            userId : {
+                type : Number,
+                required : true,
+            },
+            bookclubId : {
+                type : Number,
+                required : true,
+            }
         },
-        emits: ['update:modelValue'],
-        setup(_,{emit}) {
+        emits: ['update:modelValue','close'],
+        setup(props,{emit}) {
+
+            onMounted(()=> {
+                console.log('bookclub : '+props.bookclubId);
+                console.log('userId : '+props.userId);
+
+            })
+
             const closeModal = () =>{ //모달 닫기
                 console.log("모달창을 닫습니다.");
                 imageSrc.value = "";
@@ -86,16 +102,33 @@ import {ref} from "vue";
                 imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
             };
 
+                        /* 게시글 등록 */
 
-            const putUpPost = () => { //게시글 등록
-                //axios 수행
-                alert("게시글이 등록되었습니다");
+            const form = ref({
+                userId : props.userId,
+                bookClubId : props.bookclubId,
+                postContent : "",
+
+            });
+            const putUpPost = async() => {
+                console.log('게시 전 내용'+JSON.stringify(form.value));
+                const rawForm = toRaw(form.value);
+                console.log('게시 내용'+JSON.stringify(rawForm));
+
+                const response = await axios.post("http://localhost:8081/api/post/insert", rawForm);
+                if(response.data.data == true){
+                    alert("게시글이 등록되었습니다");
+                }else{
+                    alert("게시글 등록에 실패하였습니다");
+                }
                 imageSrc.value = "";
+                emit('close');
                 closeModal();
                 //mypost 다시 리로딩
             };
             return{
                 closeModal,
+                form,
                 putUpPost,
                 triggerFileInput,
                 onFileChange,

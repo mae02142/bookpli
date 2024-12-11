@@ -41,18 +41,32 @@
             <p class="description">책에 대한 이야기를 나눠보세요</p>
             <img class="add-icon" src="@/assets/icons/add.png" alt="추가 아이콘" />
       </div>
-      <PostForm :modelValue="addPost" @update:modelValue="addPost = $event" />
+      <PostForm :modelValue="addPost"
+       @update:modelValue="addPost = $event" 
+       :userId="info.userId" 
+       :bookclubId="info.bookclubId" 
+       />
              <!-- 게시글 리스트 -->
-             <MyPost v-if="selected === 1" :userInfo="info" />
+    <MyPost 
+      v-if="selected === 1" 
+      :userId="info.userId" 
+      :bookclubId="info.bookclubId" 
+      :nickname="info.nickname" 
+      :profile="info.profile" 
+    />
              <MyComment v-if="selected === 2" />
     </div>
   </template>
   
   <script>
-  import { ref } from "vue";
+  import { onMounted, ref } from "vue";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import MyPost from "@/components/bookclub/MyPost.vue";
   import MyComment from "@/components/bookclub/MyComment.vue";
+  import { useRoute } from "vue-router";
+  import { useAuthStore } from '@/stores/auth';
+import axios from "axios";
+
 
   export default {
     components: {
@@ -61,6 +75,14 @@
         MyComment,
     },
     setup() {
+      const route = useRoute();
+      const authStore = useAuthStore();
+      onMounted(()=>{
+        console.log('전달받은 데이터 : '+ JSON.stringify(route.query));
+        console.log('userId : ' + authStore.user.userId);
+        console.log('bookclubid' + route.query.bookClubId);
+      })
+
       const navItems = ref([
       { 
         link: '/bookclub/community',
@@ -87,11 +109,11 @@
     };
 
       const info = ref(
-          { title : "크리스마스로 불리는 소년",
-          userId : 1,
+          { title : route.query.title,
+          userId : authStore.user.userId,
           nickname : "독서광", 
           profile : `@/assets/icons/profile.png`,
-          bookclubId: 2,
+          bookclubId: Number(route.query.bookClubId),
           });  
        
         const addPost = ref(false);
