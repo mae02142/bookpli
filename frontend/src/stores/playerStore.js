@@ -15,6 +15,7 @@ state: () => ({
 actions: {
     initPlayer(token) {
     this.token = token;
+    console.log("token : " + token);
     if (this.player) return;
     
     window.onSpotifyWebPlaybackSDKReady = () => {

@@ -122,7 +122,11 @@ public class BookApiService {
             return bookrep.readBookList(userId);
         } else if ("wished".equalsIgnoreCase(status)) {
             return bookrep.addBookList(userId);
-        } else {
+        } else if("completed".equalsIgnoreCase(status)) {
+            return bookrep.finishBookList(userId);
+        } else if("like".equalsIgnoreCase(status)) {
+            return bookrep.likeBookList(userId);
+        }else{
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }

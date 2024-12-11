@@ -108,6 +108,7 @@ export default {
         const internationalRankingPli = ref([]);
 
         const token = authStore.token; // Spotify API token from auth store
+        console.log("token in music section : " + token);
         const recommendPliApiUrl =
             "https://api.spotify.com/v1/search?q=book&type=playlist&include_external=audio";
         const domesticRankingsApiUrl =
