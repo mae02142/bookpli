@@ -108,7 +108,7 @@
 <script>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import MusicPlayer from "@/components/layouts/musicPlayer.vue"; // Corrected casing
+import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 import { useUserStore } from "@/stores/user";
 
 export default {
@@ -132,7 +132,7 @@ setup() {
     "https://api.spotify.com/v1/search?q=BillBoard+Hot+100&type=playlist";
 
     const toggleOptionMenu = () => {
-        showOptionMenu.value = !showOptionMenu.value;
+        showOptionMenu.value = true;
     };
 
     // Option Menu Toggle
@@ -385,10 +385,11 @@ setup() {
 
     // Fetch playlists and rankings on component mount
     onMounted(() => {
+    closeOptionMenu();
+    toggleOptionMenu();
     fetchRecommendedPlaylists();
     fetchDomesticRanking();
     fetchInternationalRanking();
-    closeOptionMenu();
     });
 
     return {

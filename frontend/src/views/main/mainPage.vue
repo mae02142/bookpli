@@ -18,7 +18,6 @@
   <div v-else style="padding-bottom: 100px;">
     <music-section />
   </div>
-  <MusicPlayer/>
 </template>
 
 <script setup>
@@ -27,9 +26,8 @@
   import { useAuthStore } from '@/stores/auth.js';
   import bookSection from "@/components/bookSection.vue";
   import musicSection from "@/components/musicSection.vue";
-  import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
-  const isMusicSection = ref(false); // Default to 'Book Page' 
+  const isMusicSection = ref(false);
   const authStore = useAuthStore();
   const loginStat = false;
 

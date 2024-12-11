@@ -48,12 +48,17 @@
         </div>
     </section>
     </div>
+    <MusicPlayer/>
 </template>
 
 <script>
+import MusicPlayer from "@/components/layouts/musicPlayer.vue"; // Corrected casing
 import { ref, onMounted } from "vue";
 
 export default {
+    components: {
+        MusicPlayer,
+    },
     setup() {
     const newBooks = ref([]);
     const bestBooks = ref([]);

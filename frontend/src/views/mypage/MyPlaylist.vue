@@ -796,12 +796,11 @@ text-align: center;
 
 .cancel-title-button {
   background-color: #ffffff;
-    border: none;
     border-radius: 30px;
     padding: 5px 10px;
     cursor: pointer;
     font-size: 12px;
-    //border: 1px solid #ababab;
+    border: 1px solid #ababab;
 }
 
 .playlist-header {

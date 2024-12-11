@@ -20,7 +20,7 @@
           @input="onSeekTrack"
         />
         <div class="time-info">
-          <span>{{ formatTime(playerStore.currentTime) }}</span> / 
+          <span>{{ formatTime(playerStore.currentTime) }}</span> /
           <span>{{ formatTime(playerStore.currentTrack.duration) }}</span>
         </div>
       </div>
