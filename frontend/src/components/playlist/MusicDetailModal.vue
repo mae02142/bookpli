@@ -115,6 +115,7 @@ const props = defineProps({
     }),
   },
 });
+
 const emit = defineEmits(["update-tracks", "update-playlist"]);
 const songData = ref(props.song);
 const tracks = ref([]);
