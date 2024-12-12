@@ -6,7 +6,13 @@
         </div>
     <div class="book-info-section">
         <div>
-            <h1 class="book-title">{{ book.title }}</h1>
+            <div class="title-and-icons">
+                <h1 class="book-title">{{ book.title }}</h1>
+                <div class="icons-container">
+                    <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+                    <img src="../../assets/icons/cart.png" class="detail-icons"/>
+                </div>
+            </div>
             <span class="book-meta">
                 출판일: {{ book.pubdate.split('T')[0] }}
                 <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
@@ -14,7 +20,7 @@
             </span>
             <span class="book-meta">
                 출판사: {{ book.publisher }}
-                지은이: {{ book.author }}
+                지은이: {{ book.author.split('(')[0] }}
             </span>
             <div>
                 <h2 class="book-intro-header">책소개</h2>
@@ -22,6 +28,7 @@
                 보기
             </div>
             <button class="btn-read" @click="gotoGoal(book)" v-if="book.status !== 'reading'">선택</button>
+            
         </div>
     </div>
 </div> 
@@ -29,20 +36,15 @@
 <div class="recommendations">
     <div class="line-separator"></div>    
     <div class="tabs">
-        <button class="tab">추천도서</button>
-        <button class="tab">리뷰</button>
+        <button class="tab" @click="setActiveTab('recommend')">추천도서</button>
+        <button class="tab" @click="setActiveTab('review')">리뷰</button>
     </div>
     <div class="line-separator"></div>
 
-    <div class="recommendation-covers">
-        <img
-        v-for="(cover, index) in recommendations"
-        :key="index"
-        class="recommendation-cover"
-        :src="cover"
-        alt="Recommendation Cover"
-        />
+    <!-- 추천도서 표시 -->
+    <div class="recommendation-covers" v-if="activeTab ==='recommend'">
     </div>
+    <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="userId"/>
 </div>
 </div>
 </template>
@@ -50,16 +52,39 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import ReviewForm from "@/components/review/ReviewForm.vue";
 
 const route= useRoute();
 const router= useRouter();
 const book= ref(JSON.parse(route.query.data));
 
-const viewReviews = () => {
-    alert("리뷰 보기 클릭됨!");
+import { useAuthStore } from '@/stores/auth';
+const authStore= useAuthStore();
+
+const activeTab= ref('recommend');
+
+import dislikeImage from '@/assets/icons/dislike.png';
+import likeImage from '@/assets/icons/like.png';
+
+// const viewReviews = () => {
+//     alert("리뷰 보기 클릭됨!");
+// };
+
+// 좋아요 상태 관리 변수
+const isLiked = ref(false);
+
+// 좋아요 상태 토글 함수
+const toggleLike = () => {
+    isLiked.value = !isLiked.value;
+    // console.log("Like 상태:", isLiked.value);
+}
+
+const setActiveTab= (tab) => {
+    activeTab.value= tab;
 };
 
-const gotoGoal = (book, source="default") => {
+
+const gotoGoal = (book) => {
     console.log(book);
     router.push({
         path: `/miniroom/goal/${book.isbn13}`,
@@ -68,6 +93,16 @@ const gotoGoal = (book, source="default") => {
         },  
     });
 };
+
+const userInfo = async () => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
+        const userData= response.data;
+        
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 </script>
 
@@ -248,5 +283,23 @@ body {
     border-radius: 5px;
     padding: 10px 20px;
     cursor: pointer;
+}
+
+.detail-icons{
+    width: 30px !important;
+    height: 30px !important;
+    cursor: pointer;
+}
+
+.title-and-icons {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.icons-container {
+    display: flex; 
+    gap: 10px; 
 }
 </style>
