@@ -17,18 +17,19 @@ export const usePlayerStore = defineStore('player', {
         initPlayer(token) {
             const userStore = useUserStore();
             this.token = userStore.accessToken;
-
+            console.log(this.deviceId);
+            console.log("token in playerStore : " + this.token)
             if (this.player) {
                 return ;
             }
-        
+
             window.onSpotifyWebPlaybackSDKReady = () => {
                 this.player = new window.Spotify.Player({
                     name: 'Web Playback SDK Player',
                     getOAuthToken: cb => { cb(this.token); },
                     volume: this.volume
                 });
-                
+
                 this.player.addListener('ready', ({ device_id }) => {
                     this.deviceId = device_id;
                     this.transferPlayback(device_id);
@@ -41,7 +42,7 @@ export const usePlayerStore = defineStore('player', {
                         this.currentTime = Math.floor(position / 1000);
                     }
                 });
-                
+
                 this.player.connect().then(success => {
                     if (success) {
                         console.log('The Web Playback SDK successfully connected to Spotify!');
@@ -58,13 +59,13 @@ export const usePlayerStore = defineStore('player', {
         async transferPlayback(deviceId) {
             try {
                 await axios.put('https://api.spotify.com/v1/me/player', {
-                    device_ids: [deviceId], play: false 
+                    device_ids: [deviceId], play: false
                 },
                 {
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${this.token}` 
-                    } 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.token}`
+                    }
                 });
                 console.log('Playback transfer successful');
             } catch (error) {
@@ -107,6 +108,7 @@ export const usePlayerStore = defineStore('player', {
         // URI에 따라 플레이리스트/단일 곡 재생
         async playContent(uri) {
             if (!this.deviceId || !this.token) {
+                console.log(this.deviceId);
                 console.error('Device ID or Token is missing. Cannot start playback.');
                 return;
             }
@@ -118,8 +120,8 @@ export const usePlayerStore = defineStore('player', {
                         'https://api.spotify.com/v1/me/player/play',
                     {
                         context_uri: uri,
-                        offset: { 
-                            position: 0 
+                        offset: {
+                            position: 0
                         },
                     },
                     {
@@ -127,7 +129,7 @@ export const usePlayerStore = defineStore('player', {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${this.token}`
                         },
-                        params: { 
+                        params: {
                             device_id: this.deviceId
                         },
                     }

@@ -56,13 +56,6 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮
-                            <div v-if="showOptionMenu" class="option-menu" @click.self="closeOptionMenu">
-                                <button >재생하기</button>
-                                <button >내 플리에 추가하기</button>
-                                <button >앨범 정보 보기</button>
-                            </div>
-                        </td>
                     </tr>
                 </table>
             </div>
@@ -75,7 +68,7 @@
                         v-for="(song, index) in internationalRankingPli.slice(0, 5)"
                         :key="song.uri"
                     >
-                        <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
+                        <td style="width: 30px;">{{ index + 1 }}</td>
                         <td>
                             <img
                                 :src="song.image"
@@ -85,15 +78,8 @@
                                 :title="`재생: ${song.title} - ${song.artist}`"
                             />
                         </td>
-                        <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
+                        <td class="song-title"  @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮
-                            <div v-if="showOptionMenu" class="option-menu" @click.self="toggleOptionMenu">
-                                <button >재생하기</button>
-                                <button >내 플리에 추가하기</button>
-                                <button >앨범 정보 보기</button>
-                            </div>
-                        </td>
                     </tr>
                 </table>
             </div>
@@ -131,23 +117,14 @@ setup() {
     const internationalRankingsApiUrl =
     "https://api.spotify.com/v1/search?q=BillBoard+Hot+100&type=playlist";
 
-    const toggleOptionMenu = () => {
-        showOptionMenu.value = true;
-    };
-
-    // Option Menu Toggle
-    const closeOptionMenu = () => {
-        showOptionMenu.value = false;
-    };
-
-    // Function to fetch recommended playlists
-    const fetchRecommendedPlaylists = async () => {
-    try {
-        const response = await axios.get(recommendPliApiUrl, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        });
+        // Function to fetch recommended playlists
+        const fetchRecommendedPlaylists = async () => {
+            try {
+                const response = await axios.get(recommendPliApiUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
         const playlists = response.data.playlists.items;
 
@@ -385,22 +362,17 @@ setup() {
 
     // Fetch playlists and rankings on component mount
     onMounted(() => {
-    closeOptionMenu();
-    toggleOptionMenu();
     fetchRecommendedPlaylists();
     fetchDomesticRanking();
     fetchInternationalRanking();
     });
 
     return {
-    showOptionMenu,
     recommendedPli,
     domesticRankingPli,
     internationalRankingPli,
     playSong,
     playPlaylist,
-    toggleOptionMenu,
-    closeOptionMenu,
     addToPlaylist,
     viewAlbumInfo,
     };
@@ -413,16 +385,6 @@ setup() {
 body {
     font-family: Arial, sans-serif;
     background-color: #ffff;
-}
-
-.option-menu {
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    z-index: 1000;
-    margin-left: 12px;
-    margin-bottom: 5px;
 }
 
 .music-app {
