@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineProps, defineEmits } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useModalStore } from "@/stores/modalState";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";

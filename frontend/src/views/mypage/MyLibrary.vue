@@ -39,7 +39,7 @@
       <section class="book-list">
         <article class="book-item" v-for="(book, index) in books" :key="index">
           <img
-            :src="`/src/assets/icons/${book.coverImage}`"
+            :src="`${book.cover}`"
             alt="Book Cover"
             class="book-cover"
             @click="openModal(book)" @mouseover="showTooltip" @mouseleave="hideTooltip"
@@ -77,58 +77,57 @@
 </template>
   
   <script setup>
-  import { ref, reactive, onMounted } from 'vue';
+  import { ref, reactive, onMounted, computed } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
   import ReviewForm from '@/components/review/ReviewForm.vue';
-  // import axios from 'axios';
   import { useAuthStore } from '@/stores/auth';
-  import { useRouter } from 'vue-router';
+  import apiClient from '@/api/axiosInstance';
   
   const authStore = useAuthStore();
-
-  onMounted(() => {
-    console.log("회원 아이디 확인 : ", authStore.user.userId);
-  });
-
-//store에서 저장된 회원 id 사용하기
-// const loadBooks = async () => {
-//   try {
-//     const response = await axios.get(`/api/mypage/${authStore.user.userId}`);
-//   } catch (error) {
-//     console.error('Error loading inquiries:', error);
-//   }
-// };
+  const menuItems = ref([]);
+  const books = ref([]);
 
 
+const getMyLibrary = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
+    books.value = response.data.data;
+    updateMenuItems();
+    console.log(">>>.>>라이브러리 확인>>>>>", response);
+  } catch (error) {
+    console.error('Error loading inquiries:', error);
+  }
+};
 
-  // 사이드바 메뉴 아이템들 데이터
-  const menuItems = ref([
-    { title: '독서중', count: '1권', icon: 'openbook.png' },
-    { title: '찜한도서', count: '1권', icon: 'bookmark.png' },
-    { title: '완독', count: '2권', icon: 'closedbook.png' },
-  ]);
-  
-  // 독서중인 도서 데이터
-  const books = ref([
-    { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: true },
-    { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: false },
-    { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: false },
-    { title: '보편의 단어', author: '이기주', progress: 30, remainingDays: 10, coverImage: 'book1.png', isFavorite: false }
-  ]);
+const groupedData = computed(() => {
+      return books.value.reduce((acc, item) => {
+        (acc[item.status] || (acc[item.status] = [])).push(item);
+        return acc;
+      }, {});
+    });
+
+const updateMenuItems = () => {
+      menuItems.value = [
+        { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
+        { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+        { title: '완독', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+      ];
+    };
 
   // 툴팁 상태 관리
   const tooltip = reactive({
     show: false,
-    text: "상세보기",
+    text: "",
     x: 0,
     y: 0,
   });
 
   // 툴팁 표시 함수
 const showTooltip = (event) => {
+  console.log(tooltip.text);
   tooltip.show = true;
-  // tooltip.text = text;
+  tooltip.text = "상세보기";
   tooltip.x = event.pageX + 10; // 마우스 위치 오른쪽으로 10px
   tooltip.y = event.pageY + 10; // 마우스 위치 아래로 10px
 };
@@ -157,6 +156,10 @@ const closeModal = () => {
 // 리뷰 작성 모달 상태
 const showForm = ref(false);
 const isbn = ref('12345678');
+
+onMounted(() => {
+    getMyLibrary();
+});
 
   </script>
   

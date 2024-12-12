@@ -38,7 +38,6 @@
   
   <script setup>
   import { ref } from 'vue';
-  import { defineProps, defineEmits } from 'vue';
    
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
