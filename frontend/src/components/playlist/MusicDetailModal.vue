@@ -84,10 +84,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineProps, defineEmits } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useModalStore } from "@/stores/modalState";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
+import { useAuthStore } from "@/stores/auth";
 
 // Pinia store
 const modalStore = useModalStore();
@@ -166,12 +167,15 @@ const getAlbumTracks = async () => {
 
 // 플레이리스트 가져오기
 const getMyPlaylist = async () => {
+  const authStore = useAuthStore(); 
   try {
     const response = await apiClient.get("api/mypli");
-    playlists.value = response.data.data.items.map((item) => ({
-      id: item.id,
-      name: item.name,
-    }));
+    playlists.value = response.data.data.items
+      .filter((item) => item.owner.id === authStore.user.spotifyId)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+      }));
   } catch (error) {
     console.log(error);
   }
@@ -455,7 +459,7 @@ onMounted(() => {
 .add-music-playlist-modal p {
   padding: 10px;
     font-size: 14px;
-    color: #333;
+    color: #000000;
     cursor: pointer;
     border-radius: 5px;
     text-align: start;

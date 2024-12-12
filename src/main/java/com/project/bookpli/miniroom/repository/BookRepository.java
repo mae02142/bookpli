@@ -15,6 +15,8 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, String> {
 
+    boolean existsById(String isbn13);
+
     //내가 읽는중인 책
     @Query("SELECT new com.project.bookpli.miniroom.dto.BookResponseDTO"
             +"(l.libraryId,l.userId,l.status,l.startDate,l.endDate,"
@@ -30,11 +32,24 @@ public interface BookRepository extends JpaRepository<Book, String> {
             +"FROM Book b JOIN Library l ON b.isbn13 = l.book.isbn13 WHERE l.status = 'wished' AND l.userId = :userId ")
     List<BookResponseDTO> addBookList(@Param("userId") Long userId);
 
+    //내가 도서를 완료한 책
+    @Query("SELECT new com.project.bookpli.miniroom.dto.BookResponseDTO"
+            +"(l.libraryId,l.userId,l.status,l.startDate,l.endDate,"
+            +"b.isbn13,b.title,b.author,b.description,b.pubdate,b.publisher,b.cover,b.startindex,b.genre) "
+            +"FROM Book b JOIN Library l ON b.isbn13 = l.book.isbn13 WHERE l.status = 'completed' AND l.userId = :userId ")
+    List<BookResponseDTO> finishBookList(@Param("userId") Long userId);
+
+    //내가 좋아요 누른 책
+    @Query("SELECT new com.project.bookpli.miniroom.dto.BookResponseDTO"
+            +"(l.libraryId,l.userId,l.status,l.startDate,l.endDate,"
+            +"b.isbn13,b.title,b.author,b.description,b.pubdate,b.publisher,b.cover,b.startindex,b.genre) "
+            +"FROM Book b JOIN Library l ON b.isbn13 = l.book.isbn13 WHERE l.status = 'like' AND l.userId = :userId ")
+    List<BookResponseDTO> likeBookList(@Param("userId") Long userId);
+
     //isbn에 해당하는 도서정보 출력
     @Query("SELECT new com.project.bookpli.miniroom.dto.BookDTO"
             + "(b.isbn13, b.title, b.author, b.description, b.pubdate, b.publisher, b.cover, b.startindex, b.genre) "
             + "FROM Book b WHERE b.isbn13 = :isbn13")
     List<BookDTO> findByIsbn13(@Param("isbn13") String isbn13);
 
-    
 }

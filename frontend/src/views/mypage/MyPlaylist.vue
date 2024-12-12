@@ -24,19 +24,50 @@
             </div>
           </div>
         </div>
-        <!-- 플레이리스트 목록 -->
-        <div
-          class="playlist-item"
-          v-for="(playlist, index) in playlists"
-          :key="`${playlist.id}-${index}`"
-          @click="loadTracks(playlist.id)"
-        >
-          <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
-          <div class="playlist-details">
-            <p class="playlist-name">{{ playlist.name }}</p>
-            <p class="playlist-count">{{ playlist.count }}곡</p>
+        <!--개인 플레이리스트-->
+        <div>
+        <div class="playlist-header" @click="toggleMyPlaylists">
+          <img v-if="myPlaylistOpen" src="@/assets/sidebar/close_list.png" alt="Open Icon" class="sidebar-list-icon"/>
+          <img v-else src="@/assets/sidebar/open_list.png" alt="Closed Icon" class="sidebar-list-icon"/>
+          <span class="playlist-label">내 플레이리스트</span>
+        </div>
+        <div v-if="myPlaylistOpen">
+          <div
+            class="playlist-item"
+            v-for="(playlist, index) in myPlaylists"
+            :key="playlist.id"
+            @click="loadTracks(playlist.id)"
+          >
+            <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
+            <div class="playlist-details">
+              <p class="playlist-name">{{ playlist.name }}</p>
+              <p class="playlist-count">{{ playlist.count }}곡</p>
+            </div>
           </div>
         </div>
+      </div>
+        <!-- 다른 사람의 플레이리스트 -->
+        <div>
+        <div class="playlist-header other-list" @click="toggleRecommendedPlaylists">
+          <img v-if="recommendedPlaylistOpen" src="@/assets/sidebar/close_list.png" alt="Open Icon" class="sidebar-list-icon"/>
+          <img v-else src="@/assets/sidebar/open_list.png" alt="Closed Icon" class="sidebar-list-icon"/>
+          <span class="playlist-label">추천 플레이리스트</span>
+        </div>
+        <div v-if="recommendedPlaylistOpen">
+          <div
+            class="playlist-item"
+            v-for="(playlist, index) in recommendedPlaylists"
+            :key="playlist.id"
+            @click="loadTracks(playlist.id)"
+          >
+            <img src="@/assets/sidebar/note.png" alt="icon" class="note-icon" />
+            <div class="playlist-details">
+              <p class="playlist-name">{{ playlist.name }}</p>
+              <p class="playlist-count">{{ playlist.count }}곡</p>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
     <div class="content">
@@ -63,11 +94,13 @@
               class="option-icon"
               @click="toggleOptionMenu"
             />
-  
+
             <!-- 옵션 메뉴 -->
             <div v-if="showOptionMenu" class="option-menu" @click.self="closeOptionMenu">
-              <button @click="enableEditTitle" class="option-button">타이틀 변경</button>
-              <button @click="confirmDeletePlaylist" class="option-button delete">삭제하기</button>
+              <button v-if="selectedPlaylist.owner === authStore.user.spotifyId" @click="enableEditTitle" class="option-button">
+                타이틀 변경
+              </button>
+              <button @click="confirmDeletePlaylist(selectedPlaylist.id)" class="option-button delete">삭제하기</button>
             </div>
 
           </div>
@@ -81,7 +114,7 @@
               <th>
                 <img src="@/assets/icons/time.png" class="time-icon" />
               </th>
-              <th>
+              <th v-if="selectedPlaylist.owner === authStore.user.spotifyId">
                 <img src="@/assets/icons/delete.png" class="delete-icon" />
               </th>
             </tr>
@@ -117,10 +150,8 @@
               </td>
               <td class="song-album">{{ song.album }}</td>
               <td class="song-duration">{{ formatDuration(song.duration) }}</td>
-              <td class="delete-button-container">
-                <button class="delete-button" @click="deleteSongFromPlaylist(selectedPlaylist.id, song.id)">
-                  삭제
-                </button>
+              <td class="delete-button-container" v-if="selectedPlaylist.owner === authStore.user.spotifyId">
+                <button class="delete-button" @click="deleteSongFromPlaylist(selectedPlaylist.id, song.id)">삭제               </button>
               </td>
             </tr>
           </tbody>
@@ -146,17 +177,26 @@ import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
+import { useUserStore } from '@/stores/user.js';
+
+import { useUtilModalStore } from '@/stores/utilModalStore';
 
 // 상태 관리
+const userStore = useUserStore()
 const authStore = useAuthStore();
 const modalStore = useModalStore();
 const hoveredIndex = ref(null);
 const playlists = ref([]); // 플레이리스트 목록
+const myPlaylists = ref([]);
+const recommendedPlaylists = ref([]);
+const myPlaylistOpen = ref(true);
+const recommendedPlaylistOpen = ref(true);
 const selectedPlaylist = ref(null); // 선택된 플레이리스트
 const selectedSong = ref(null); // 선택된 노래
 const songs = ref([]); // 선택된 플레이리스트의 곡
 const addMode = ref(false); // 입력창 표시 여부
 const newPlaylistName = ref(""); // 새 플레이리스트 이름
+
 
 // 옵션 메뉴 상태
 const showOptionMenu = ref(false);
@@ -173,6 +213,16 @@ const closeOptionMenu = () => {
   showOptionMenu.value = !showOptionMenu.value;
 };
 
+
+// 토글 함수
+const toggleMyPlaylists = () => {
+  myPlaylistOpen.value = !myPlaylistOpen.value;
+};
+
+const toggleRecommendedPlaylists = () => {
+  recommendedPlaylistOpen.value = !recommendedPlaylistOpen.value;
+};
+
 // 타이틀 변경 모드 활성화
 const enableEditTitle = () => {
   isEditingTitle.value = true;
@@ -183,16 +233,19 @@ const enableEditTitle = () => {
 // 타이틀 업데이트
 const updateTitle = async () => {
   if (!editedTitle.value.trim()) {
-    alert("타이틀은 1글자 이상이어야 합니다.");
+    const utilModalStore = useUtilModalStore();
+    utilModalStore.showModal(
+      '플레이리스트 제목 변경',
+      '제목은 1글자 이상이어야 합니다.',
+      'alert'
+    );
     return;
   }
   try {
-    const response = await apiClient.put(`/api/mypli/playlist/${selectedPlaylist.value.id}`, {
+    await apiClient.put(`/api/mypli/playlist/${selectedPlaylist.value.id}`, {
       name: editedTitle.value,
     });
 
-    // 타이틀 업데이트
-    console.log("타이틀 변경후>>>>>>>>>>",response.data.data);
     selectedPlaylist.value.name = editedTitle.value;
     isEditingTitle.value = false;
   } catch (error) {
@@ -208,20 +261,21 @@ const cancelTitle = () => {
 }
 
 // 플레이리스트 삭제
-const confirmDeletePlaylist = () => {
+const confirmDeletePlaylist = (playlistId) => {
     const confirmModalStore = useConfirmModalStore();
     confirmModalStore.showModal(
     '플레이리스트 삭제',
     '선택하신 플레이리스트를 삭제하시겠습니까?',
     '삭제 후 복원할 수 없습니다.',
     '삭제하기',
-    () => deletePlaylist()
+    '',
+    () => deletePlaylist(playlistId)
     )
   };
   
-  const deletePlaylist = async() => {
+  const deletePlaylist = async(playlistId) => {
     try {
-      await apiClient.delete(`/api/mypli/playlist/${selectedPlaylist.value.id}`);
+      await apiClient.delete(`/api/mypli/playlist/${playlistId}`);
       getUserPlaylist();
       selectedPlaylist.value=null;
       showOptionMenu.value = false;
@@ -240,7 +294,6 @@ const formatDuration = (ms) => {
 // 노래 세부 정보 열기
 const openSongDetail = (song) => {
   selectedSong.value = song;
-  console.log(">>>>>>>>>>>>.",selectedSong.value);
   modalStore.openModal("SongDetailModal");
 };
 
@@ -264,8 +317,16 @@ const getUserPlaylist = async () => {
       id: item.id,
       name: item.name,
       count: item.tracks.total,
+      owner: item.owner.id, // 소유자 ID
     }));
-    console.log("플레이리스트ID>>>>>>", playlists.value.id);
+
+    // 분류
+    myPlaylists.value = playlists.value.filter(
+      (playlist) => playlist.owner === authStore.user.spotifyId
+    );
+    recommendedPlaylists.value = playlists.value.filter(
+      (playlist) => playlist.owner !== authStore.user.spotifyId
+    );
   } catch (error) {
     console.error("플레이리스트 가져오기 실패:", error);
   }
@@ -302,7 +363,6 @@ const getUserInfo = async() => {
         spotifyId: response.data.data.spotifyId,
         userId: response.data.data.userId,
       };
-
       authStore.setUser(userInfo);
     }
   } catch (error) {
@@ -310,9 +370,23 @@ const getUserInfo = async() => {
   }
 };
 
+const getToken = async() => {
+  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${authStore.user.spotifyId}`, {
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to fetch access token')
+  }
+
+  const data = await response.json()
+  const accessToken = data.access_token
+  userStore.setAccessToken(accessToken)
+}
+
 // 페이지 로드 시 실행
 onMounted(() => {
   getUserInfo();
+  getToken();
   getUserPlaylist(); // 플레이리스트 가져오기
 });
 
@@ -338,7 +412,12 @@ const toggleAddMode = () => {
 
 const addPlaylist = async () => {
   if (!newPlaylistName.value.trim()) {
-    alert("플레이리스트명은 1글자 이상입니다.");
+    const utilModalStore = useUtilModalStore();
+    utilModalStore.showModal(
+      '플레이리스트 제목 변경',
+      '제목은 1글자 이상이어야 합니다.',
+      'alert'
+    );
     return;
   }
 
@@ -346,8 +425,7 @@ const addPlaylist = async () => {
     const response = await apiClient.post(`/api/mypli/${authStore.user.spotifyId}`, {
       name: newPlaylistName.value,
     });
-console.log(response.data.data);
-    playlists.value.push({
+    myPlaylists.value.push({
       id: response.data.data.id,
       name: response.data.data.name,
       count: 0,
@@ -406,12 +484,11 @@ const refreshPlaylistTracks = async () => {
   align-items: center;
   height: 50px;
   transition: background-color 0.3s ease;
+  cursor: pointer;
 }
 
-.playlist-item:hover {
-  cursor: pointer;
-  background-color: rgba(214, 214, 214, 0.6);
-  border-radius: 5px;
+.playlist-item:hover{
+  color: #218838;
   }
 
 .note-icon {
@@ -553,6 +630,7 @@ text-align: center;
   padding: 5px 15px;
   border-radius: 17px;
   cursor: pointer;
+  min-width: 60px;
 }
 
 .delete-button:hover {
@@ -716,11 +794,32 @@ text-align: center;
 
 .cancel-title-button {
   background-color: #ffffff;
-    border: none;
     border-radius: 30px;
     padding: 5px 10px;
     cursor: pointer;
     font-size: 12px;
     border: 1px solid #ababab;
+}
+
+.playlist-header {
+  margin-bottom: 10px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-list-icon {
+  cursor: pointer;
+  width: 16px;
+}
+
+.playlist-label {
+  margin-left: 5px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.other-list {
+  margin-top: 30px;
 }
 </style>

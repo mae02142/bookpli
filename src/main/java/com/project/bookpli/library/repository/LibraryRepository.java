@@ -1,6 +1,7 @@
-package com.project.bookpli.miniroom.repository;
+package com.project.bookpli.library.repository;
 
 import com.project.bookpli.entity.Library;
+import com.project.bookpli.library.dto.LibraryResponseDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -37,4 +38,19 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("update Library l set l.status='dropped', l.startDate=null, l.endDate=null where l.status='reading' AND l.book.isbn13 = :isbn13")
     int changeStatus(@Param("isbn13") String isbn13, @Param("status") String status);
 
+    //도서완독 처리
+    @Transactional
+    @Modifying
+    @Query("update Library l set l.status='completed' where l.status='reading' and l.book.isbn13 = :isbn13")
+    int completeBook(@Param("isbn13") String isbn13, @Param("status") String status );
+
+    @Query("SELECT new com.project.bookpli.library.dto.LibraryResponseDTO(l.libraryId, l.userId, l.status, l.startDate, l.endDate, b.isbn13, b.title, b.author, b.cover, b.startindex) " +
+            "FROM Library l " +
+            "JOIN l.book b " +
+            "WHERE l.userId = :userId")
+    List<LibraryResponseDTO> getMyLibrary(Long userId);
+
+    @Transactional
+    @Modifying
+    void deleteByLibraryIdAndUserId(Long userId, Long libraryId);
 }

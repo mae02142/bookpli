@@ -1,12 +1,11 @@
 package com.project.bookpli.miniroom.service;
 
 import com.project.bookpli.entity.Book;
-import com.project.bookpli.entity.Library;
+import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
-import com.project.bookpli.miniroom.repository.LibraryRepository;
-import jakarta.transaction.Transactional;
+import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -25,6 +25,12 @@ public class BookApiService {
 
     @Autowired
     private BookRepository bookrep;
+
+    @Autowired
+    private LibraryRepository librep;
+
+    @Autowired
+    private UserRepository userrep;
 
     public void searchBook(String itemId) {
         RestTemplate restTemplate = new RestTemplate();
@@ -62,16 +68,14 @@ public class BookApiService {
             return;
         }
 
-
-
-
-
-
         // DTO 생성 (빌더 패턴 사용)
         BookDTO dto = BookDTO.builder()
                 .isbn13(isbn13)
                 .title(item.get("title") != null ? item.get("title").toString() : "제목 없음")
-                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
+//                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
+                .author(item.get("author") != null ?
+                        item.get("author").toString().replaceAll("\\s*\\(지은이\\).*", "") :
+                        "저자 없음")
                 .description(item.get("description") != null ? item.get("description").toString() : "내용 없음")
                 .pubdate(parsePubDate(item.get("pubDate") != null ? item.get("pubDate").toString() : null))
                 .publisher(item.get("publisher") != null ? item.get("publisher").toString() : "출판사 없음")
@@ -120,19 +124,18 @@ public class BookApiService {
             return bookrep.readBookList(userId);
         } else if ("wished".equalsIgnoreCase(status)) {
             return bookrep.addBookList(userId);
-        } else {
+        } else if("completed".equalsIgnoreCase(status)) {
+            return bookrep.finishBookList(userId);
+        } else if("like".equalsIgnoreCase(status)) {
+            return bookrep.likeBookList(userId);
+        }else{
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
-    
-//    @Transactional
-//    public void addBookAndLibrary(Book book, Long userId){
-//        if(!bookrep.existsById((book.getIsbn13()))){
-//            bookrep.save(book);
-//        }
-//
-////        Library library= new Library();
-//
-//    }
+
+    //도서완독
+    public int clearRead(String isbn13, String status){
+        return librep.completeBook(isbn13, status);
+    }
 
 }

@@ -1,74 +1,76 @@
+<!--모달로 보여주는 독서목표-->
 <template>
-<div>
-    <!-- Title -->
-    <div class="title">{{book.title}}</div>
+    <div v-if="visible" class="modal-overlay" @click.self="emitClose">
+        <div class="modal-content">
+        <div class="title">{{rbook.title}}</div>
 
-    <div class="book-section">
-    <img class="book-cover" :src="book.cover" alt="Book Cover" />
-    <div class="book-info">{{book.author}}({{book.startindex}}p)</div>
-    <div class="reading-status" v-if="book.status === 'reading'">
-        <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
-        <span class="reading-status-text">읽고 있는 책</span>
-    </div>
-    </div>
-
-    <div class="date-section">
-    <div class="date-status">독서상태</div>
-    <div class="date-row">
-        <span class="date-label">
-            <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
-        </span>
-        <span class="date-label">
-            <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
-        </span>
-    </div>
-    <div class="date-header">독서기간</div>
-    <div class="date-row">
-        <span class="date-label">
-        시작일
-        <img src="../../assets/icons/calendar.png" @click="showStartPicker = !showStartPicker" />
-        <VueDatePicker
-            v-if="showStartPicker"
-            v-model="startDate"
-            :teleport="false"
-            placeholder="날짜 선택"
-            :locale="ko"
-            :format="dateFormat"
-            @update:modelValue="updateStartDate"
-        />
-        </span>
-        <span class="date-label">
-        종료일
-        <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
-        <VueDatePicker
-            v-if="showEndPicker"
-            v-model="endDate"
-            :teleport="false"
-            placeholder="날짜 선택"
-            :locale="ko"
-            :format="dateFormat"
-            @update:modelValue="updateEndDate"
-        />
-        </span>
-            </div>
-    </div>
-
-    <div class="progress-section" v-if="book.status === 'reading'">
-        <div class="progress-header">독서량</div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" :style="{width: `${book.progressPercentage || 0}%`}"></div>
+        <div class="book-section">
+        <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
+        <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
+        <div class="reading-status" v-if="rbook.status === 'reading'">
+            <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
+            <span class="reading-status-text">읽고 있는 책</span>
         </div>
-        <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
+        </div>
+
+        <div class="date-section">
+        <div class="date-status">독서상태</div>
+        <div class="date-row">
+            <span class="date-label">
+                <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
+            </span>
+            <span class="date-label">
+                <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
+            </span>
+        </div>
+        <div class="date-header">독서기간</div>
+        <div class="date-row">
+            <span class="date-label">
+            시작일
+            <img src="../../assets/icons/calendar.png" @click="showStartPicker = !showStartPicker" />
+            <VueDatePicker
+                v-if="showStartPicker"
+                v-model="startDate"
+                :teleport="false"
+                placeholder="날짜 선택"
+                :locale="ko"
+                :format="dateFormat"
+                @update:modelValue="updateStartDate"
+            />
+            </span>
+            <span class="date-label">
+            종료일
+            <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
+            <VueDatePicker
+                v-if="showEndPicker"
+                v-model="endDate"
+                :teleport="false"
+                placeholder="날짜 선택"
+                :locale="ko"
+                :format="dateFormat"
+                @update:modelValue="updateEndDate"
+            />
+            </span>
+                </div>
+        </div>
+
+        <div class="progress-section" v-if="rbook.status === 'reading'">
+            <div class="progress-header">독서량</div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" :style="{width: `${book.progressPercentage || 0}%`}"></div>
+            </div>
+            <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
+        </div>
+        <span class="button-container">
+            <button class="confirm-button" @click="handleAction">확인</button>
+            <button class="confirm-button" @click="emitClose" >닫기</button>
+        </span>    
     </div>
-    <span class="button-container">
-        <button class="confirm-button" @click="handleAction()">확인</button>
-        <button class="confirm-button" >닫기</button>
-    </span>    
 </div>
 </template>
-
 <script setup>
-import { ref,computed, onMounted } from "vue";
+import {defineProps, defineEmits} from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
@@ -81,6 +83,22 @@ import axios from "axios";
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
+
+defineProps({
+    visible: Boolean,
+    rbook: Object,
+});
+
+const emit= defineEmits(["close"]);
+
+const emitClose= () => {
+    emit("close");
+};
+
+const confirmAction= () => {
+    alert("독서 목표가 설정되었습니다.");
+};
+
 
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
@@ -196,8 +214,8 @@ margin-top: 40px;
 }
 
 .book-cover {
-width: 333px;
-height: 452px;
+width: 200px;
+height: 260px;
 object-fit: cover;
 }
 
@@ -236,6 +254,7 @@ max-width: 800px;
 }
 
 .date-status{
+    text-align: left;
     font-size: 30px;
     color: #000000;
     margin-bottom: 10px;
@@ -284,6 +303,7 @@ max-width: 800px;
 }
 
 .progress-header {
+    text-align: left;
     font-size: 30px;
     color: #000000;
 }
@@ -304,6 +324,7 @@ max-width: 800px;
 }
 
 .progress-percentage {
+    text-align: left;
     font-size: 25px;
 }
 
@@ -359,5 +380,33 @@ font-size: 14px;
     justify-content: center;
     gap: 100px;
     margin-top: 40px;
+    margin-bottom: 10px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 800px;
+    max-width: 90%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 </style>
+

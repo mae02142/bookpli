@@ -1,0 +1,13 @@
+import { defineStore } from 'pinia'
+
+export const useUserStore = defineStore('user', {
+    state: () => ({
+        accessToken: null,
+    }),
+    actions: {
+        setAccessToken(token) {
+            this.accessToken = token
+            console.log("token in user.js" + token);
+        }
+    }
+})
