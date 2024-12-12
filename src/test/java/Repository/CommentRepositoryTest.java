@@ -28,7 +28,7 @@ public class CommentRepositoryTest {
 
     @Test
     void findAll(){
-        List<Object[]>list = commentRepository.findByPostId(1L);
+        List<Object[]>list = commentRepository.findByPost(1L);
         List<CommentDTO>dto =list.stream().map(row -> {
             Comment comment = (Comment) row[0];
             String userNickname = (String) row[1];

@@ -14,7 +14,7 @@
         </div>
         <textarea class="comment-box" v-model="userComment" @input="adjustHeight" rows =1 placeholder="댓글을 입력하세요"></textarea>
       </div>
-        <button class="post-btn" @click="postComment(postId)">게시</button>
+        <button class="post-btn" @click="postComment">게시</button>
      </article> 
       
 
@@ -22,11 +22,13 @@
       <article v-show="isExisting"  v-for="(comment, index) in comments" :key="comment.commentId" class="comment">
         <div class="user-comment-info">
             <img class="user-profile" src="@/assets/icons/profile.png" alt="댓글작성자">
-            <p class="user-name">{{ comment.userNickname }}</p>
+            <p class="user-name">{{ comment.userNickname || 'USER' }}</p>
         </div>
         <div class="comment-cnt">{{ comment.commentContent }}</div>
         <div class="like-box">
-            <img class="icon" :src="comment.likes.changeLike" @click="checkLike(index)" id="like-icon" alt="Like" />
+            <img class="icon" :src="comment.likes.changeLike" 
+            @click="checkLike(comment.commentId,index)" 
+            id="like-icon" alt="Like" />
             <p class="like-count">{{comment.likeCount}}</p>
         </div>
         <hr class="divider" />
@@ -41,6 +43,7 @@ import { onMounted, ref } from "vue";
 import dislike from "@/assets/icons/dislike.png";
 import like from "@/assets/icons/like.png";
 import { useAuthStore } from "@/stores/auth";
+import { useModalStore } from "@/stores/modalState";
   
   export default {
  
@@ -56,11 +59,15 @@ import { useAuthStore } from "@/stores/auth";
       },
     emits: ["update:showComments"],
     setup(props, { emit }) {
+
       const authStore = useAuthStore();
+      const modalStore = useModalStore();
+
       onMounted(()=>{
         if(props.postId){
-          console.log('showcomments : '+props.showComments)
-          console.log(props.postId);
+          console.log('showcomments : '+props.showComments);
+          console.log('자식컴포 postId '+ props.postId);
+          console.log('userId : '+ authStore.user.userId );
           getComments();
         }
       });
@@ -81,41 +88,78 @@ import { useAuthStore } from "@/stores/auth";
           isExisting.value = false;
         }
         if (Array.isArray(serverComment.value)) {
-          comments.value = serverComment.value.map(comment => ({
-              ...comment,
-              likeCount: 0,
-              likes: { changeLike: dislike },
-        }));
+          comments.value = await Promise.all(
+             serverComment.value.map(async(comment) => {
+              const getcount =await getLikes(comment.commentId);
+              const heartCheck =await heartChecking(comment.commentId,authStore.user.userId);
+              return {
+                ...comment,
+                likeCount:getcount ||0,
+                likes: {changeLike :heartCheck},
+              }
+            })
+          )
         } else {
             console.error('serverComments는 배열이 아닙니다.');
         }
         console.log(comments.value);
-        console.log(isExisting.value);
+        console.log("댓글 목록 "+isExisting.value);
       };  
+      
+          // 좋아요 default 값 설정
+      const heartChecking = async(commentId,userId) => {
+        console.log('c,u:'+ commentId , userId);
+        const response = await apiClient.get(`/api/commentlike/checking`,{
+          params:{
+            commentId : commentId,
+          userId : userId
+          }
+        });
+        console.log("default likes "+response.data.data);
+        if(response.data.data){
+          console.log('좋아요 처리가 되어있습니다');
+          return like;
+        }else{
+          console.log('체킹되지 않았습니다.');
+          return dislike;
+        }
+      }
+
+      const getLikes = async(commentId) => {
+        const response = await apiClient.get(`/api/commentlike/${commentId}`);
+        try{
+        if(response.status == 200){
+          console.log('좋아요 수 :'+ response.data.data);
+          return response.data.data;
+        }
+        }catch(error){
+          console.error('에러 발생 : '+error);
+        }
+      }
 
           /*  댓글 등록  */
       const userComment = ref([]);
       const userName = authStore.user.userNickname || 'USER'; // 댓글 작성 시 작성자명
-            //댓글 등록 
-      const postComment = async(postId) => {
-       
-        const newComment = {
+            
+      const postComment =async() => {
+          console.log('댓글 등록 postID : '+ props.postId );
+          const newComment = {
             userId : authStore.user.userId, 
             commentContent : userComment.value,
-            postId : postId,
+            postId : props.postId,
           };
-// 컨펌창 
         try{
           const response = await apiClient.post(`/api/comment/insert`,newComment);
-          if(response.status==200){
+            console.log(response.status);
             alert("등록되었습니다");
             userComment.value = "";
-            getComments();
-          }
+          
         }catch(error){
           console.error('오류 발생', error);
           alert('댓글 등록 실패');
         }
+        getComments();
+
       };
 
       const adjustHeight = (event) => { //댓글 높이 조정
@@ -124,21 +168,42 @@ import { useAuthStore } from "@/stores/auth";
         textarea.style.height = `${textarea.scrollHeight}px`;
       }
         // 좋아요 체크
-      const checkLike = (index) => {
-            let currentLike = comments.value[index];
-            if(currentLike.likes.changeLike == dislike){
-                currentLike.likes.changeLike = like;
-                currentLike.likeCount +=1;
-            }else{
-                currentLike.likes.changeLike = dislike;
-                currentLike.likeCount -=1;
-            } 
+      const checkLike = async(commentId,index) => {
+        const checking = {
+          userId : authStore.user.userId,
+          commentId : commentId,
+        };
+        console.log('commentId : '+commentId+ 'userId :'+  authStore.user.userId +' index : '+ index);
+        try{
+          const response = await apiClient.post(`/api/commentlike/mylike`,checking);
+          console.log('좋아요 체크'+response.data.data);
+
+          if(response.data.data!==undefined){
+          // 현재 상태를 확인하고 적절히 처리
+            const currentLikeStatus = comments.value[index].likes.changeLike; // 현재 상태
+            const newLikeStatus = response.data.data ? like : dislike; // 새 상태
+
+            // 상태 변경
+            comments.value[index].likes.changeLike = newLikeStatus;
+            
+            // 좋아요 수 업데이트 (현재 상태와 새 상태 비교)
+            if (currentLikeStatus === like && newLikeStatus === dislike) {
+                    comments.value[index].likeCount -= 1; // 좋아요 취소
+                  } else if (currentLikeStatus === dislike && newLikeStatus === like) {
+                    comments.value[index].likeCount += 1; // 좋아요 추가
+            }
+          }
+        }catch(error){
+          console.error(error+'오류 발생');
+        }
         }; 
            //버튼도 각각 지정해야하기 때문에 배열로...
         const showBtn = ref([]);
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
         }
+
+
       return {
         isExisting,
         serverComment,

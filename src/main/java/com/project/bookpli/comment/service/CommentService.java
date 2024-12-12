@@ -1,6 +1,7 @@
 package com.project.bookpli.comment.service;
 
 import com.project.bookpli.comment.dto.CommentDTO;
+import com.project.bookpli.comment.repository.CommentLikeRepository;
 import com.project.bookpli.comment.repository.CommentRepository;
 import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponseStatus;
@@ -20,10 +21,11 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
             // 게시글에 대한 전체 댓글 조회
     public List<CommentDTO> readCommentByPost(Long postId){
-        List<Object[]> list = commentRepository.findByPostId(postId);
+        List<Object[]> list = commentRepository.findByPost(postId);
 
         if(list.isEmpty()){
             log.info("게시글에 대한 댓글이 존재하지 않습니다");
@@ -97,7 +99,10 @@ public class CommentService {
 
         if(existing != null){
             log.info("댓글을 삭제하겠습니다.");
-            commentRepository.delete(existing);
+            boolean removeLike = commentLikeRepository.deleteByCommentId(commentId);
+            if(removeLike) {
+                commentRepository.delete(existing);
+            }
         }
         return true;
     }

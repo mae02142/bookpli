@@ -21,6 +21,10 @@ public enum BaseResponseStatus {
    /* 리뷰 */
     REVIEW_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(),"리뷰가 존재하지 않습니다."),
 
+    /* 게시글 */
+    POST_NOT_FOUND(false,HttpStatus.NOT_FOUND.value(), "게시글이 존재하지 않습니다"),
+    INVAILD_POST(false,HttpStatus.BAD_REQUEST.value(), "입력된 글이 비어있거나 올바르지 않습니다"),
+
    /* 댓글 */
     COMMENT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다"),
     INVAILD_COMMENT(false, HttpStatus.BAD_REQUEST.value(),"입력된 댓글 내용이 비어 있거나 올바르지 않습니다.");

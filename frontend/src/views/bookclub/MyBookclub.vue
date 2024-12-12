@@ -117,8 +117,6 @@
  // 클릭한 항목에 대해 동작을 처리하는 메서드
      const handleItemClick = (index) => {
       selected.value = index;  // 클릭된 항목을 선택으로 표시
-      // 여기서 컴포넌트를 표시할 수 있게 처리합니다. 예를 들어, 
-      // 2번째, 3번째 항목에 맞는 컴포넌트를 보여주도록 설정
     };
 
       const info = ref(

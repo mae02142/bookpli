@@ -57,7 +57,7 @@
           책을 사랑하는 사람들이 의견을 나누고, 추천하고, 독서 경험을 공유하는 공간
         </p>
         <div class="search-bar">
-            <input v-model="searchValue" class="search-guide" placeholder="찾으려는 커뮤니티의 도서명을 입력하세요"></input>
+            <input v-model="searchValue" class="search-guide" @keyup.enter="searchBookClub(searchValue)" placeholder="찾으려는 커뮤니티의 도서명을 입력하세요"></input>
             <img class="search-community" @click="searchBookClub(searchValue)" src="@/assets/icons/searchW.png" alt="Search Community">
         </div>
       </header>
@@ -256,12 +256,14 @@ body {
   align-items: center;
   height: 50px;
   transition: background-color 0.3s ease;
+  margin-top: 20px;
 }
 
 .bookclub-item:hover {
   cursor: pointer;
   background-color: rgba(214, 214, 214, 0.6);
   border-radius: 5px;
+  margin-top: 20px;
   }
 
 .note-icon {

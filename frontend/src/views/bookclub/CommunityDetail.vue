@@ -85,7 +85,7 @@
 
                         <img class="like-icon" 
                         :src="post.likes.changeLike"
-                        @click="checkLike(post.postId, post.userId,index)" 
+                        @click="checkLike(post.postId,index)" 
                         alt="좋아요 아이콘" />
                         <p v-show="post.likeCount > 0" class="like-count">{{post.likeCount }}</p>
                       </div>
@@ -152,10 +152,11 @@
         posts.value = await Promise.all(
           serverPosts.value.map(async (post) => {
             const likeCount = await getLikes(post.postId);  // getLikes 비동기 호출
+            const heartCheck = await heartChecking(post.postId, authStore.user.userId);
             return {
               ...post,
               likeCount: likeCount || 0,
-              likes: { changeLike: dislike },
+              likes: { changeLike: heartCheck },
               showComment: false,
             };
           })
@@ -176,15 +177,32 @@
         return 0;
       }
     }
+        /* default 좋아요 처리 */
+    const heartChecking = async(postId,userId) =>{
+      console.log(typeof(postId));
+      const response = await apiClient.get(`/api/postlike/checkingLike`, {
+        params: {
+          postId : postId ,
+          userId : userId , 
+        },
+      });
+      console.log(response.data.data);
+      if(response.data.data){
+        console.log('좋아요 처리');
+        return like;
+      }else{
+        console.log('체킹되지 않았습니다.');
+        return dislike;
+      }
+    }
 
          /* 좋아요 처리 기능 */
-    const checkLike = async(postId,userId,index) => { 
-      console.log('postId :' + postId + 'userId : '+ userId);
-      console.log(posts.value);
+    const checkLike = async(postId,index) => { 
       const checking = {
         postId : postId,
-        userId : userId,
+        userId : authStore.user.userId,
       }
+      console.log('postId :' + postId + 'userId : '+ authStore.user.userId);
       try{
         const response = await apiClient.post(`api/postlike/mylike` ,checking );
         console.log('checkLike :'+JSON.stringify(response.data));

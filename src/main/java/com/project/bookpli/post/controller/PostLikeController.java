@@ -43,4 +43,12 @@ public class PostLikeController {
         }
     }
 
+    // 어떤 게시글에 유저가 좋아요 했는지 체크
+    @GetMapping("/checkingLike")
+    public BaseResponse<Boolean>checking(@RequestParam Long postId, @RequestParam Long userId){
+        System.out.println("postId : "+postId + "userID : "+userId);
+        boolean response =  postLikeService.checking(postId,userId);
+        System.out.println("체킹 값 "+response);
+        return new BaseResponse<>(response);
+    }
 }

@@ -11,8 +11,8 @@
               <div class="post-footer">
                 <div class="footer-icon">
                   <img class="icon" @click="item.showComment = true" src="@/assets/icons/chat.png" alt="Chat" />
-                  <img class="icon" :src="item.likes.changeLike" @click="checkLike(index)" id="like-icon" alt="Like" />
-                  <p class="like-count">{{item.likeCount}}</p>
+                  <img class="icon" :src="item.likes.changeLike" @click="checkLike(item.postId,index)" id="like-icon" alt="Like" />
+                  <p v-show="item.likeCount > 0" class="like-count">{{item.likeCount }}</p>
                 </div>
                 <p class="date">{{item.postDate.split('T')[0]}}</p>
               </div>
@@ -28,7 +28,7 @@
                   <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                   <!-- 삭제 컴포넌트 -->
                   <RemovePost v-if:isVisible="item.deleteCheck" 
-                  :deleteId="item.postId" @delete-post="getMyposts" />
+                  :deleteId="item.postId" @delete-post="filterPost" />
               </div>
           </div> 
           </div>   
@@ -95,40 +95,90 @@
           params : {userId : props.userId, 
             bookClubId : props.bookclubId }
         });
-
-        console.log(response.status);
-        serverPosts.value = response.data.data;
-
-      if (Array.isArray(serverPosts.value)) {
-          posts.value = serverPosts.value.map(post => ({
-              ...post,
-              likeCount: 0,
-              likes: { changeLike: dislike },
-              deleteCheck: false,
-              editCheck: false,
-              showComment: false,
-          }));
-          console.log('최종 출력 값 :'+ JSON.stringify(posts.value));
-      } else {
-          console.error('serverPosts는 배열이 아닙니다.');
+        if(response.status == 200){
+          serverPosts.value = response.data.data;
+          if (Array.isArray(serverPosts.value)) {
+            posts.value = await Promise.all(
+              serverPosts.value.map(async (post) => {
+                const likeCount = await getLikes(post.postId);  // getLikes 비동기 호출
+                const heartCheck = await heartChecking(post.postId, authStore.user.userId);
+                return {
+                  ...post,
+                  likeCount: likeCount || 0,
+                  likes: { changeLike: heartCheck },
+                  deleteCheck: false,
+                  editCheck: false,
+                  showComment: false,
+                };
+              })
+            );
+          }
+        } else {
+            console.error('serverPosts는 배열이 아닙니다.');
+        }
+      };
+        // 좋아요 숫자 가져오기 
+      const getLikes = async(postId)=>{
+        try{
+        const response = await apiClient.get(`/api/postlike/${postId}`);
+        console.log('getlikes : '+ response.data)
+        return response.data.data;
+        }catch(error){
+          console.error(error, "에러발생");
+          return 0;
+        }
+      };
+      
+          // default 좋아요 체킹 
+      const heartChecking = async(postId, userId)=>{
+        console.log(typeof(postId));
+      const response = await apiClient.get(`/api/postlike/checkingLike`, {
+        params: {
+          postId : postId ,
+          userId : userId , 
+        },
+      });
+      console.log(response.data.data);
+      if(response.data.data){
+        console.log('좋아요 처리');
+        return like;
+      }else{
+        console.log('체킹되지 않았습니다.');
+        return dislike;
       }
     };
-             // 좋아요 체크 
-        const checkLike = (index) => {
-            let currentLike = posts.value[index];
-            if(currentLike.likes.changeLike == dislike){
-                currentLike.likes.changeLike = like;
-                currentLike.likeCount +=1;
-            }else{
-                currentLike.likes.changeLike = dislike;
-                currentLike.likeCount -=1;
-            }   
-        };
+      
+             /* 좋아요 처리 기능 */
+      const checkLike = async(postId,index) => { 
+          const checking = {
+            postId : postId,
+            userId : authStore.user.userId,
+          }
+          console.log('postId :' + postId + 'userId : '+ authStore.user.userId);
+          try{
+            const response = await apiClient.post(`api/postlike/mylike` ,checking );
+            console.log('checkLike :'+JSON.stringify(response.data));
+            if(response.data.data !== undefined){
+              posts.value[index].likes.changeLike = response.data.data  ? like : dislike;
+              posts.value[index].likeCount += response.data.data ? 1 : -1;
+            } else {
+              console.error("좋아요 여부를 가져오지 못했습니다.");
+            } 
+          }catch(error) {
+            console.error("API 호출 중 에러 발생: ", error);
+            }
+          };
   
         const showBtn = ref([]);
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
         }
+
+        const filterPost = (postId) =>{
+          console.log('현재 posts:', posts.value); 
+          posts.value = posts.value.filter(post => post.postId !== postId); 
+          console.log('삭제 후 posts:', posts.value);
+        };
       return {
         dislike,
         like,
@@ -139,6 +189,8 @@
         checkLike,
         showBtn,
         dropdown,
+        filterPost,
+        getLikes,
       };
     },
   };
@@ -152,6 +204,7 @@
       border-radius: 20px 20px 0 0;
       padding: 20px 50px;
       margin:auto;
+      white-space: pre-wrap; /* 줄바꿈과 공백 유지 */
     }
 
     .post-article{

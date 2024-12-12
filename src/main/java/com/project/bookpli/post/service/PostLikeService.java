@@ -41,4 +41,12 @@ public class PostLikeService {
             return true;
         }
     }
+
+    public boolean checking(Long postId, Long userId){
+        boolean response = false;
+        if(postId!=null && userId !=null){
+            response = postLikeRepository.existsByPostIdAndUserId(postId, userId);
+        }
+        return  response;
+    }
 }

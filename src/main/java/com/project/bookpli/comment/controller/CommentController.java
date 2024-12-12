@@ -59,4 +59,18 @@ public class CommentController {
             return new BaseResponse<>(false);
         }
     }
+
+    // 댓글 삭제
+    @DeleteMapping("/delete")
+    public BaseResponse<Boolean> deleteComment(@RequestParam Long commentId){
+        try{
+            boolean response = commentService.delete(commentId);
+            log.info("삭제 성공");
+            return new BaseResponse<>(response);
+        } catch (Exception e) {
+            log.error("삭제 중 오류 발생");
+            e.printStackTrace();
+            return new BaseResponse<>(false);
+        }
+    }
 }
