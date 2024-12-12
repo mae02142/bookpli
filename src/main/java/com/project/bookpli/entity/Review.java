@@ -22,10 +22,4 @@ public class Review {
     private String reviewContent;
     private Integer rating;
 
-    // 리뷰 수정을 위한 메서드 
-    public void updateReview (String reviewContent, Integer rating) {
-        this.reviewContent = reviewContent;
-        this.rating = rating;
-    }
-
 }

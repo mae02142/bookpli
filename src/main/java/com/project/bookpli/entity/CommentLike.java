@@ -1,5 +1,6 @@
 package com.project.bookpli.entity;
 
+import com.project.bookpli.comment.dto.CommentLikeDTO;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,5 +17,6 @@ public class CommentLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentLikeId;
     private Long commentId;
-    private String userId;
+    private Long userId;
+
 }

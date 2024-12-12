@@ -39,7 +39,7 @@
 </div>
 </template>
 <script>
-import axios from "axios";
+import apiClient from '@/api/axiosInstance';
 import {onMounted, ref, toRaw} from "vue";
     export default {
         props: {
@@ -56,7 +56,7 @@ import {onMounted, ref, toRaw} from "vue";
                 required : true,
             }
         },
-        emits: ['update:modelValue','close'],
+        emits: ['update:modelValue','close','reload'],
         setup(props,{emit}) {
 
             onMounted(()=> {
@@ -65,12 +65,6 @@ import {onMounted, ref, toRaw} from "vue";
 
             })
 
-            const closeModal = () =>{ //모달 닫기
-                console.log("모달창을 닫습니다.");
-                imageSrc.value = "";
-                emit("update:modelValue", false);
-                console.log("emit 실행 완료");
-            }
             const uploadImg = ref(false);
             const fileInput = ref(null); //input file 참조
             const imageSrc = ref([]);   //선택된 이미지의 경로
@@ -115,7 +109,7 @@ import {onMounted, ref, toRaw} from "vue";
                 const rawForm = toRaw(form.value);
                 console.log('게시 내용'+JSON.stringify(rawForm));
 
-                const response = await axios.post("http://localhost:8081/api/post/insert", rawForm);
+                const response = await apiClient.post("/api/post/insert", rawForm);
                 if(response.data.data == true){
                     alert("게시글이 등록되었습니다");
                 }else{
@@ -126,6 +120,14 @@ import {onMounted, ref, toRaw} from "vue";
                 closeModal();
                 //mypost 다시 리로딩
             };
+
+                    //모달 닫기
+            const closeModal = () =>{ 
+                console.log("모달창을 닫습니다.");
+                imageSrc.value = "";
+                emit("update:modelValue", false);
+                emit("reload");
+            }
             return{
                 closeModal,
                 form,

@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -24,19 +21,25 @@ public class ReviewService {
 
     // 해당 유저가 작성한 리뷰 전체 조회
     public  List<ReviewDTO> readByUserId (Long userId) {
-        List<Review> list;
+        List<Object[]> list;
 
         try {
             list = repository.findByUserId(userId);
             if (list.isEmpty()) {
                 System.out.println("서비스단 : 리스트가 비어있습니다. userId :" + userId);
+                return new ArrayList<>();
             }
-        }catch (Exception e){
-            System.out.println("서비스단에서 오류 발생 : "+ e.getMessage());
+        }catch (Exception e) {
+            System.out.println("서비스단에서 오류 발생 : " + e.getMessage());
             return Collections.emptyList();
         }
         return list.stream()
-                .map(ReviewDTO::fromEntity)
+                .map(row -> {
+                    Review review = (Review) row[0];
+                    String cover = (String) row[1];
+                    String title = (String) row[2];
+                return ReviewDTO.fromEntityForBook(review,cover,title);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -60,14 +63,19 @@ public class ReviewService {
     // 리뷰 수정
     @Transactional
     public ReviewDTO update(ReviewDTO reviewDTO) {
-        Review review = repository.findById(reviewDTO.getReviewId())
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.REVIEW_NOT_FOUND));
-
-        // 데이터 변경
-        review.updateReview(reviewDTO.getReviewContent(),reviewDTO.getRating());
+        try {
+            Review old = reviewDTO.toEntity();
+            repository.save(old);
+            Review newOne = repository.findById(reviewDTO.getReviewId())
+                    .orElseThrow(()-> new NoSuchElementException("찾는 데이터가 없습니다."));
 
         // 변경된 리뷰를 DTO로 변환하여 반환
-        return ReviewDTO.fromEntity(review);
+        return ReviewDTO.fromEntity(newOne);
+    }catch (Exception e){
+            System.out.println("서비스단: 오류 발생");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // 리뷰 등록

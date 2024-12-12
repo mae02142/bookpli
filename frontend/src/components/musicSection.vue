@@ -56,9 +56,9 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td 
-                        class="song-details" 
-                        style="min-width: 20px; text-align: center; position: relative;" 
+                        <td
+                        class="song-details"
+                        style="min-width: 20px; text-align: center; position: relative;"
                         @click="toggleOptionMenu1(index)">
                         ⋮
                         <div v-show="showOptionMenu1[index]" class="option-menu">
@@ -91,9 +91,9 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td 
-                        class="song-details" 
-                        style="min-width: 20px; text-align: center; position: relative;" 
+                        <td
+                        class="song-details"
+                        style="min-width: 20px; text-align: center; position: relative;"
                         @click="toggleOptionMenu2(index)">
                         ⋮
                         <div v-show="showOptionMenu2[index]" class="option-menu">

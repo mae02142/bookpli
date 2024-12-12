@@ -1,7 +1,7 @@
 package com.project.bookpli.miniroom.controller;
 
 import com.project.bookpli.miniroom.repository.BookRepository;
-import com.project.bookpli.miniroom.repository.LibraryRepository;
+import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,7 +25,7 @@ public class ReadingGoalController {
     private BookApiService service;
 
     //독서목표 설정 status 변경
-    @PostMapping("/{isbn13}")
+    @PutMapping("register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date startDate,
                                            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date endDate){
@@ -51,5 +51,6 @@ public class ReadingGoalController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 해제 실패");
         }
     }
+
 
 }

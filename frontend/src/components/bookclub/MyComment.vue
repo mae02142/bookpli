@@ -1,6 +1,6 @@
 <template>
     <section class="comment-content">
-      <article class="comment-article" v-for="item, index in comments" :key="index">
+      <article class="comment-article" v-for="item, index in comments" :key="item.commentId">
         <div class="comment-body">
           <button class="cta" @click="showPost(index)">
             <span v-if="item.openPost ===true">게시글 닫기</span>
@@ -12,19 +12,14 @@
           </button>
                             <!-- 게시글 보기 -->
           <div class="post-section" v-if="item.openPost === true">
-            <div class="post-items">
+            <div class="post-items" v-for="post in serverPost" :key="post.postId">
                 <div class="post-header">
-                    <img class="post-profile" :src="serverPost.postProfile" alt="커뮤니티 이미지" />
-                    <p class="username">{{serverPost.userName}}</p>
+                    <img class="post-profile" :src="post.profilePath || Profile" alt="커뮤니티 이미지" />
+                    <p class="username">{{post.userNickname || 'USER'}}</p>
                 </div>
-                <div>
-                    <p class="post-cnt">{{ serverPost.postContent }}</p>
-                    <p class="post-date">{{ serverPost.postDate }}</p>
-                      <!-- 아이콘 섹션 -->
-                    <!-- <div class="icon-container">
-                        <img class="like-icon" :src="serverPost.likes.changeLike" @click="checkLike(index)" alt="좋아요 아이콘" />
-                        <p class="like-count">{{serverPost.likeCount}}</p>
-                    </div>  -->
+                <div class="postContent">
+                    <p class="post-cnt">{{ post.postContent }}</p>
+                    <p class="post-date">{{ post.postDate.split('T')[0] }}</p>
                 </div>
             </div>   
             <hr style="border: 1px solid #c3c3c3;">
@@ -34,19 +29,19 @@
           <div style="display: flex; flex-direction: row;">
             <div class="author-info">
               <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
-              <h3>{{ item.author }}</h3>
+              <h3>{{ item.userNickname || 'USER' }}</h3>
             </div>
   
             <div class="comment-text">
               <textarea
-                v-if="editIndex === index"
+                v-if="editingId === item.commentId"
                 class="edit-comment"
                 @input="adjustHeight"
-                v-model="editComment.content"></textarea>
-              <p v-else>{{ item.content }}</p>
-              <p class="comment-date">{{ item.commentDate }}</p>
+                v-model="editComment.commentContent"></textarea>
+              <p v-else>{{ item.commentContent }}</p>
+              <p class="comment-date">{{ item.commentDate.split('T')[0] }}</p>
   
-              <div v-if="editIndex === index" class="comment-footer">
+              <div v-if="editingId === item.commentId" class="comment-footer">
                 <img
                   class="icon"
                   :src="editComment.likes.changeLike"
@@ -68,7 +63,7 @@
             </div>
   
             <button
-              v-if="editIndex === index"
+              v-if="editingId === item.commentId"
               class="comment-btn"
               @click="saveComment">
               수정
@@ -82,14 +77,14 @@
                 src="@/assets/icons/more.png"
                 alt="More"/>
               <div v-show="showBtn[index]" class="dropdown">
-                <button @click="openInput(index)" class="show-btn">수정</button>
+                <button @click="openInput(item.commentId)" class="show-btn">수정</button>
                 <hr class="btn-line" />
                 <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
   
                 <!-- 삭제 컴포넌트 -->
                 <RemoveComment
                   v-model:isVisible="item.deleteCheck"
-                  :deleteId="index"
+                  :deleteId="item.commentId"
                   @delete-comment="deleteComment"/>
               </div>
             </div>
@@ -101,18 +96,24 @@
   </template>
   
   <script>
-  import { ref } from "vue"; 
+  import apiClient from "@/api/axiosInstance";
+  import { onMounted, ref } from "vue"; 
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
+  import Profile from "@/assets/icons/profile.png"
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import RemoveComment from "./RemoveComment.vue";  
   
   export default {
      props: {
-      userInfo : {
-          type : Object,
+      userId : {
+          type : Number,
           required : true,
+      },
+      bookclubId : {
+        type : Number,
+        required : true,
       },
      },
     components: {
@@ -120,35 +121,47 @@
         PostForm,
         Comment,
     },
-    setup() {
+    setup(props) {
+      onMounted(() => {
+        console.log('userId'+ props.userId);
+        console.log('bookclubId'+ props.bookclubId);
+        getComments();
+      })
     
-      const serverComments = ref([ //서버에서 받아온 데이터
-          {  
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          commentDate: `2024-11-27`,
-          content: `저도 그 도서 너무 감명깊게 봤습니다~~@@!.`,
-          },
-          {
-          author: "트리",
-          profile: `@/assets/icons/profile.png`,
-          commentDate: `2024-11-29`,
-          content: `혹시 크리스마스 관련된 도서 중 미스테리장르의 도서도 있을까요?`,
-          },
-      ]);
-      const comments = ref([]);
-      // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
-      if (Array.isArray(serverComments.value)) {
-          comments.value = serverComments.value.map(post => ({
-              ...post,
-              likeCount: 0,
-              likes: { changeLike: dislike },
-              deleteCheck: false,
-              openPost : false,
-          }));
-      } else {
-          console.error('serverPosts는 배열이 아닙니다.');
-      }
+      const serverComments = ref([]);   //서버에서 받아온 데이터
+      const comments = ref([]);     // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
+      
+          // 댓글 조회
+      const getComments = async() => {
+        try{
+          const response = await apiClient.get(`/api/comment/user`, {
+            params : {
+              userId : props.userId,
+              bookClubId : props.bookclubId
+            }, 
+          });
+
+          if(response.status == 200){ // 요청 성공 시
+            serverComments.value = response.data.data;
+            console.log('서버 :'+ JSON.stringify(serverComments.value));
+
+            if(Array.isArray(serverComments.value)){  // 추가 값 더하기 
+              comments.value = serverComments.value.map(comment => ({
+                ...comment,
+                likeCount : 0,
+                likes : {changeLike : dislike},
+                deleteCheck : false,
+                openPost : false,
+              }));
+            }else{
+              console.log('배열이 아닙니다');
+            }
+          }
+        }catch(error){
+          console.error(error, '에러 발생');
+        }
+      };
+     
             // 좋아요 카운팅 
         const checkLike = (index) => {
             let currentLike = comments.value[index];
@@ -171,72 +184,94 @@
             textarea.style.height = "auto";
             textarea.style.height = `${textarea.scrollHeight}px`;
       }
-            //댓글 수정
-        const editIndex=ref(null);   //수정할 인덱스를 추적하기위함
-        const editComment = ref({
-          author: "",
-          profile: ``,
-          commentDate: ``,
-          content: ``,
-          likeCount: 0,
-          likes: { changeLike: dislike },
-          deleteCheck: false,
-          openPost: false,
-        });
-        const openInput = (index) => {
-            editIndex.value = index;
-            editComment.value = {...comments.value[index]};
-        }    
-        const saveComment = (index) => {
-            comments.value[index] = {...editComment.value};
-            editIndex.value = null; // 수정 종료
-        }
-        const updateComment = async () => {
-            try {
-                await axios.put("http://your-api-endpoint/comments", comments.value);
-                console.log("서버 동기화 완료");
+            /* 댓글 수정 */
+        const editingId=ref(null);   //수정할 id를 추적하기위함
+        const editComment = ref({});
+        // 수정 폼 오픈
+        const openInput = (commentId) => {
+          console.log('수정하려는 id : '+commentId);
+          editingId.value = commentId;
+          editComment.value = { ...comments.value.find(comment => 
+           comment.commentId === commentId) }; 
+           console.log("edit comment 에 복사: "+ JSON.stringify(editComment.value));
+    };
+
+          // 서버로 댓글 수정 전송 후 처리
+        const saveComment = async() => {
+          const comment ={
+            commentId : editComment.value.commentId,
+            userId : editComment.value.userId,
+            postId : editComment.value.postId,
+            commentContent : editComment.value.commentContent,
+            commentDate : editComment.value.commentDate
+          }
+          console.log('댓글 :'+JSON.stringify(comment));
+          try {
+            const response =  await apiClient.put("/api/comment/edit", comment);
+                if(response.status ==200){
+                  const index = comments.value.findIndex((item) => item.commentId == comment.commentId);
+                  console.log(index);
+
+                  if(index !== -1){
+                    comments.value[index] = {...comments.value[index],...comment};
+                  }
+                  editingId.value = null;
+                }
             } catch (error) {
                 console.error("서버 동기화 실패", error);
             }
-        };
+        }
 
                 //댓글 삭제
-        const deleteComment = (index) => {
-          console.log("삭제하려는 댓글 : "+ index);
+        const deleteComment = (commentId) => {
+          console.log("삭제하려는 댓글 : "+ commentId);
+          const index = comments.value.findIndex((item)=> item.commentId == commentId);
+          if(index !== -1){
             comments.value.splice(index, 1); // 리뷰 삭제
+          }   
        };
 
         //게시글 보여주기 
-       const serverPost = ref({ //서버에서 받아온 게시글 
-        userName : "길동",
-        postProfile : "사진",
-        postContent : `도전도전`,
-        postDate : "2024-12-25",
-    })
+       const serverPost = ref([]); //서버에서 받아온 게시글
        const showPost = (index) => {
             //서버에서 값을 받아서 serverPost 에 넣어
             if(comments.value[index].openPost === true){
                 comments.value[index].openPost = false;
+                serverPost.value = '';
             }else{
                 // 서버에서 값 받아오기
+                getPosts(comments.value[index].postId);
                 comments.value[index].openPost = true;
             }
+       };
+       const getPosts = async(postId)=> {
+        console.log("불러올 게시글 : "+ postId);
+        const response = await apiClient.get(`/api/post/comment/readOne`,{
+          params : {postId : postId},
+        });
+        console.log(response.data.data);
+        if(response.status == 200){
+          serverPost.value = response.data.data;
+        }
        };
 
 
 
       return {
+        getComments,
         serverPost,
         showPost,
+        getPosts,
         dislike,
         like,
+        Profile,
         serverComments,
         comments,
         checkLike,
         showBtn,
         dropdown,
         adjustHeight,
-        editIndex,
+        editingId,
         editComment,
         openInput,
         saveComment,
@@ -451,16 +486,22 @@
     font-weight: 400;
     margin-top: 10px;
   }
+
+  .postContent{
+    width: 100%;
+   
+  }
+
   .post-cnt {
     margin: 10px 0;
     line-height: 1.6;
     border: none;
+    white-space: pre-wrap; /* 줄바꿈과 공백 유지 */
   }
   
-  .icon-container {
-    display: flex;
-    justify-content: flex-start;
-    gap: 30px;
-    margin-top: 20px;
+  .post-date{
+    font-size: 14px;
+    color: #909090;
+    text-align: end;
   }
    </style>

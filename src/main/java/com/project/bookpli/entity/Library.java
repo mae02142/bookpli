@@ -7,9 +7,7 @@ import java.util.Date;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Library {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,4 +20,15 @@ public class Library {
     private String status;
     private Date startDate;
     private Date endDate;
+
+    @Builder
+
+    public Library(Long libraryId, Long userId, Book book, String status, Date startDate, Date endDate) {
+        this.libraryId = libraryId;
+        this.userId = userId;
+        this.book = book;
+        this.status = status;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
 }

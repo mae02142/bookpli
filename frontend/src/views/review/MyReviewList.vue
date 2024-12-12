@@ -1,5 +1,36 @@
-<template>
-  <div class="review-container">
+<template>        
+ <div class="container">
+        <!-- 사이드 바 -->
+  <LeftSidebar />
+  <aside class="sidebar2">
+    <nav>
+      <ul>
+        <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
+          <img
+            :src="`/src/assets/sidebar/${menuItem.icon}`"
+            :alt="menuItem.title"
+            class="sidebar-icon"
+          />
+          <div class="menuitem-grid">
+            <h4>{{ menuItem.title }}</h4>
+            <p class="menuitem-count">{{ menuItem.count }}</p>
+          </div>
+        </li>
+      </ul>
+    </nav>
+    <!-- review 리스트 페이지 이동 -->
+    <router-link to="/review/mylist">
+      <div class="sidebar-item">  
+        <img src="@/assets/icons/reviewlist.png" 
+        alt="move to review List"
+        class="sidebar-icon"
+        />
+        <h4>나의 리뷰</h4>
+      </div>
+    </router-link>  
+  </aside>
+<!--     리뷰 리스트     -->
+<div class="review-container">
     <div class="review-header">
       <h2>나의 리뷰</h2>
       <hr style="color: #909090; opacity: 0.7;">
@@ -9,7 +40,7 @@
       v-for="review in reviews" 
       :key="review.reviewId"
     >
-      <img class="review-image" :src="review.image" :alt="review.title" />
+      <img class="review-image" :src="review.cover" :alt="review.title" />
       <div class="review-content">
         <div class="remove-review">
           <img src="@/assets/icons/close.png" @click="review.showModal = true" class="removeIcon">
@@ -68,19 +99,22 @@
       </div>
     </section>
     </div>
+  </div> 
 </template>
 
 <script>
+import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
 import RemoveReview from "@/components/review/RemoveReview.vue";
 import { onMounted, ref} from "vue";
-import axios from "axios";
+import apiClient from '@/api/axiosInstance';
 import { useAuthStore } from '@/stores/auth';
 
 export default {
   components : {
     RemoveReview,
+    LeftSidebar,
   },
   setup() {
   
@@ -105,7 +139,7 @@ export default {
             /*  리뷰  조회  */
     const getMyList = async (checkUser) => {
       try{
-        const response = await axios.get(`http://localhost:8081/api/review/myreview/${checkUser}`)
+        const response = await apiClient.get(`/api/review/myreview/${checkUser}`)
         if(response.status != 200){
           console.log("리뷰를 불러오는데 오류가 발생했습니다.");
           console.log(response.status);
@@ -151,7 +185,7 @@ export default {
       };
       console.log(review);
 
-       const response = await axios.patch(`http://localhost:8081/api/review/update`, review);
+       const response = await apiClient.put(`/api/review/update`, review);
          console.log("리뷰 수정 상태 : "+ response.status);
         
       const index = reviews.value.findIndex((item) => item.reviewId === review.reviewId);
@@ -168,7 +202,7 @@ export default {
     const deleteReview = async(reviewId) => {
       console.log("삭제하려는 값 : "+ reviewId);
       try{
-        const response = await axios.delete(`http://localhost:8081/api/review/delete/${reviewId}`)
+        const response = await apiClient.delete(`/api/review/delete/${reviewId}`)
         console.log(response.status);
 
         if(response.status=== 200){
@@ -186,8 +220,18 @@ export default {
       review.showModal = false;
       });
     }
+
+    /* 사이드 바 */
+  const menuItems = ref([
+    { title: '독서중', count: '1권', icon: 'openbook.png' },
+    { title: '찜한도서', count: '1권', icon: 'bookmark.png' },
+    { title: '완독', count: '2권', icon: 'closedbook.png' },
+  ]); 
+
  
     return {
+      LeftSidebar,
+      menuItems,
       serverReview,
       reviews,
       getMyList,
@@ -207,11 +251,53 @@ export default {
 
   
   <style scoped>
+  .container{
+    display: flex;
+    box-sizing: border-box;
+    height: 100vh;
+  }
+
+/* 사이드 바 */
+.library-container {
+    display: flex;
+    box-sizing: border-box;
+    height: 100vh;
+  }
+  
+  .sidebar2 {
+    width: 250px;
+    padding: 10px;
+  }
+  
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 0px;
+    margin-left: 20px;
+    transition: background-color 0.3s ease;
+  }
+
+  .sidebar-item:hover {
+  cursor: pointer;
+  background-color: rgba(214, 214, 214, 0.6);
+  border-radius: 5px;
+  }
+  
+  .sidebar-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+  .menuitem-count {
+    color: #383838;
+    font-size: 14px;
+  }
+
   /* 공통 스타일 */
   .review-container {
-    width: 100%;
+    width: 60%;
     max-width: 800px;
-    margin: 100px auto;
+    margin-top: 80px;
     padding: 20px;
     box-sizing: border-box;
     background-color: #ffffff;
@@ -241,7 +327,6 @@ export default {
   .review-image {
     width: 120px;
     height: 140px;
-    object-fit: cover;
     border: 1px solid #c0c0c0;
     border-radius: 5px;
   }
@@ -270,9 +355,9 @@ export default {
 
   .title {
     font-family: "Inter-Bold", sans-serif;
-    font-size: 23px;
+    font-size: 16px;
     font-weight: 500;
-    color: #000000;
+    color: #909090;
     margin: 0 0 10px;
   }
   
@@ -309,7 +394,7 @@ export default {
     font-size: 20px;
     font-weight: 400;
     color: #000000;
-    margin: 0 0 10px;
+    margin: 15px 0 10px;
   }
   
   .date {
@@ -322,11 +407,12 @@ export default {
 
   .task-line:hover {
     cursor: pointer;
-    margin : 10px;
+    margin : 30px 10px;
   }
   
   .task-line {
-    margin : 10px;
+    margin :30px 10px;
+    
   }
 
   .textbox {
@@ -335,7 +421,8 @@ export default {
     height: auto;
     font-size: 16px;
     border: none;
-    background-color: #dcdcdc;
+    background-color: #f1f1f1;
+    outline: none;
     text-indent: 10px;
     line-height: 1.5;
     padding-top: 10px;

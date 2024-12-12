@@ -1,4 +1,3 @@
-/*
 package com.project.bookpli.miniroom.controller;
 
 import com.project.bookpli.miniroom.dto.BookDTO;
@@ -22,5 +21,9 @@ public class BookDetailController {
         List<BookDTO> bookDetail= bookrep.findByIsbn13(isbn13);
         return ResponseEntity.ok(bookDetail);
     }
+    
+    //도서찜하기
+    
+    //도서 내서재 담기
 }
-*/
+

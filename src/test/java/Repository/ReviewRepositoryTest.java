@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -43,10 +44,11 @@ public class ReviewRepositoryTest {
     }
 
     @Test
-    void findByUserId () {
-        List<Review> rv = repo.findByUserId(3);
-        rv.stream().forEach(System.out::println);
+    void findByUserId() {
+        List<Object[]> result = repo.findByUserId(1L); // 테스트할 userId 입력
+        result.forEach(row -> System.out.println(Arrays.toString(row)));
     }
+
 
     @Test
     void findByIsbn () {
@@ -64,11 +66,9 @@ public class ReviewRepositoryTest {
         Review saved = repo.save(review);
 
         // insert 검증
-        List<Review> rev = repo.findByUserId(saved.getUserId());
+        List<Object[]> rev = repo.findByUserId(saved.getUserId());
         System.out.println(rev);
         assertThat(rev).isNotEmpty(); // 리스트가 비어있는지 확인 true or false
-        assertThat(rev.get(0).getReviewContent()).isEqualTo("유익한 내용"); //첫번째 리뷰 값과 비교
-
     }
 
     @Transactional
