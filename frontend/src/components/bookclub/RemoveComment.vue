@@ -15,7 +15,8 @@
     </div>
     </template>
     <script>
-    
+    import apiClient from '@/api/axiosInstance';
+
     export default {
         props : {
             isVisible : {
@@ -36,10 +37,19 @@
                 // 부모 컴포넌트에 상태 변경 요청하는 거
             };
     
-            const deleteList = () => {
+            const deleteList = async() => {
                 console.log("자식컴포에서 확인 :"+props.deleteId);
-                emit("delete-comment", props.deleteId); //삭제 요청을 부모로 보내기
-                closeModal();
+                try{
+                    const response = await apiClient.delete(`/api/comment/delete`, {
+                        params : {commentId : props.deleteId},
+                    });
+                    if(response.status == 200){
+                        emit("delete-comment", props.deleteId); //삭제 요청을 부모로 보내기
+                        closeModal();
+                    }
+                }catch(error){
+                    console.error(error,'오류 발생');
+                }
             }
             
             return {

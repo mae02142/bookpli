@@ -59,7 +59,7 @@ public class ReviewController {
     }
 
                 // 리뷰 수정
-    @PatchMapping("/update")
+    @PutMapping("/update")
     public BaseResponse<ReviewDTO> updateReview(@RequestBody ReviewDTO review) {
         log.info("우선 도착은 했니 ..?");
         try {

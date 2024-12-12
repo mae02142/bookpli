@@ -3,16 +3,16 @@
       <article class="post-article" v-for="item, index in posts" :key="item.postId">
           <div class="post-body">
           <div class="author-info">
-              <img class="author-image" :src="item.profilePath || profile" alt="Author" />
-              <h3>{{item.author || '아무개'}}</h3>
+              <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
+              <h3>{{item.userNickname || 'USER'}}</h3>
           </div>
           <div class="post-text"> 
               <p>{{item.postContent}}</p>
               <div class="post-footer">
                 <div class="footer-icon">
                   <img class="icon" @click="item.showComment = true" src="@/assets/icons/chat.png" alt="Chat" />
-                  <img class="icon" :src="item.likes.changeLike" @click="checkLike(index)" id="like-icon" alt="Like" />
-                  <p class="like-count">{{item.likeCount}}</p>
+                  <img class="icon" :src="item.likes.changeLike" @click="checkLike(item.postId,index)" id="like-icon" alt="Like" />
+                  <p v-show="item.likeCount > 0" class="like-count">{{item.likeCount }}</p>
                 </div>
                 <p class="date">{{item.postDate.split('T')[0]}}</p>
               </div>
@@ -21,15 +21,18 @@
               <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
               <div v-show="showBtn[index]" class="dropdown">
                   <button @click="item.editCheck= true" class="show-btn">수정</button>
-                  <EditPost v-model="item.editCheck" :editId="item.postId" @edit-post="EditPost" />
+                  <EditPost v-if="item.editCheck" 
+                  :editId="item.postId" @edit-post="EditPost"
+                   @close="getMyposts" />
                   <hr class="btn-line">
                   <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
                   <!-- 삭제 컴포넌트 -->
-                  <RemovePost v-model:isVisible="item.deleteCheck" :deleteId="index" @delete-post="deletePost" />
+                  <RemovePost v-if:isVisible="item.deleteCheck" 
+                  :deleteId="item.postId" @delete-post="filterPost" />
               </div>
           </div> 
           </div>   
-          <Comment v-model:showComments="item.showComment" :postId="index" />
+          <Comment v-if:showComments="item.showComment" :postId="index" />
         <hr class="divider" /> 
       </article>
     </section>
@@ -44,8 +47,8 @@
   import EditPost from "@/components/bookclub/EditPost.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import { useAuthStore } from "@/stores/auth";
-  import axios from "axios";
-  
+  import apiClient from '@/api/axiosInstance';
+
   export default {
     props: {
   userId: {
@@ -88,49 +91,94 @@
         console.log('불러올 데이터의 유저 :' + props.userId);
         console.log('북클럽 : '+ props.bookclubId);
 
-        const response = await axios.get("http://localhost:8081/api/post/bookclub/mypost", {
+        const response = await apiClient.get(`/api/post/bookclub/mypost`, {
           params : {userId : props.userId, 
             bookClubId : props.bookclubId }
         });
-
-        console.log(response.status);
-        serverPosts.value = response.data.data;
-
-      if (Array.isArray(serverPosts.value)) {
-          posts.value = serverPosts.value.map(post => ({
-              ...post,
-              likeCount: 0,
-              likes: { changeLike: dislike },
-              deleteCheck: false,
-              editCheck: false,
-              showComment: false,
-          }));
-          console.log(posts.value);
-      } else {
-          console.error('serverPosts는 배열이 아닙니다.');
+        if(response.status == 200){
+          serverPosts.value = response.data.data;
+          if (Array.isArray(serverPosts.value)) {
+            posts.value = await Promise.all(
+              serverPosts.value.map(async (post) => {
+                const likeCount = await getLikes(post.postId);  // getLikes 비동기 호출
+                const heartCheck = await heartChecking(post.postId, authStore.user.userId);
+                return {
+                  ...post,
+                  likeCount: likeCount || 0,
+                  likes: { changeLike: heartCheck },
+                  deleteCheck: false,
+                  editCheck: false,
+                  showComment: false,
+                };
+              })
+            );
+          }
+        } else {
+            console.error('serverPosts는 배열이 아닙니다.');
+        }
+      };
+        // 좋아요 숫자 가져오기 
+      const getLikes = async(postId)=>{
+        try{
+        const response = await apiClient.get(`/api/postlike/${postId}`);
+        console.log('getlikes : '+ response.data)
+        return response.data.data;
+        }catch(error){
+          console.error(error, "에러발생");
+          return 0;
+        }
+      };
+      
+          // default 좋아요 체킹 
+      const heartChecking = async(postId, userId)=>{
+        console.log(typeof(postId));
+      const response = await apiClient.get(`/api/postlike/checkingLike`, {
+        params: {
+          postId : postId ,
+          userId : userId , 
+        },
+      });
+      console.log(response.data.data);
+      if(response.data.data){
+        console.log('좋아요 처리');
+        return like;
+      }else{
+        console.log('체킹되지 않았습니다.');
+        return dislike;
       }
     };
-             // 좋아요 체크 
-        const checkLike = (index) => {
-            let currentLike = posts.value[index];
-            if(currentLike.likes.changeLike == dislike){
-                currentLike.likes.changeLike = like;
-                currentLike.likeCount +=1;
-            }else{
-                currentLike.likes.changeLike = dislike;
-                currentLike.likeCount -=1;
-            }   
-        };
+      
+             /* 좋아요 처리 기능 */
+      const checkLike = async(postId,index) => { 
+          const checking = {
+            postId : postId,
+            userId : authStore.user.userId,
+          }
+          console.log('postId :' + postId + 'userId : '+ authStore.user.userId);
+          try{
+            const response = await apiClient.post(`api/postlike/mylike` ,checking );
+            console.log('checkLike :'+JSON.stringify(response.data));
+            if(response.data.data !== undefined){
+              posts.value[index].likes.changeLike = response.data.data  ? like : dislike;
+              posts.value[index].likeCount += response.data.data ? 1 : -1;
+            } else {
+              console.error("좋아요 여부를 가져오지 못했습니다.");
+            } 
+          }catch(error) {
+            console.error("API 호출 중 에러 발생: ", error);
+            }
+          };
   
         const showBtn = ref([]);
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
         }
-       
-        const deletePost = (index) => {
-          console.log("삭제하려는 게시글 : "+ index);
-            posts.value.splice(index, 1); // 리뷰 삭제
-       };
+
+        const filterPost = (postId) =>{
+          console.log('현재 posts:', posts.value); 
+          posts.value = posts.value.filter(post => post.postId !== postId); 
+          console.log('삭제 후 posts:', posts.value);
+        };
       return {
         dislike,
         like,
@@ -141,7 +189,8 @@
         checkLike,
         showBtn,
         dropdown,
-        deletePost,
+        filterPost,
+        getLikes,
       };
     },
   };
@@ -155,6 +204,7 @@
       border-radius: 20px 20px 0 0;
       padding: 20px 50px;
       margin:auto;
+      white-space: pre-wrap; /* 줄바꿈과 공백 유지 */
     }
 
     .post-article{

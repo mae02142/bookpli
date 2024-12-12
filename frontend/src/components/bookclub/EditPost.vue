@@ -1,5 +1,5 @@
 <template>
-<div class="modal-wrap" v-show="modelValue">
+<div class="modal-wrap">
     <div class="modal-content" @click.stop>
         <div class="modal-items">
             <header class="header">
@@ -13,7 +13,7 @@
                       <img :src="img.url" class="preview-img">
                     </div>
                 </div>
-                <textarea v-model="postContent" class="post-text" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요.">{{ postContent }}</textarea>
+                <textarea v-model="post.postContent" class="post-text" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요.">{{ postContent }}</textarea>
 
                 <div class="icon-btn">
                 <button class="open-file" @click="triggerFileInput">
@@ -42,8 +42,8 @@
   </template>
   
   <script>
-  import axios from 'axios';
-import { ref, onMounted } from 'vue';
+import apiClient from '@/api/axiosInstance';
+import { ref, onMounted, toRaw } from 'vue';
   
   export default {
     props:  {
@@ -56,41 +56,35 @@ import { ref, onMounted } from 'vue';
             required : true,
         }
     },
-    emits: ['update:modelValue'],
+    emits: ['update:modelValue','close'],
     setup(props,{emit}) {
-      // 서버에서 불러온 게시글 내용
-      const postContent = ref('');
 
-      // 서버에서 불러온 이미지 URL 리스트
-      const imageSrc = ref([]);
-
-      const closeModal = () => {
-        const result =confirm("수정을 완료하시겠습니까?");
-        if(result){
-            emit("update:modelValue",false);
-        }else{
-            return;
-        }
-      }
-  
-      // 컴포넌트가 마운트되면 데이터를 로딩하는 로직 (예시)
       onMounted(() => {
         // 서버에서 게시글 데이터와 이미지 데이터 불러오는 예시
         loadPostData();
       });
+
+      // 서버에서 불러온 게시글 내용
+      const post= ref({});
+
+      // 서버에서 불러온 이미지 URL 리스트
+      const imageSrc = ref([]);
   
       // 서버에서 게시글 데이터 및 이미지 URL을 불러오는 함수
       const loadPostData = async () => {
         try {
-         const response = await axios.get("http://localhost:8081/api/post/getOne", {
+         const response = await apiClient.get("/api/post/getOne", {
           params : {postId : props.editId},
          });
          console.log(response.data);
+         post.value = response.data.data;
+         console.log(post.value);
         } catch (error) {
           console.error("게시글 데이터를 불러오는 중 오류 발생:", error);
         }
       };
 
+          /*   이미지 관련 함수들   */
       const uploadImg = ref(false);
       const fileInput = ref(null); //input file 참조
       const selectedImg = ref([]);   //선택된 이미지의 경로
@@ -122,26 +116,28 @@ import { ref, onMounted } from 'vue';
           imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
       };
 
+          // 서버에 수정 보내기 
+      const updatePost = async() => {
+        const rawpost = toRaw(post.value);
+        console.log('수정하려는 게시글 :'+ JSON.stringify(post.value.postId));
+        
+        const response = await apiClient.put("/api/post/edit", rawpost);
+        console.log(response.data.data);
+        closeModal();
+      }
 
-      const updatePost = () => {
-                console.log("자식컴포에서 확인 :"+props.editId);
-                emit("edit-post", props.editId); //삭제 요청을 부모로 보내기
-                closeModal();
-            }
-  
-//       onMounted(async () => {
-//   try {
-//     const response = await axios.get('/api/get-post'); // 서버에서 데이터를 받아오는 요청
-//     postContent.value = response.data.content; // 게시글 내용
-//     imageSrc.value = response.data.images; // 이미지 URL 리스트
-//   } catch (error) {
-//     console.error("데이터 불러오기 오류:", error);
-//   }
-// });
- 
+      const closeModal = async() => {
+        const result = confirm("수정을 완료하시겠습니까?");
+        if(result){
+            emit('close');
+            emit("update:modelValue",false);
+        }else{
+            return;
+        }
+      }
 
       return { 
-        postContent, 
+        post, 
         imageSrc,
         closeModal, 
         updatePost,

@@ -26,13 +26,6 @@ public class Post {
     private String postContent;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private Date postDate;
 
-
-        //날짜 형태 변환
-    public String dateFormatted(){
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        return formatter.format(postDate);
-    }
 }
