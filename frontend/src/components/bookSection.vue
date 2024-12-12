@@ -25,23 +25,56 @@
         <div class="ranking" style="padding-top: 30px;">
             <h3 class="ranking-title">베스트셀러</h3>
             <table class="ranking-table">
-                <tr class="ranking-tr" v-for="(book, index) in bestBooks" :key="book.rank" 
-                style="vertical-align: middle;">
+                <tr 
+                    class="ranking-tr" 
+                    v-for="(book, index) in bestBooks" 
+                    :key="book.rank" 
+                    style="vertical-align: middle;"
+                >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
+                    <td 
+                        class="book-details" 
+                        style="min-width: 20px; text-align: center; position: relative;" 
+                        @click="toggleOptionMenu1(index)"
+                    >
+                        ⋮
+                        <div v-show="showOptionMenu1[index]" class="option-menu">
+                            <span>재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span>앨범 정보 보기</span>
+                        </div>
+                    </td>
                 </tr>
             </table>
         </div>
-        <!-- International Rankings -->
+
+        <!-- Blog Best Seller -->
         <div class="ranking" style="padding-top: 30px;">
             <h3 class="ranking-title">블로거 추천 도서</h3>
             <table class="ranking-table">
-                <tr class="ranking-tr" v-for="(book, index) in blogBooks" :key="book.rank"
-                style="vertical-align: middle;">
+                <tr 
+                    class="ranking-tr" 
+                    v-for="(book, index) in blogBooks" 
+                    :key="book.rank" 
+                    style="vertical-align: middle;"
+                >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
+                    <td 
+                        class="book-details" 
+                        style="min-width: 20px; text-align: center; position: relative;" 
+                        @click="toggleOptionMenu2(index)"
+                    >
+                        ⋮
+                        <div v-show="showOptionMenu2[index]" class="option-menu">
+                            <span>재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span>앨범 정보 보기</span>
+                        </div>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -66,6 +99,28 @@ export default {
 
     const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
     const ttbKey = "ttbyoungjae.bae1809001";
+
+    const showOptionMenu1 = ref([]);
+
+    const toggleOptionMenu1 = (index) => {
+        showOptionMenu1.value[index] = !showOptionMenu1.value[index];
+    };
+
+    const closeAllMenus1 = () => {
+        // Close all menus
+        showOptionMenu1.value = [];
+    };
+
+    const showOptionMenu2 = ref([]);
+
+    const toggleOptionMenu2 = (index) => {
+        showOptionMenu2.value[index] = !showOptionMenu2.value[index];
+    };
+
+    const closeAllMenus2 = () => {
+        // Close all menus
+        showOptionMenu2.value = [];
+    };
 
     // New Books
     const fetchNewBooksJSONP = () => {
@@ -184,7 +239,7 @@ export default {
         await fetchBlogBooks();
     });
 
-    return { newBooks, bestBooks, blogBooks };
+    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2 };
     },
 };
 </script>
@@ -292,5 +347,22 @@ body {
     border-bottom: 1px solid black;
     height: 50px;
     table-layout: auto;
+}
+
+.book-details:hover {
+    cursor:pointer;
+}
+
+.option-menu {
+    position : absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 1000;
+    display: flex;
+    width: max-content;
+    flex-flow: column;
+    align-items: flex-start;
 }
 </style>

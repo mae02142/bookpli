@@ -29,37 +29,31 @@
 
   const isMusicSection = ref(false);
   const authStore = useAuthStore();
-  const loginStat = false;
 
   const getToken = async() => {
-    try {
-        const spotifyId = authStore.user.spotifyId;
+    const spotifyId = authStore.user.spotifyId;
 
-        const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
-            credentials: 'include',
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch access token');
-        }
-
-        console.log("로그인 성공띠 ~!~!~!~!~!");
-        const data = await response.json();
-        const accessToken = data.access_token;
-        
-        // Get the user store instance here
-        const userStore = useUserStore(); 
-        
-        userStore.setAccessToken(accessToken);
-        loginStat = true;
-    } catch {
-        console.log("로그인되지 않음");
+    const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+        credentials: 'include',
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to fetch access token');
     }
+
+    const data = await response.json();
+    const accessToken = data.access_token;
+    
+    console.log("토큰 받아오기 성공띠");
+    // Get the user store instance here
+    const userStore = useUserStore(); 
+    
+    userStore.setAccessToken(accessToken);
+    console.log("토큰 전달 성공띠");
   };
 
   onMounted(async () => {
     getToken();
-    loginStat;
   });
 </script>
 

@@ -18,16 +18,6 @@
           </li>
         </ul>
       </nav>
-      <!-- review 리스트 페이지 이동 -->
-      <router-link to="/review/mylist">
-        <div class="sidebar-item">  
-          <img src="@/assets/icons/reviewlist.png" 
-          alt="move to review List"
-          class="sidebar-icon"
-          />
-          <h4>나의 리뷰</h4>
-        </div>
-      </router-link>  
     </aside>
 
     <div class="main-content">
@@ -59,11 +49,6 @@
           </div>
         </article>
       </section>
-       <!-- 리뷰 모달  -->
-    <ReviewForm :isVisible="showForm"
-     :userId = authStore.user.userId
-     :bookId="isbn.toString()"
-     @update:isVisible="showForm = $event" />
     </div>
 
     <!-- 모달 컴포넌트 -->
@@ -71,7 +56,6 @@
       v-if="isModalVisible"
       :book="selectedBook"
       @close="closeModal"
-      @openForm="showForm=true"
     />
   </div>
 </template>
@@ -80,10 +64,8 @@
   import { ref, reactive, onMounted } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
-  import ReviewForm from '@/components/review/ReviewForm.vue';
   // import axios from 'axios';
   import { useAuthStore } from '@/stores/auth';
-  import { useRouter } from 'vue-router';
   
   const authStore = useAuthStore();
 
@@ -99,8 +81,6 @@
 //     console.error('Error loading inquiries:', error);
 //   }
 // };
-
-
 
   // 사이드바 메뉴 아이템들 데이터
   const menuItems = ref([
@@ -153,11 +133,6 @@ const openModal = (book) => {
 const closeModal = () => {
   isModalVisible.value = false; // 모달 숨김
 };
-
-// 리뷰 작성 모달 상태
-const showForm = ref(false);
-const isbn = ref('12345678');
-
   </script>
   
   <style scoped>

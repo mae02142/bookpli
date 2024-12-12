@@ -56,13 +56,17 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮
-                            <div v-if="showOptionMenu" class="option-menu" @click.self="closeOptionMenu">
-                                <button >재생하기</button>
-                                <button >내 플리에 추가하기</button>
-                                <button >앨범 정보 보기</button>
-                            </div>
-                        </td>
+                        <td 
+                        class="song-details" 
+                        style="min-width: 20px; text-align: center; position: relative;" 
+                        @click="toggleOptionMenu1(index)">
+                        ⋮
+                        <div v-show="showOptionMenu1[index]" class="option-menu">
+                            <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
+                            <span style="padding-bottom: 5px;">내 플리에 추가하기</span>
+                            <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
+                        </div>
+                    </td>
                     </tr>
                 </table>
             </div>
@@ -87,13 +91,17 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td class="song-details" style="min-width: 20px; text-align: center;">⋮
-                            <div v-if="showOptionMenu" class="option-menu" @click.self="toggleOptionMenu">
-                                <button >재생하기</button>
-                                <button >내 플리에 추가하기</button>
-                                <button >앨범 정보 보기</button>
-                            </div>
-                        </td>
+                        <td 
+                        class="song-details" 
+                        style="min-width: 20px; text-align: center; position: relative;" 
+                        @click="toggleOptionMenu2(index)">
+                        ⋮
+                        <div v-show="showOptionMenu2[index]" class="option-menu">
+                            <span style="padding-bottom: 5px;">재생하기</span>
+                            <span style="padding-bottom: 5px;">내 플리에 추가하기</span>
+                            <span style="padding-bottom: 5px;">앨범 정보 보기</span>
+                        </div>
+                    </td>
                     </tr>
                 </table>
             </div>
@@ -102,6 +110,13 @@
 
     <!-- Music Player Component -->
     <MusicPlayer />
+    <SongDetailModal
+        v-if="modalStore.activeModal === 'SongDetailModal'"
+        :song="selectedSong"
+        @close="modalStore.closeModal"
+        @update-playlist="getUserPlaylist"
+        @update-tracks="refreshPlaylistTracks"
+    />
     </div>
 </template>
 
@@ -110,19 +125,45 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 import { useUserStore } from "@/stores/user";
+import { useModalStore } from '@/stores/modalState';
+import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 
 export default {
 components: {
     MusicPlayer,
+    SongDetailModal,
 },
 setup() {
-    const showOptionMenu = ref(false);
     const recommendedPli = ref([]);
     const domesticRankingPli = ref([]);
     const internationalRankingPli = ref([]);
     const userStore = useUserStore();
+    const modalStore = useModalStore();
+    const selectedSong = ref(null);
 
     const token = userStore.accessToken;
+
+    const showOptionMenu1 = ref([]);
+
+    const toggleOptionMenu1 = (index) => {
+        showOptionMenu1.value[index] = !showOptionMenu1.value[index];
+    };
+
+    const closeAllMenus1 = () => {
+        // Close all menus
+        showOptionMenu1.value = [];
+    };
+
+    const showOptionMenu2 = ref([]);
+
+    const toggleOptionMenu2 = (index) => {
+        showOptionMenu2.value[index] = !showOptionMenu2.value[index];
+    };
+
+    const closeAllMenus2 = () => {
+        // Close all menus
+        showOptionMenu2.value = [];
+    };
 
     const recommendPliApiUrl =
     "https://api.spotify.com/v1/search?q=book&type=playlist&include_external=audio";
@@ -131,13 +172,10 @@ setup() {
     const internationalRankingsApiUrl =
     "https://api.spotify.com/v1/search?q=BillBoard+Hot+100&type=playlist";
 
-    const toggleOptionMenu = () => {
-        showOptionMenu.value = true;
-    };
-
-    // Option Menu Toggle
-    const closeOptionMenu = () => {
-        showOptionMenu.value = false;
+    const openSongDetail = (song) => {
+        selectedSong.value = song;
+        console.log(selectedSong.value);
+        modalStore.openModal("SongDetailModal");
     };
 
     // Function to fetch recommended playlists
@@ -321,7 +359,6 @@ setup() {
         );
 
         console.log(`Playing song: ${uri}`);
-        alert("노래를 재생합니다.");
     } catch (error) {
         console.error(
         "Error playing song:",
@@ -385,25 +422,29 @@ setup() {
 
     // Fetch playlists and rankings on component mount
     onMounted(() => {
-    closeOptionMenu();
-    toggleOptionMenu();
     fetchRecommendedPlaylists();
     fetchDomesticRanking();
     fetchInternationalRanking();
     });
 
     return {
-    showOptionMenu,
     recommendedPli,
     domesticRankingPli,
     internationalRankingPli,
     playSong,
     playPlaylist,
-    toggleOptionMenu,
-    closeOptionMenu,
     addToPlaylist,
     viewAlbumInfo,
-    };
+    toggleOptionMenu1,
+    toggleOptionMenu2,
+    showOptionMenu1,
+    showOptionMenu2,
+    closeAllMenus1,
+    closeAllMenus2,
+    modalStore,
+    openSongDetail,
+    selectedSong,
+};
 },
 };
 </script>
@@ -416,13 +457,17 @@ body {
 }
 
 .option-menu {
+    position : absolute;
     background-color: white;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     z-index: 1000;
-    margin-left: 12px;
-    margin-bottom: 5px;
+    display: flex;
+    padding: 5px;
+    width: max-content;
+    flex-flow: column;
+    align-items: flex-start;
 }
 
 .music-app {
