@@ -4,15 +4,19 @@
         <div class="bookinfo-grid">
           <img
             class="modal-image"
-            :src="`/src/assets/icons/${book.coverImage}`"
+            :src="`${book.cover}`"
             alt="Book Image"
           />
           <div class="progress-grid">
             <p class="book-title">{{ book.title }}</p>
             <p class="book-author">{{ book.author }}</p>
-            <div class="progress-container">
+            <div class="progress-container" v-if="book.status === 'reading'">
               <span class="progress-text">{{ book.progress }}%</span>
               <span class="remaining-days">{{ book.remainingDays }}일 남음</span>
+            </div>
+            <div class="complete-container" v-if="book.status === 'completed'">
+              <img src="@/assets/icons/read_complete.png">
+              독서 완료
             </div>
           </div>
           <img
@@ -23,29 +27,36 @@
           />
         </div>
         <div class="btn-grid">
-          <button class="btn change-status" @click="changeStatus">
+          <p class="btn change-status" @click="changeStatus">
             독서상태 변경
-          </button>
-          <button class="btn write-review" @click="writeReview">리뷰 작성</button>
-          <button class="btn remove-book" @click="removeBook">
+          </p>
+          <p class="btn write-review" @click="writeReview">리뷰 작성</p>
+          <p class="btn remove-book" @click="removeBook(book.libraryId)">
             내 서재에서 삭제
-          </button>
-          <button class="btn confirm" @click="closeModal">확인</button>
+          </p>
+          <p class="btn confirm" @click="closeModal">확인</p>
         </div>
       </div>
     </div>
   </template>
   
   <script setup>
-  import { ref } from 'vue';
+import apiClient from '@/api/axiosInstance';
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth'; 
+
+const authStore = useAuthStore();
    
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
-    book: Object,
+    book: {
+    type: Object,
+    required: true,
+  },
   });
   
   // 부모로 이벤트 전달
-  const emit = defineEmits(['close','openForm']);
+  const emit = defineEmits(['close','openForm', 'update-library']);
   
   // 좋아요 상태 관리
   const isLiked = ref(false);
@@ -63,8 +74,20 @@
     closeModal();
   };
   
-  const removeBook = () => {
-    alert('책을 서재에서 삭제합니다!');
+  const removeBook = async (libraryId) => {
+    console.log("라이브러리 아이디 >>>>> " , libraryId);
+    try {
+      await apiClient.delete(`/api/library`, {
+      data: {
+        userId: authStore.user.userId,
+        libraryId: libraryId,
+      },
+    });
+      emit('update-library');
+      closeModal();
+    } catch (error) {
+      console.log(error);
+    }
   };
   
   // 모달 닫기
@@ -92,7 +115,7 @@
   .modal-content {
     border-radius: 10px;
     padding: 20px;
-    width: 500px;
+    width: 430px;
     text-align: center;
     position: relative;
     background-color: white;
@@ -101,37 +124,40 @@
   .bookinfo-grid {
     display: flex;
     margin: 25px 0px;
+    justify-content: center;
   }
 
   .progress-grid {
     display: flex;
     flex-direction: column;
-    margin-left: 15px;
+    margin-left: 12px;
     align-items: flex-start;
     min-width: 160px;
   }
   
   /* 이미지 */
   .modal-image {
-    width: 220px;
-    height: 300px;
+    width: 160px;
+    height: 220px;
     margin-bottom: 15px;
     object-fit: cover;
-    margin-left: 40px;
     border-radius: 3px;
   }
   
   /* 책 제목 */
   .book-title {
-    font-size: 18px;
+    font-size: 17px;
     color: #1f1f1f;
-    margin: 10px 0;
+    margin-top: 3px;
+    margin-bottom: 6px;
     font-weight: bold;
+    text-align: start;
+    max-width: 160px;
   }
   
   /* 책 저자 */
   .book-author {
-    font-size: 15px;
+    font-size: 13px;
     color: #3d3d3d;
     margin-bottom: 15px;
   }
@@ -143,6 +169,21 @@
     gap: 10px;
     align-items: center;
     margin-bottom: 20px;
+  }
+
+  .complete-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    gap: 5px;
+    border: 1px solid #acacac;
+    padding: 5px;
+    border-radius: 5px;
+  }
+  
+  .complete-container img{
+    width: 25px;
   }
   
   .progress-text {
@@ -160,12 +201,12 @@
     width: 24px;
     height: 22px;
     cursor: pointer;
-    margin-top: 7px;
+    margin-top: 3px;
   }
   
   /* 버튼 스타일 */
   .btn {
-    width: 85%;
+    width: 340px;
     padding: 15px 10px;
     border: 1px solid #929292;
     border-radius: 5px;

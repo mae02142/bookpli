@@ -5,7 +5,9 @@
     <aside class="sidebar2">
       <nav>
         <ul>
-          <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
+          <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title"
+          :class="{ active: selectedStatus === menuItem.route }"
+            @click="selectStatus(menuItem.route)">
             <img
               :src="`/src/assets/sidebar/${menuItem.icon}`"
               :alt="menuItem.title"
@@ -33,25 +35,32 @@
     <div class="main-content">
       <header class="header">
         <h1 class="library-title">내 서재</h1>
-        <h2 class="booklist-title">독서중인 도서목록</h2>
+        <h2 class="booklist-title"> {{ menuItems.find(item => item.route === selectedStatus)?.title || '전체 도서 목록' }}</h2>
       </header>
 
       <section class="book-list">
-        <article class="book-item" v-for="(book, index) in books" :key="index">
+         <!-- 선택된 상태에 맞는 도서 목록 렌더링 -->
+         <article
+          class="book-item"
+          v-for="(book) in filteredBooks"
+          :key="book.libraryId"
+        >
           <img
-            :src="`${book.cover}`"
+            :src="book.cover"
             alt="Book Cover"
             class="book-cover"
-            @click="openModal(book)" @mouseover="showTooltip" @mouseleave="hideTooltip"
+            @click="openModal(book)"
+            @mouseover="showTooltip"
+            @mouseleave="hideTooltip"
           />
           <div class="book-details">
             <div class="title-grid">
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
             </div>
-            <div class="progress-grid">
-              <p class="book-progress">{{ book.progress }}%</p>
-              <p class="book-remaining">{{ book.remainingDays }}일 남음</p>
+            <div class="progress-grid" v-if="selectedStatus === 'reading'">
+              <p class="book-progress">{{ progressStore.getProgress(book.isbn13)?.progressPercentage || 0 }}%</p>
+              <p class="book-remaining">{{ calculateRemainingDays(book.endDate) }}일 남음</p>
             </div>
           </div>
           <div v-if="book.isFavorite" class="favorite-icon">
@@ -72,6 +81,7 @@
       :book="selectedBook"
       @close="closeModal"
       @openForm="showForm=true"
+      @update-library="getMyLibrary"
     />
   </div>
 </template>
@@ -83,10 +93,21 @@
   import ReviewForm from '@/components/review/ReviewForm.vue';
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
+  import { useProgressStore } from '@/stores/readingProgressbar';
   
   const authStore = useAuthStore();
   const menuItems = ref([]);
   const books = ref([]);
+  const selectedStatus = ref('reading');
+  const progressStore = useProgressStore();
+  // 모달 상태 및 선택된 책 데이터
+  const isModalVisible = ref(false);
+  const selectedBook = ref({});
+
+  
+  // 리뷰 작성 모달 상태
+  const showForm = ref(false);
+  const isbn = ref('12345678');
 
 
 const getMyLibrary = async () => {
@@ -94,12 +115,12 @@ const getMyLibrary = async () => {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
     books.value = response.data.data;
     updateMenuItems();
-    console.log(">>>.>>라이브러리 확인>>>>>", response);
   } catch (error) {
     console.error('Error loading inquiries:', error);
   }
 };
 
+//그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
 const groupedData = computed(() => {
       return books.value.reduce((acc, item) => {
         (acc[item.status] || (acc[item.status] = [])).push(item);
@@ -111,9 +132,19 @@ const updateMenuItems = () => {
       menuItems.value = [
         { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
         { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
-        { title: '완독', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+        { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
       ];
     };
+
+// 현재 선택된 상태에 따른 책 필터링
+const filteredBooks = computed(() => {
+  return groupedData.value[selectedStatus.value] || [];
+});
+
+// 선택된 상태 변경
+const selectStatus = (status) => {
+  selectedStatus.value = status;
+};
 
   // 툴팁 상태 관리
   const tooltip = reactive({
@@ -125,7 +156,6 @@ const updateMenuItems = () => {
 
   // 툴팁 표시 함수
 const showTooltip = (event) => {
-  console.log(tooltip.text);
   tooltip.show = true;
   tooltip.text = "상세보기";
   tooltip.x = event.pageX + 10; // 마우스 위치 오른쪽으로 10px
@@ -136,11 +166,6 @@ const showTooltip = (event) => {
 const hideTooltip = () => {
   tooltip.show = false;
 };
-
-
-// 모달 상태 및 선택된 책 데이터
-const isModalVisible = ref(false);
-const selectedBook = ref({});
 
 // 모달 열기
 const openModal = (book) => {
@@ -153,15 +178,37 @@ const closeModal = () => {
   isModalVisible.value = false; // 모달 숨김
 };
 
-// 리뷰 작성 모달 상태
-const showForm = ref(false);
-const isbn = ref('12345678');
+// books 데이터에 progress와 remainingDays 추가
+const prepareBooksData = (books) => {
+  return books.map((book) => {
+    const progressData = progressStore.getProgress(book.isbn13);
+    const progressPercentage = progressData?.progressPercentage || 0; // 기본값 0 설정
 
-onMounted(() => {
-    getMyLibrary();
+    return {
+      ...book,
+      progress: progressPercentage,
+      remainingDays: calculateRemainingDays(book.endDate),
+    };
+  });
+};
+
+// 남은 일 수 계산 함수
+const calculateRemainingDays = (endDate) => {
+  if (!endDate) return 0; // endDate가 없는 경우 0 반환
+  const today = new Date();
+  const end = new Date(endDate);
+  const diffTime = end.getTime() - today.getTime(); // 밀리초 차이 계산
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 일 단위로 변환
+  return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
+};
+
+
+onMounted(async() => {
+  await getMyLibrary();
+  books.value = prepareBooksData(books.value);
 });
 
-  </script>
+</script>
   
   <style scoped>
   .library-container {
@@ -221,14 +268,16 @@ onMounted(() => {
   .book-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* 4개의 열을 동일한 크기로 */
-    gap: 25px;
+    gap: 40px;
     justify-items: start;
   }
   
   .book-item {
     width: fit-content;
-    position: relative;
     padding: 10px;
+    display: grid;
+    padding: 10px;
+    justify-content: center;
   }
   
   .book-item:hover {
@@ -236,7 +285,8 @@ onMounted(() => {
   }
   
   .book-cover {
-    width: 100%;
+    width: 160px;
+    height: 220px;
     object-fit: cover;
   }
   
@@ -245,7 +295,7 @@ onMounted(() => {
   }
   
   .book-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     color: #1f1f1f;
     margin-bottom: 5px;

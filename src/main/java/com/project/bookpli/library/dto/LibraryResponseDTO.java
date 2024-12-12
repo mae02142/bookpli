@@ -22,6 +22,7 @@ public class LibraryResponseDTO {
     private String title;
     private String author;
     private String cover;
+    private Integer startindex;
 
     // DTO -> Entity
     public Library toEntity(Book book) {
@@ -46,6 +47,7 @@ public class LibraryResponseDTO {
                 .title(book.getTitle())
                 .author(book.getAuthor())
                 .cover(book.getCover())
+                .startindex(book.getStartindex())
                 .build();
     }
 }

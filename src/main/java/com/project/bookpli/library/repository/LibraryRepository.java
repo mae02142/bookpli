@@ -44,9 +44,13 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("update Library l set l.status='completed' where l.status='reading' and l.book.isbn13 = :isbn13")
     int completeBook(@Param("isbn13") String isbn13, @Param("status") String status );
 
-    @Query("SELECT new com.project.bookpli.library.dto.LibraryResponseDTO(l.libraryId, l.userId, l.status, l.startDate, l.endDate, b.isbn13, b.title, b.author, b.cover) " +
+    @Query("SELECT new com.project.bookpli.library.dto.LibraryResponseDTO(l.libraryId, l.userId, l.status, l.startDate, l.endDate, b.isbn13, b.title, b.author, b.cover, b.startindex) " +
             "FROM Library l " +
             "JOIN l.book b " +
             "WHERE l.userId = :userId")
     List<LibraryResponseDTO> getMyLibrary(Long userId);
+
+    @Transactional
+    @Modifying
+    void deleteByLibraryIdAndUserId(Long userId, Long libraryId);
 }

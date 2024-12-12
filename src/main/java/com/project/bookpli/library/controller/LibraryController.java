@@ -5,12 +5,10 @@ import com.project.bookpli.library.dto.LibraryResponseDTO;
 import com.project.bookpli.library.service.LibraryService;
 import com.project.bookpli.mypage.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,4 +21,12 @@ public class LibraryController {
         List<LibraryResponseDTO> response = libraryService.getMyLibrary(userId);
         return new BaseResponse<>(response);
     }
+
+    @DeleteMapping
+    public BaseResponse<Void> getMyLibrary(@RequestBody Map<String, Long> request){
+        System.out.println(">>>>>>>."+request);
+        libraryService.deleteMyLibrary(request.get("userId"), request.get("libraryId"));
+        return new BaseResponse<>();
+    }
+
 }

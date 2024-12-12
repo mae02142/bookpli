@@ -371,9 +371,7 @@ const getUserInfo = async() => {
 };
 
 const getToken = async() => {
-  const spotifyId = authStore.user.spotifyId;
-
-  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${authStore.user.spotifyId}`, {
     credentials: 'include',
   })
   if (!response.ok) {
