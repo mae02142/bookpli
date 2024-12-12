@@ -27,9 +27,14 @@
                 <p class="book-intro">{{ book.description }}</p> 
                 보기
             </div>
-            <button class="btn-read" @click="gotoGoal(book)" v-if="book.status !== 'reading'">선택</button>
+            <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
             
         </div>
+        <ReadGoalModal 
+            :visible="showModal"
+            :rbook="selectBook"
+            @close="closeModal"
+        />
     </div>
 </div> 
 
@@ -53,6 +58,7 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ReviewForm from "@/components/review/ReviewForm.vue";
+import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 
 const route= useRoute();
 const router= useRouter();
@@ -66,9 +72,6 @@ const activeTab= ref('recommend');
 import dislikeImage from '@/assets/icons/dislike.png';
 import likeImage from '@/assets/icons/like.png';
 
-// const viewReviews = () => {
-//     alert("리뷰 보기 클릭됨!");
-// };
 
 // 좋아요 상태 관리 변수
 const isLiked = ref(false);
@@ -83,6 +86,18 @@ const setActiveTab= (tab) => {
     activeTab.value= tab;
 };
 
+//모달 
+const showModal = ref(false);
+const selectBook= ref({});
+
+const openModal= (readList) => {
+    selectBook.value=readList;
+    showModal.value=true;
+};
+
+const closeModal= () =>{
+    showModal.value=false;
+};
 
 const gotoGoal = (book) => {
     console.log(book);
