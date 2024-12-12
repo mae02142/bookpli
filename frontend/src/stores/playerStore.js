@@ -17,7 +17,8 @@ export const usePlayerStore = defineStore('player', {
         initPlayer(token) {
             const userStore = useUserStore();
             this.token = userStore.accessToken;
-
+            console.log(this.deviceId);
+            console.log("token in playerStore : " + this.token)
             if (this.player) {
                 return ;
             }
@@ -107,6 +108,7 @@ export const usePlayerStore = defineStore('player', {
         // URI에 따라 플레이리스트/단일 곡 재생
         async playContent(uri) {
             if (!this.deviceId || !this.token) {
+                console.log(this.deviceId);
                 console.error('Device ID or Token is missing. Cannot start playback.');
                 return;
             }

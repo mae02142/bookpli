@@ -31,6 +31,9 @@ public class BookApiService {
     private BookRepository bookrep;
 
     @Autowired
+    private LibraryRepository librep;
+
+    @Autowired
     private UserRepository userrep;
 
     public void searchBook(String itemId) {
@@ -129,6 +132,11 @@ public class BookApiService {
         }else{
             throw new IllegalArgumentException("Invalid status: " + status);
         }
+    }
+
+    //도서완독
+    public int clearRead(String isbn13, String status){
+        return librep.completeBook(isbn13, status);
     }
 
 }

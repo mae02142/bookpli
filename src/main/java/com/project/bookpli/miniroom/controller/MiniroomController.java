@@ -50,4 +50,11 @@ public class MiniroomController {
         return ResponseEntity.ok(userInfo);
     }
 
+
+    //완독도서 처리
+    @PutMapping("clear/{isbn13}")
+    public ResponseEntity<Integer> compReading(@PathVariable String isbn13, @RequestParam("status") String status){
+        int updateStatus= bookApiService.clearRead(isbn13,status);
+        return ResponseEntity.ok(updateStatus);
+    }
 }

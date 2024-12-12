@@ -80,6 +80,7 @@
                                 <span v-else>
                                     p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
                                     <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
+                                    <button @click="clearReading()">완료</button>
                                 </span>
                         </span>    
                     </div>
@@ -323,6 +324,16 @@ const calculateMonth= () => {
         return false;
     }).length;
 };
+
+const clearReading = async () => {
+    try{
+        const response= await axios.put(`/api/miniroom/clear/${readList.value.isbn13}`,{
+            params: {status: "completed"},
+        });
+    }catch(error){
+        console.log(error);
+    }
+}
 
 const finishStatus= async (status='completed') => {
     try{

@@ -60,8 +60,10 @@
         </div>
         <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
     </div>
-
-    <button class="confirm-button" @click="handleAction()">확인</button>
+    <span class="button-container">
+        <button class="confirm-button" @click="handleAction()">확인</button>
+        <button class="confirm-button" >닫기</button>
+    </span>    
 </div>
 </template>
 
@@ -126,7 +128,7 @@ const changeStatus = async () => {
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
 
     try{
-        const response= await axios.post(`/api/goal/${book.value.isbn13}`, null, {
+        const response= await axios.put(`/api/goal/register/${book.value.isbn13}`, null, {
             params: {
                 status: book.value.status,
                 startDate: formatStartDate,
@@ -159,9 +161,6 @@ const dropReading = async () => {
 onMounted(() => {
     const savedProgress= progressStore.getProgress(book.value.isbn13);
     if(savedProgress){
-        // startDate.value= savedProgress.startDate;
-        // endDate.value= savedProgress.endDate;
-        // radioSelect.value= savedProgress.status || "reading";
         book.value.currentPage=savedProgress.currentPage || 0;
         book.value.startIndex=savedProgress.startIndex || 0;
         book.value.progressPercentage=savedProgress.progressPercentage || 0;
@@ -314,7 +313,7 @@ max-width: 800px;
     background: #fffdf1;
     border: none;
     border-radius: 15px;
-    padding: 15px 30px;
+    padding: 10px 15px;
     font-size: 30px;
     color: #000000;
     cursor: pointer;
@@ -355,5 +354,10 @@ gap: 5px;
 margin-left: 10px;
 color: #555;
 font-size: 14px;
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
 }
 </style>
