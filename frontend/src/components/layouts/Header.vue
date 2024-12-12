@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="left-section">
-      <div class="logo" @click="goHome">bookpli</div>
+      <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
       <nav class="nav">
         <router-link to="/miniroom/minihome">
           <span class="nav-item">미니룸</span>
@@ -93,9 +93,7 @@ const submitSearch = () => {
 }
 
 .logo {
-  font-size: 35px;
-  color: #000000;
-  margin-right: 20px;
+  cursor: pointer;
 }
 
 .logo:hover {
@@ -104,9 +102,9 @@ const submitSearch = () => {
 
 .nav {
   display: flex;
-  gap: 20px;
-  margin-left: 30px;
-  align-self: flex-end;
+  gap: 30px;
+  margin-left: 60px;
+  margin-top: 12px;
 }
 
 .nav-item {

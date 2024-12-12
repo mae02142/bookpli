@@ -1,15 +1,11 @@
 package com.project.bookpli.miniroom.service;
 
 import com.project.bookpli.entity.Book;
-import com.project.bookpli.entity.Library;
-import com.project.bookpli.entity.User;
+import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.repository.BookRepository;
-import com.project.bookpli.miniroom.repository.LibraryRepository;
-import com.project.bookpli.mypage.dto.UserDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -76,7 +72,10 @@ public class BookApiService {
         BookDTO dto = BookDTO.builder()
                 .isbn13(isbn13)
                 .title(item.get("title") != null ? item.get("title").toString() : "제목 없음")
-                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
+//                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
+                .author(item.get("author") != null ?
+                        item.get("author").toString().replaceAll("\\s*\\(지은이\\).*", "") :
+                        "저자 없음")
                 .description(item.get("description") != null ? item.get("description").toString() : "내용 없음")
                 .pubdate(parsePubDate(item.get("pubDate") != null ? item.get("pubDate").toString() : null))
                 .publisher(item.get("publisher") != null ? item.get("publisher").toString() : "출판사 없음")
