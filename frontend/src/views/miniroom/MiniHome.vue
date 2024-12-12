@@ -8,7 +8,7 @@
                 <img :src="userImg" class="avatar"></img>
                 <div class="book-plan">
                     <p class="userNm">{{userName}}님</p><br>
-                    <p>이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
+                    <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
                     <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                                 <span v-else>
                                     p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
                                     <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
-                                    <button @click="clearReading()">완료</button>
+                                    <input type="button" value="완료" @click="clearReading(book)"/>
                                 </span>
                         </span>    
                     </div>
@@ -93,12 +93,12 @@
         <h3 class="title-header">내가 읽고 있는 책</h3>    
         <div class="book-section">
             <div v-if="readList.length > 0" class="book-covers">
-                <div class="book-item" v-for="rbook in readList" :key="readList.isbn13">
+                <div class="book-item" v-for="rbook in readList" :key="rbook.isbn13">
                     <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
                     <p class="book-info">
-                        <span class="book-icon" @click="gotoGoal(rbook)">📖</span>&nbsp;&nbsp;
+                        <span class="book-icon" @click="openModal(rbook)">📖</span>&nbsp;&nbsp;
                         <span>{{ rbook.title.split('-')[0] }}</span>&nbsp;&nbsp;
-                        <span>{{ rbook.author.split('(')[0] }}</span>
+                        <span>{{ rbook.author }}</span>
                     </p>
                 </div>
             </div>
@@ -118,8 +118,13 @@
             <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
         </div>
     </div>
-</div>
 
+    <ReadGoalModal 
+        :visible="showModal"
+        :rbook="selectBook"
+        @close="closeModal"
+    />
+</div>
 
 </template>
 
@@ -132,6 +137,8 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { onMounted } from 'vue';
 import musicPlayer from '@/components/layouts/musicPlayer.vue';
+
+import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 
 const router= useRouter();
 const authStore= useAuthStore();
@@ -146,6 +153,20 @@ const userImg= ref("");
 const compRead= ref([]);
 const yearCount= ref(0);
 const mostReadInfo= ref({ month: null, count: 0 });
+
+//모달 
+const showModal = ref(false);
+const selectBook= ref({});
+
+const openModal= (readList) => {
+    selectBook.value=readList;
+    showModal.value=true;
+};
+
+const closeModal= () =>{
+    showModal.value=false;
+};
+
 
 //입력 페이지 퍼센트 렌더링
 const calInputPage = computed(() => 
@@ -325,15 +346,29 @@ const calculateMonth= () => {
     }).length;
 };
 
-const clearReading = async () => {
-    try{
-        const response= await axios.put(`/api/miniroom/clear/${readList.value.isbn13}`,{
-            params: {status: "completed"},
-        });
-    }catch(error){
-        console.log(error);
+const clearReading = async (readList) => {
+    try {
+
+        const userConfirmed = confirm("도서를 완독 처리 하시겠습니까?");
+        if (!userConfirmed) {
+            return; // 사용자가 취소를 선택한 경우 함수 종료
+        }
+
+        const url = `/api/miniroom/clear/${readList.isbn13}?status=completed`;
+        const response = await axios.put(url);
+
+        if (response.status === 200) {
+            alert("도서가 완독 처리 되었습니다.");
+
+            // 데이터를 다시 로드
+            await readingBook(); // 읽고 있는 책 목록 갱신
+            await finishStatus(); // 완독 책 목록 갱신
+        }
+    } catch (error) {
+        console.error("API 호출 중 오류 발생:", error);
+        alert("요청 처리에 실패했습니다.");
     }
-}
+};
 
 const finishStatus= async (status='completed') => {
     try{
@@ -497,6 +532,8 @@ border: 1px solid #ccc; /* 경계선을 추가해 가시성을 높임 */
 display: flex;
 flex-direction: column; /* 자식 요소를 수직으로 정렬 */
 gap: 20px; 
+min-width: 800px;
+min-width: 250px;
 }
 
 .user-profile {
@@ -627,6 +664,7 @@ margin: 5px 0;
     margin: 0;
     font-size: 16px;
     font-weight: bold;
+    margin-bottom: 5px;
 }
 
 .book-start-date {
