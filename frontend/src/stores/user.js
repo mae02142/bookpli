@@ -7,7 +7,7 @@ export const useUserStore = defineStore('user', {
     actions: {
         setAccessToken(token) {
             this.accessToken = token
-            console.log("token in user.js" + token);
+            console.log("토큰을 전달하다")
         }
     }
 })

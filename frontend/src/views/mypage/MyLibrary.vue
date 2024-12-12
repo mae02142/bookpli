@@ -91,10 +91,11 @@
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
   import ReviewForm from '@/components/review/ReviewForm.vue';
+  import axios from 'axios';
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
   import { useProgressStore } from '@/stores/readingProgressbar';
-  
+
   const authStore = useAuthStore();
   const menuItems = ref([]);
   const books = ref([]);
@@ -104,7 +105,7 @@
   const isModalVisible = ref(false);
   const selectedBook = ref({});
 
-  
+
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
   const isbn = ref('12345678');

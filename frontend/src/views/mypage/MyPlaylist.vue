@@ -370,23 +370,9 @@ const getUserInfo = async() => {
   }
 };
 
-const getToken = async() => {
-  const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${authStore.user.spotifyId}`, {
-    credentials: 'include',
-  })
-  if (!response.ok) {
-    throw new Error('Failed to fetch access token')
-  }
-
-  const data = await response.json()
-  const accessToken = data.access_token
-  userStore.setAccessToken(accessToken)
-}
-
 // 페이지 로드 시 실행
 onMounted(() => {
   getUserInfo();
-  getToken();
   getUserPlaylist(); // 플레이리스트 가져오기
 });
 

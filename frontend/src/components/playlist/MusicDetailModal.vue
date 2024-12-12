@@ -7,8 +7,8 @@
         </div>
         <div class="modal-content-grid">
           <div class="album-grid">
-            <img src="@/assets/icons/music/album.png" class="album-img" />
-            <div class="album-grid-right">
+            <img :src="songData.image" class="album-img" alt="Album Cover" />
+              <div class="album-grid-right">
               <p class="album-grid-title">{{ songData.name }}</p>
               <p class="album-grid-artist">{{ songData.artists }}</p>
               <div class="add-to-playlist-block" ref="playlistBlock">
@@ -37,7 +37,7 @@
               <p>{{ songData.album }}</p>
             </div>
             <img
-              @click="playSong"
+              @click="playAlbum(songData.album.uri)"
               src="@/assets/icons/music/album_play.png"
               alt="Play"
               class="play-button"
@@ -89,12 +89,17 @@ import { useModalStore } from "@/stores/modalState";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
+import axios from "axios";
 
 // Pinia store
 const modalStore = useModalStore();
 
 // 현재 모달이 활성화 상태인지 확인
 const isActive = computed(() => modalStore.activeModal === "SongDetailModal");
+
+const userStore = useUserStore();
+const token = userStore.accessToken;
 
 // 부모에서 전달받는 `props`
 const props = defineProps({
@@ -110,6 +115,7 @@ const props = defineProps({
     }),
   },
 });
+
 const emit = defineEmits(["update-tracks", "update-playlist"]);
 const songData = ref(props.song);
 const tracks = ref([]);
@@ -125,6 +131,7 @@ const selectSong = (track) => {
     album: songData.value.album, // 기존 앨범명 유지
     albumId: songData.value.albumId, // 기존 앨범 ID 유지
     artists: track.artists, // 트랙의 아티스트 정보
+    cover: songData.value.image,
   };
 };
 
@@ -159,11 +166,103 @@ const getAlbumTracks = async () => {
       name: track.name,
       artists: track.artists.map((artist) => artist.name).join(", "),
       duration: formatDuration(track.duration_ms),
+      cover : track.image,
     }));
   } catch (error) {
     console.log(error);
   }
 };
+
+const getActiveDevices = async () => {
+  try {
+      const response = await axios.get("https://api.spotify.com/v1/me/player/devices", {
+      headers: {
+          Authorization: `Bearer ${token}`,
+      },
+      });
+      return response.data.devices;
+  } catch (error) {
+      console.error(
+      "Error fetching active devices:",
+      error.response ? error.response.data : error.message
+      );
+      return [];
+  }
+};
+
+const playSong = async (uri) => {
+  const playUrl = "https://api.spotify.com/v1/me/player/play";
+
+  try {
+      const devices = await getActiveDevices();
+      if (devices.length === 0) {
+      alert(
+          "활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요."
+      );
+      return;
+      }
+
+      await axios.put(
+      playUrl,
+      {
+          uris: [uri],
+      },
+      {
+          headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          },
+      }
+      );
+
+      console.log(`Playing song: ${uri}`);
+  } catch (error) {
+      console.error(
+      "Error playing song:",
+      error.response ? error.response.data : error.message
+      );
+      console.log(uri);
+  }
+};
+
+const playAlbum = async (albumUri) => {
+  const playUrl = "https://api.spotify.com/v1/me/player/play";
+
+  try {
+    const devices = await getActiveDevices();
+    if (devices.length === 0) {
+      alert("활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요.");
+      return;
+    }
+    console.log(devices);
+    await axios.put(
+      playUrl,
+      {
+        context_uri: albumUri,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(`Playing album: ${albumUri}`);
+  } catch (error) {
+    if (error.response?.status === 403) {
+      if (error.response.data.error.reason === "PREMIUM_REQUIRED") {
+        alert("Spotify Premium 계정이 필요합니다.");
+      } else {
+        alert("Spotify에서 이 요청을 실행할 수 없습니다. 활성 기기 또는 계정을 확인하세요.");
+      }
+    } else {
+      console.error("Error playing album:", error.response?.data || error.message);
+      alert("앨범 재생 중 문제가 발생했습니다.");
+    }
+  }
+};
+
 
 // 플레이리스트 가져오기
 const getMyPlaylist = async () => {
