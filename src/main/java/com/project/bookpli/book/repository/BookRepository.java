@@ -1,16 +1,14 @@
-package com.project.bookpli.miniroom.repository;
+package com.project.bookpli.book.repository;
 
 import com.project.bookpli.entity.Book;
-import com.project.bookpli.miniroom.dto.BookDTO;
+import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, String> {
@@ -47,7 +45,7 @@ public interface BookRepository extends JpaRepository<Book, String> {
     List<BookResponseDTO> likeBookList(@Param("userId") Long userId);
 
     //isbn에 해당하는 도서정보 출력
-    @Query("SELECT new com.project.bookpli.miniroom.dto.BookDTO"
+    @Query("SELECT new com.project.bookpli.book.dto.BookDTO"
             + "(b.isbn13, b.title, b.author, b.description, b.pubdate, b.publisher, b.cover, b.startindex, b.genre) "
             + "FROM Book b WHERE b.isbn13 = :isbn13")
     List<BookDTO> findByIsbn13(@Param("isbn13") String isbn13);

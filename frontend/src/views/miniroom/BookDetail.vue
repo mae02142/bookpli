@@ -1,34 +1,46 @@
 <template>
-<div>
+<div class="book-detail-container">
     <div class="book-details">
         <div class="book-cover-section">
             <img class="book-cover" :src="book.cover"/>
         </div>
     <div class="book-info-section">
-        <div>
-            <div class="title-and-icons">
+        <div class="book-info-contents">
+            <div class="title-and-author">
                 <h1 class="book-title">{{ book.title }}</h1>
-                <div class="icons-container">
-                    <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
-                    <img src="../../assets/icons/cart.png" class="detail-icons"/>
+                <span>지은이: {{ book.author }}</span>
+            </div>
+            <!--책 상세 부분 -->
+            
+            <div class="book-intro-grid">
+                <p class="book-intro-header">책소개</p>
+                <p class="book-intro">{{ book.description }}</p> 
+            </div>
+            <div class="book-detail-grid">
+                <div class="book-detail-grid-first">
+                    <span class="book-meta">출판일: {{ book.pubdate }}</span>
+                    <span class="book-meta">쪽수: {{ book.startindex }}쪽</span>
+                    <span class="book-meta">ISBN: {{ book.isbn13 }}</span>
+                </div>
+                <div>
+                    <span class="book-meta">출판사: {{ book.publisher }}</span>
                 </div>
             </div>
-            <span class="book-meta">
-                출판일: {{ book.pubdate.split('T')[0] }}
-                <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
-                ISBN: {{ book.isbn13 }}
-            </span>
-            <span class="book-meta">
-                출판사: {{ book.publisher }}
-                지은이: {{ book.author.split('(')[0] }}
-            </span>
-            <div>
-                <h2 class="book-intro-header">책소개</h2>
-                <p class="book-intro">{{ book.description }}</p> 
-                보기
+                
+        </div>
+        <div class="book-status-grid">
+            <div class="book-status-goal" @click="openModal(book)" v-if="book.status !== 'reading'">
+                <img src="@/assets/icons/book_option.png" class="register-status-icon">
+                <span>바로 독서 설정</span>
             </div>
-            <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
-            
+            <div class="book-status-wish" @click="toggleWishList">
+                <img src="@/assets/icons/add_book_shelf.png">
+                <span v-if="isInLibrary">내 서재에서 삭제하기</span>
+                <span v-else>내 서재에 담기</span>
+            </div>
+            <div class="book-status-like">
+                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+            </div>
         </div>
         <ReadGoalModal 
             :visible="showModal"
@@ -55,21 +67,27 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import ReviewForm from "@/components/review/ReviewForm.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
+import apiClient from "@/api/axiosInstance";
+import { useAuthStore } from "@/stores/auth";
+import { useUtilModalStore } from "@/stores/utilModalStore";
 
 const route= useRoute();
-const router= useRouter();
-const book= ref(JSON.parse(route.query.data));
+const authStore = useAuthStore();
+const book= ref({});
+const isbn13 = route.params.isbn13;
+const utilModalStore = useUtilModalStore();
+const isInLibrary = ref(false); // 내 서재 상태 관리
+const libraryId = ref("");
 
-import { useAuthStore } from '@/stores/auth';
-const authStore= useAuthStore();
+
 
 const activeTab= ref('recommend');
 
-import dislikeImage from '@/assets/icons/dislike.png';
+import dislikeImage from '@/assets/icons/dislike_lightgray.png';
 import likeImage from '@/assets/icons/like.png';
 
 
@@ -99,25 +117,71 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
-const gotoGoal = (book) => {
-    console.log(book);
-    router.push({
-        path: `/miniroom/goal/${book.isbn13}`,
-        query: { 
-            data: JSON.stringify(book),
-        },  
-    });
-};
-
-const userInfo = async () => {
+const loadBookDetail = async () => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        const userData= response.data;
-        
+        const response = await apiClient.get(`/api/book/${isbn13}`)
+        book.value = response.data.data;
+        console.log("확인 : ",book.value);
+        // 도서 상세를 로드한 후 상태 확인
+        await checkLibraryStatus();
     } catch (error) {
         console.log(error);
     }
 }
+// 내 서재 상태 확인
+const checkLibraryStatus = async () => {
+    try {
+        const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
+        const libraryItems = response.data.data || [];
+        const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
+
+        if (existingBook) {
+            isInLibrary.value = true;
+            libraryId.value = existingBook.libraryId;
+        } else {
+            isInLibrary.value = false;
+            libraryId.value = null;
+        }
+    } catch (error) {
+        console.error("내 서재 상태 확인 오류:", error);
+    }
+};
+
+// 내 서재 담기/삭제
+const toggleWishList = async () => {
+    if (isInLibrary.value) {
+        try {
+            if (!libraryId.value) {
+                return;
+            }
+
+            await apiClient.delete("/api/library", {
+                data: {
+                    userId: authStore.user.userId,
+                    libraryId: libraryId.value,
+                },
+            });
+
+            isInLibrary.value = false;
+            libraryId.value = null;
+        } catch (error) {
+            console.error("도서 삭제 오류:", error);
+        }
+    } else {
+        try {
+            const response = await apiClient.post(`/api/library/${authStore.user.userId}`, book.value);
+            libraryId.value = response.data.data;
+            isInLibrary.value = true;
+            utilModalStore.showModal("도서 담기", `내 서재에 ${book.value.title}<br>도서가 저장되었습니다.`, "add-book");
+        } catch (error) {
+            console.error("도서 추가 오류:", error);
+        }
+    }
+};
+
+onMounted(() => {
+    loadBookDetail();
+});
 
 </script>
 
@@ -141,22 +205,22 @@ body {
     width: 90%;
     max-width: 1200px;
     align-items: flex-start;
+    align-items: center;
 }
 
 .book-cover-section {
     background: rgba(245, 245, 220, 0.6);
     border-radius: 35px;
     padding: 20px;
-    flex: 1;
+    flex: 0.7;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .book-cover {
-    width: 100%;
-    max-width: 281px;
-    height: auto;
+    width: 200px;
+    height: 280px;
     object-fit: cover;
 }
 
@@ -165,16 +229,14 @@ body {
     background: #ffffff;
     border: 1px solid #cccccc;
     border-radius: 8px;
-    padding: 20px;
     flex: 2;
+    min-height: 310px;
 }
 
 .book-title {
-    font-family: "Inter-Bold", sans-serif;
-    font-size: 40px;
+    font-size: 22px;
     font-weight: 700;
     color: #000000;
-    margin-bottom: 10px;
 }
 
 .book-subtitle {
@@ -189,26 +251,25 @@ body {
     display: flex; 
     flex-wrap: wrap; 
     gap: 10px; 
-    font-family: "Inter-Regular", sans-serif;
-    font-size: 20px;
-    font-weight: 400;
+    font-size: 14px;
     color: #000000;
-    margin: 10px 0;
+}
+.book-intro-grid {
+    display: grid;
+    gap: 3px;
 }
 
 .book-intro-header {
-    font-size: 20px;
-    font-weight: 400;
-    color: #000000;
-    margin-top: 30px;
+    font-size: 13px;
+    margin-top: 20px;
 }
 
 .book-intro {
-    font-family: "Inter-Regular", sans-serif;
-    font-size: 20px;
+    font-size: 14px;
     font-weight: 400;
     color: #000000;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    line-height: 1.4;
 }
 
 .recommendations {
@@ -301,20 +362,88 @@ body {
 }
 
 .detail-icons{
-    width: 30px !important;
-    height: 30px !important;
+    width: 25px;
     cursor: pointer;
 }
 
-.title-and-icons {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    margin-bottom: 10px;
+.title-and-author {
+    display: grid;
+    gap: 8px; 
 }
 
 .icons-container {
     display: flex; 
     gap: 10px; 
+}
+.book-status-grid {
+    display: flex;
+    height: 55px;
+    text-align: center;
+    height: 55px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.book-status-goal {
+    width: 45%;
+    height: 100%;
+    background-color: #2e2e2e;
+    color: white;
+    border-bottom-left-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.book-status-wish {
+    width: 45%;
+    height: 100%;
+    border-top: 1px solid #bbbbbb;
+    border-right: 1px solid #bbbbbb;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.book-status-like {
+    width: 10%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid #bbbbbb;
+}
+
+.book-info-contents {
+    padding: 30px;
+}
+
+.book-detail-grid {
+    display: grid;
+    gap: 5px;
+}
+
+.book-detail-grid-first {
+    display: flex;
+    gap: 20px;
+}
+
+.book-detail-container {
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.register-status-icon {
+    width: 20px;
+}
+
+.book-status-wish:hover {
+    font-weight: bold;
 }
 </style>

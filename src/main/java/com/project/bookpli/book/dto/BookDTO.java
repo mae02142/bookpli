@@ -1,8 +1,9 @@
-package com.project.bookpli.miniroom.dto;
+package com.project.bookpli.book.dto;
 
 import com.project.bookpli.entity.Book;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -15,24 +16,24 @@ public class BookDTO {
     private String title;
     private String author;
     private String description;
-    private Date pubdate;
+    private LocalDate pubdate;
     private String publisher;
     private String cover;
     private Integer startindex;
     private String genre;
 
     // DTO -> Entity
-    public Book toEntity() {
+    public static Book toEntity(BookDTO bookDTO) {
         return Book.builder()
-            .isbn13(this.isbn13)
-            .title(this.title)
-            .author(this.author)
-            .description(this.description)
-            .pubdate(this.pubdate)
-            .publisher(this.publisher)
-            .cover(this.cover)
-            .startindex(this.startindex)
-            .genre(this.genre)
+            .isbn13(bookDTO.getIsbn13())
+            .title(bookDTO.getTitle())
+            .author(bookDTO.getAuthor())
+            .description(bookDTO.getDescription())
+            .pubdate(bookDTO.getPubdate())
+            .publisher(bookDTO.getPublisher())
+            .cover(bookDTO.getCover())
+            .startindex(bookDTO.getStartindex())
+            .genre(bookDTO.getGenre())
             .build();
     }
 

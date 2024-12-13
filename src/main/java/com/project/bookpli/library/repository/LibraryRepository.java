@@ -52,5 +52,6 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
 
     @Transactional
     @Modifying
-    void deleteByLibraryIdAndUserId(Long userId, Long libraryId);
+    @Query("DELETE FROM Library l WHERE l.userId = :userId AND l.libraryId = :libraryId")
+    void deleteByLibraryIdAndUserId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
 }

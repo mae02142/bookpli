@@ -7,7 +7,7 @@ import com.project.bookpli.bookclub.repository.BookClubRepository;
 import com.project.bookpli.bookclub.service.BookClubService;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookClub;
-import com.project.bookpli.miniroom.repository.BookRepository;
+import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

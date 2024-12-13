@@ -27,7 +27,10 @@ public enum BaseResponseStatus {
 
    /* 댓글 */
     COMMENT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다"),
-    INVAILD_COMMENT(false, HttpStatus.BAD_REQUEST.value(),"입력된 댓글 내용이 비어 있거나 올바르지 않습니다.");
+    INVAILD_COMMENT(false, HttpStatus.BAD_REQUEST.value(),"입력된 댓글 내용이 비어 있거나 올바르지 않습니다."),
+
+    /* 내서재 */
+    WISH_NOT_FOUND(false, HttpStatus.BAD_REQUEST.value(),"해당 도서를 위시리스트에서 찾을 수 없습니다.");
 
 
     private final boolean isSuccess;

@@ -31,7 +31,8 @@
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
-          <p class="btn remove-book" @click="removeBook(book.libraryId)">
+          <p class="btn" @click="handleClick(book)">도서 상세 보기</p>
+          <p class="btn remove-book" @click="removeBook">
             내 서재에서 삭제
           </p>
           <p class="btn confirm" @click="closeModal">확인</p>
@@ -41,9 +42,9 @@
   </template>
   
   <script setup>
-import apiClient from '@/api/axiosInstance';
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth'; 
+import { useAuthStore } from '@/stores/auth';
+import { gotoDetail } from '@/router/routerUtils';
 
 const authStore = useAuthStore();
    
@@ -56,7 +57,7 @@ const authStore = useAuthStore();
   });
   
   // 부모로 이벤트 전달
-  const emit = defineEmits(['close','openForm', 'update-library']);
+  const emit = defineEmits(['close','openForm', 'delete-library']);
   
   // 좋아요 상태 관리
   const isLiked = ref(false);
@@ -71,29 +72,23 @@ const authStore = useAuthStore();
 
   const writeReview = () => {
     emit('openForm'); //이벤트 전달
-    closeModal();
+    emit('close');
   };
   
-  const removeBook = async (libraryId) => {
-    console.log("라이브러리 아이디 >>>>> " , libraryId);
-    try {
-      await apiClient.delete(`/api/library`, {
-      data: {
-        userId: authStore.user.userId,
-        libraryId: libraryId,
-      },
-    });
-      emit('update-library');
-      closeModal();
-    } catch (error) {
-      console.log(error);
-    }
+  const removeBook = async () => {
+    emit('delete-library', props.book.libraryId); // 부모에게 이벤트 전달
+    emit('close');
   };
   
   // 모달 닫기
   const closeModal = () => {
     emit('close'); // 부모로 close 이벤트 전달
   };
+
+  const handleClick = (book) => {
+    console.log("book>>>>>>", book);
+    gotoDetail(book);
+  }
   </script>
   
   <style scoped>

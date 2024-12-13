@@ -53,7 +53,7 @@
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
           />
-          <div class="book-details">
+          <div class="book-details-block">
             <div class="title-grid">
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
@@ -71,7 +71,7 @@
        <!-- 리뷰 모달  -->
     <ReviewForm :isVisible="showForm"
      :userId = authStore.user.userId
-     :bookId="isbn.toString()"
+     :bookId="selectedBook"
      @update:isVisible="showForm = $event" />
     </div>
 
@@ -81,7 +81,7 @@
       :book="selectedBook"
       @close="closeModal"
       @openForm="showForm=true"
-      @update-library="getMyLibrary"
+      @delete-library="deleteLibrary"
     />
   </div>
 </template>
@@ -91,7 +91,6 @@
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
   import ReviewForm from '@/components/review/ReviewForm.vue';
-  import axios from 'axios';
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
   import { useProgressStore } from '@/stores/readingProgressbar';
@@ -108,7 +107,7 @@
 
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
-  const isbn = ref('12345678');
+ 
 
 
 const getMyLibrary = async () => {
@@ -203,6 +202,22 @@ const calculateRemainingDays = (endDate) => {
   return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
 };
 
+const deleteLibrary = async (libraryId) => {
+   // 삭제된 항목을 로컬 리스트에서 제거
+   console.log("도착,,,,,,,,", libraryId);
+   try {
+      await apiClient.delete(`/api/library`, {
+      data: {
+        userId: authStore.user.userId,
+        libraryId: libraryId,
+      },
+    });
+    getMyLibrary();
+    } catch (error) {
+      console.log(error);
+    }
+}
+
 
 onMounted(async() => {
   await getMyLibrary();
@@ -291,7 +306,7 @@ onMounted(async() => {
     object-fit: cover;
   }
   
-  .book-details {
+  .book-details-block {
     margin-top: 10px;
   }
   

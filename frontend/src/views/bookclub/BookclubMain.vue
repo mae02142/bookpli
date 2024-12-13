@@ -31,17 +31,17 @@
         >
         <RouterLink :to="{path : '/bookclub/community', 
         query : {cover : myclub.cover , title : myclub.title, author : myclub.author , bookClubId : myclub.bookClubId}}">
-          <img :src="myclub.cover" alt="icon" class="note-icon" />
           <div class="bookclub-details">
+            <img :src="myclub.cover" alt="icon" class="note-icon" />
             <p class="bookclub-name">{{ myclub.title.replace(/\(.*?\)/g, '').trim() }}</p>
+          </div>
+          </RouterLink>
             <img @click="removeClub(myclub.userClubId)" 
             src="@/assets/icons/close.png" 
             alt="remove club" 
             class="close-icon" 
             v-show="showEdit"
             />
-          </div>
-        </RouterLink>
         </div>
       </div>
     </div>
@@ -84,7 +84,7 @@
     </div>
   </template>
   <script>
-  import axios from "axios";
+  import apiClient from "@/api/axiosInstance";
   import { onMounted, ref } from "vue";
   import { useAuthStore } from '@/stores/auth';
   import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
@@ -103,7 +103,7 @@
         console.log('찾으려는 북클럽 keyword : '+ searchValue);
         try{
           console.log('겟요청 보내기');
-          const response = await axios.get("http://localhost:8081/api/bookclub/search", {
+          const response = await apiClient.get("/api/bookclub/search", {
             params : {keyword : searchValue},
           });
             console.log('겟 요청 후');
@@ -128,8 +128,8 @@
           return;
         }
 
-        const response = await axios.post(
-  `http://localhost:8081/api/userbookclub/add/bookclub?isbn13=${encodeURIComponent(communities.value[index].isbn13)}&userId=${authStore.user.userId}`
+        const response = await apiClient.post(
+  `/api/userbookclub/add/bookclub?isbn13=${encodeURIComponent(communities.value[index].isbn13)}&userId=${authStore.user.userId}`
 );
         console.log(response.data);
         if(response.data.data === true){
@@ -148,8 +148,8 @@
     const  myclubList = ref([]);
     const readMyClubs = async() => {
       try{
-      const response = await axios.get(
-        "http://localhost:8081/api/userbookclub/mybookclubs",
+      const response = await apiClient.get(
+        "/api/userbookclub/mybookclubs",
        {params : {userId :authStore.user.userId}
       });
       myclubList.value = response.data.data;
@@ -174,8 +174,8 @@
       console.log("삭제하려는 id :"+ userClubId);
       if(answer){
         try{
-        const response = await axios.delete(
-          "http://localhost:8081/api/userbookclub/remove/myclub", {
+        const response = await apiClient.delete(
+          "/api/userbookclub/remove/myclub", {
             params : {userClubId : userClubId},
           });
           if(response.status === 200){
@@ -187,8 +187,6 @@
       readMyClubs();
       }
     }
-     
-
 
     onMounted(()=>{
       console.log('회원아이디 :'+ authStore.user.userId);
@@ -275,18 +273,18 @@ body {
 
 .bookclub-details {
   display: flex;
-  gap : 15px;
 }
 
 .bookclub-name {
   font-size: 16px;
   font-weight: bold;
+  margin :auto
 }
 
 .close-icon {
   width: 13px;
   height: 13px;
-  margin-top: auto;
+  margin: auto;
 }
 
 /* main */
@@ -387,7 +385,6 @@ body {
 .community-item {
   display: flex;
   flex-direction: row; /* 아이템을 세로로 정렬 */
-  align-items: center;
   padding: 10px;
   background-color: #fff;
 }

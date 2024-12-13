@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -26,6 +27,6 @@ public class Post {
     private String postContent;
 
     @CreationTimestamp
-    private Date postDate;
+    private LocalDate postDate;
 
 }
