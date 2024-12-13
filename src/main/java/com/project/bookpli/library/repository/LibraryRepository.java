@@ -50,7 +50,15 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
             "WHERE l.userId = :userId")
     List<LibraryResponseDTO> getMyLibrary(Long userId);
 
+
     @Transactional
     @Modifying
     void deleteByLibraryIdAndUserId(Long userId, Long libraryId);
+
+    //도서 실패처리
+    @Transactional
+    @Modifying
+    @Query("update Library l set l.status='failed' where l.status='reading' and l.book.isbn13= :isbn13")
+    int changeFail (@Param("isbn13") String isbn13);
+
 }

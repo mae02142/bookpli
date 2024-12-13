@@ -23,7 +23,10 @@ public class BookDetailController {
     }
     
     //도서찜하기
-    
+    @PutMapping("/{isbn13}")
+    public ResponseEntity<Integer> likeBook(@PathVariable String isbn13){
+        int bookLike =
+    }
     //도서 내서재 담기
 }
 

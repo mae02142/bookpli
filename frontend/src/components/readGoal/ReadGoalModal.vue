@@ -17,7 +17,7 @@
         <div class="date-status">독서상태</div>
         <div class="date-row">
             <span class="date-label">
-                <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
+                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
             </span>
             <span class="date-label">
                 <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
@@ -37,6 +37,7 @@
                 :format="dateFormat"
                 @update:modelValue="updateStartDate"
             />
+            <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
             </span>
             <span class="date-label">
             종료일
@@ -50,6 +51,7 @@
                 :format="dateFormat"
                 @update:modelValue="updateEndDate"
             />
+            <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
             </span>
                 </div>
         </div>
@@ -57,9 +59,9 @@
         <div class="progress-section" v-if="rbook.status === 'reading'">
             <div class="progress-header">독서량</div>
             <div class="progress-bar">
-                <div class="progress-bar-fill" :style="{width: `${book.progressPercentage || 0}%`}"></div>
+                <div class="progress-bar-fill" :style="{width: `${rbook.progressPercentage || 0}%`}"></div>
             </div>
-            <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
+            <p class="progress-percentage">{{ rbook.progressPercentage || 0 }}%</p>
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>

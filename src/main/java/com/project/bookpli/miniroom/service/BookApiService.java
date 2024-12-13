@@ -138,4 +138,8 @@ public class BookApiService {
         return librep.completeBook(isbn13, status);
     }
 
+    //도서 실패
+    public int failReading(String isbn13){
+        return librep.changeFail(isbn13);
+    }
 }

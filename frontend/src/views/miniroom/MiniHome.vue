@@ -5,9 +5,9 @@
     <!-- 사용자 프로필 -->
         <div class="user-profile">
             <div class="user-info">
-                <img :src="userImg" class="avatar"></img>
+                <img :src="userData.profilePath" class="avatar"></img>
                 <div class="book-plan">
-                    <p class="userNm">{{userName}}님</p><br>
+                    <p class="userNm">{{userData.display_name}}님</p><br>
                     <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
                     <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
                 </div>
@@ -34,19 +34,6 @@
         </p>
         <div class="music-player"> 
             <MusicPlayer/>
-            <div class="current-track">
-                <img class="track-cover" src="../../assets/test/music2.png">    
-                    <div class="track-details">
-                        <p class="track-title">첫 눈!</p>
-                        <p>엑소</p>
-                        <progress class="music-progress" value="30" max="100"></progress>
-                    </div>
-                    <div class="controls">
-                        <img class="control-button" src="../../assets/icons/previous.png" alt="Play" />
-                        <img class="control-button" src="../../assets/icons/play.png" alt="Skip to Start" />
-                        <img class="control-button" src="../../assets/icons/next.png" alt="End" />
-                    </div>
-            </div>
         </div>
     </div>    
     </div>
@@ -61,14 +48,16 @@
                 <div class="book-progress" v-for="(book, index) in readList" :key="index">
                 <p class="book-title">{{ book.title.split('-')[0] }}</p>
                 <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
-                <div class="progress-wrapper">
+                <!-- 실패처리를 위해 날짜, 퍼센트 확인 -->
+                <div class="progress-wrapper" v-if="new Date(book.endDate) > new Date()">
                 <!-- Progress Bar -->
                 <!-- 목표량 Progress Bar -->
                 <div class="full-progress" max="100"></div>
                 <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}"></div> 
                                 
                 <!-- 현재 Progress Bar -->
-                <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"></div>
+                <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"
+                    @mounted="changeToFail(book, index)"></div>
                     <div class="progress-info">
                         <span class="progress-percentage">{{ calInputPage[index] }}%</span>
                         <span class="page-info">
@@ -139,7 +128,7 @@ import { onMounted } from 'vue';
 import musicPlayer from '@/components/layouts/musicPlayer.vue';
 
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
-
+const userData=ref({});
 const router= useRouter();
 const authStore= useAuthStore();
 const addList= ref([]);
@@ -148,8 +137,6 @@ const readList= ref([]);
 
 const currentPage= ref(readList.value.map(() => 0)); //초기값 0으로 설정
 const isEditing= ref(readList.value.map(()=> false)); //현재 페이지 입력 편집모드
-const userName= ref("");
-const userImg= ref("");
 const compRead= ref([]);
 const yearCount= ref(0);
 const mostReadInfo= ref({ month: null, count: 0 });
@@ -237,6 +224,9 @@ const calculateGoalProgress = computed(() => {
     const progress = (elapsedDays / totalDays) * 100;
     return parseFloat(progress.toFixed(2)); // 소수점 2자리까지 표시
     });
+
+    //종료일 이후 처리
+    // if(today > end) 
 });
 
 import { useProgressStore } from '../../stores/readingProgressbar';
@@ -307,9 +297,9 @@ const readingBook = async (status='reading') => {
 const userInfo = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        const userData= response.data;
-        userName.value= userData.display_name;
-        userImg.value= userData.profilePath;
+        userData.value= response.data;
+        // userName.value= userData.display_name;
+        // userImg.value= userData.profilePath;
     } catch (error) {
         console.log(error);
     }
@@ -345,6 +335,34 @@ const calculateMonth= () => {
         return false;
     }).length;
 };
+
+//실패처리
+const changeToFail = async (book, index)=>{
+    const today= new Date();
+    const endDate= new Date(book.endDate);
+
+
+    if(today > endDate){
+        try{
+            const response= await axios.put(`/api/miniroom/fail/${book.isbn13}`);
+            console.log("+++++",response.data);
+            alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
+
+            // 실패 처리된 책을 목록에서 제거
+            updateFailedBooks(index);
+        }catch(error){
+            console.log("실패처리실패",error);
+        }
+    }
+};
+
+// 실패 처리된 책을 목록에서 제거
+const updateFailedBooks = (index) => {
+    if(index >= 0 && index < readList.value.length){
+        readList.value.splice(index, 1); 
+    }
+};
+
 
 const clearReading = async (readList) => {
     try {
@@ -444,10 +462,14 @@ onMounted(() => {
                 book.progressPercentage = 0;
             }
         });
+
+        // 실패 상태 처리
+        readList.value.forEach((book, index) => {
+            changeToFail(book, index); // 각 책에 대해 실패 상태 처리
+        });
     });
     userInfo();
-    finishStatus();
-    
+    finishStatus();        
 });
 
 
@@ -555,6 +577,7 @@ min-width: 250px;
 
 .music-section{
     align-items: center;
+    justify-content: center;
 }
 
 .music-player {
@@ -563,6 +586,8 @@ min-width: 250px;
     align-items: center;
     align-items: flex-start; 
     position: relative; 
+    margin-left: 40px;
+    margin-top: 50px;
 }
 
 .avatar {

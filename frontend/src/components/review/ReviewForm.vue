@@ -58,7 +58,7 @@
         required: true,
       },
       bookId: {
-        type : String,
+        type : Object,
         required: true,
       }
     },
@@ -108,7 +108,7 @@
           try{
         const review =  {
         userId : props.userId,
-        isbn13 : props.bookId,
+        isbn13 : props.bookId.isbn13,
         reviewContent: reviewContent.value ,
         rating: rating.value
       };

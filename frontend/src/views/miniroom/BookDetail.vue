@@ -48,8 +48,9 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
+        <Recommend v-if="activeTab ==='recommend'" />
     </div>
-    <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="userId"/>
+    <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="authStore.user.userId"/>
 </div>
 </div>
 </template>
@@ -59,6 +60,7 @@ import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ReviewForm from "@/components/review/ReviewForm.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
+import Recommend from "@/components/recommBooks/Recommend.vue";
 
 const route= useRoute();
 const router= useRouter();
@@ -67,7 +69,8 @@ const book= ref(JSON.parse(route.query.data));
 import { useAuthStore } from '@/stores/auth';
 const authStore= useAuthStore();
 
-const activeTab= ref('recommend');
+const activeTab= ref("");
+const id= ref("");
 
 import dislikeImage from '@/assets/icons/dislike.png';
 import likeImage from '@/assets/icons/like.png';
@@ -79,8 +82,8 @@ const isLiked = ref(false);
 // 좋아요 상태 토글 함수
 const toggleLike = () => {
     isLiked.value = !isLiked.value;
-    // console.log("Like 상태:", isLiked.value);
 }
+
 
 const setActiveTab= (tab) => {
     activeTab.value= tab;
@@ -112,13 +115,13 @@ const gotoGoal = (book) => {
 const userInfo = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        const userData= response.data;
+        id= response.data;
+        console.log(userInfo.id.value);
         
     } catch (error) {
         console.log(error);
     }
 }
-
 </script>
 
 <style>
@@ -227,10 +230,10 @@ body {
 .recommendation-covers {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    margin-left: 100px;
 }
 
-.recommendation-covers img {
+/* .recommendation-covers img {
     width: 281px;
     height: 383px;
 }
@@ -239,7 +242,7 @@ body {
     width: 182px;
     height: 280px;
     object-fit: cover;
-}
+} */
 
 .line-separator {
     border-top: 1px solid #000000;
