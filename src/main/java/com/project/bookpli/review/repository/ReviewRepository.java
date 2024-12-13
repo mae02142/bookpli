@@ -1,6 +1,7 @@
 package com.project.bookpli.review.repository;
 
 import com.project.bookpli.entity.Review;
+import com.project.bookpli.review.dto.ReviewDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,9 +22,27 @@ public interface ReviewRepository extends JpaRepository< Review, Long > {
 //    List<Review> findByIsbn(@Param("isbn13") String isbn13);
 
 
-    @Query("SELECT r, u,userNickname , u.profilePath FROM Review r " +
+//    @Query("SELECT r, u,userNickname , u.profilePath FROM Review r " +
+//            "JOIN User u ON r.userId = u.userId " +
+//            "JOIN Book b ON r.isbn13 = b.isbn13 " +
+//            "WHERE b.isbn13 = :isbn13")
+//    List<ReviewDTO> findByIsbn(@Param("isbn13") String  isbn13);
+
+//    @Query("SELECT new com.project.bookpli.review.dto.ReviewDTO( " +
+//            "r.reviewId, r.userId, r.isbn13, r.reviewContent, r.rating, " +
+//            "u.userNickname, u.profilePath) " +
+//            "FROM Review r " +
+//            "JOIN User u ON r.userId = u.userId " +
+//            "JOIN Book b ON r.isbn13 = b.isbn13 " +
+//            "WHERE b.isbn13 = :isbn13")
+
+    @Query("SELECT new com.project.bookpli.review.dto.ReviewDTO( " +
+            "r.reviewId, r.userId, r.isbn13, r.reviewContent, r.rating, " +
+            "u.userNickname, u.profilePath) " +
+            "FROM Review r " +
             "JOIN User u ON r.userId = u.userId " +
             "JOIN Book b ON r.isbn13 = b.isbn13 " +
             "WHERE b.isbn13 = :isbn13")
-    List<Object[]> findByIsbn(@Param("isbn13") String  isbn13);
+    List<ReviewDTO> findByIsbn(@Param("isbn13") String isbn13);
+
 }

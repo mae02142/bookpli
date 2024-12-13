@@ -58,7 +58,7 @@
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
         <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
     </div>
-    <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="authStore.user.userId"/>
+    <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/><!--  :bookId="book.isbn13" :userId="authStore.user.userId" -->
 </div>
 </div>
 </template>
@@ -66,7 +66,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import ReviewForm from "@/components/review/ReviewForm.vue";
+import BookReview from "@/components/review/BookReview.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import Recommend from "@/components/recommBooks/Recommend.vue";

@@ -1,18 +1,18 @@
 <template>
     <div class="review-container">
     <div class="review-header">
-      <h2>도서 리뷰</h2>
-      <hr style="color: #909090; opacity: 0.7;">
+      <!-- <h2>도서 리뷰</h2>
+      <hr style="color: #909090; opacity: 0.7;"> -->
     </div>
                 <!-- 리뷰 없을 때 -->
-    <section v-if="reviews.length ==0">
+    <section v-if="!reviews || reviews.length === 0">
       <h1 class="none-review">등록된 리뷰가 없습니다.</h1>
     </section>
                 <!-- 리뷰 있을 때 -->
     <section v-else 
       class="review-item" 
       v-for="review in reviews" 
-      :key="review.reviewId"
+      :key="review.reviewId || review.isbn13"
     >
     <div class="review-content">
         <div class="title-icon">
@@ -40,7 +40,7 @@
 </template>
 <script setup>
 import apiClient from '@/api/axiosInstance';
-import { onMounted, ref} from "vue";
+import { onMounted, ref, watch} from "vue";
 import fullStarImage from "@/assets/icons/full_star.png";
 import profile from "@/assets/icons/profile.png";
 
@@ -54,9 +54,8 @@ const props = defineProps({
    isbn13 : {
     type : String,
     required : true,
-    default : '9791193790441',  // 예시
-   }
-})
+   },
+});
 
         /* 리뷰 리스트 조회 */
 
@@ -67,7 +66,9 @@ const reviews = ref([]);
 const getList = async(isbn13) => {
     try{
         const response = await apiClient.get(`/api/review/book/${isbn13}`);
-        console.log(response.data.data);
+        console.log("==================",response);
+        console.log("dfodfjdof",response.data);
+        reviews.value = response.data || [];
         if(response.status ==200){
             reviews.value=response.data.data;
         }
@@ -76,9 +77,14 @@ const getList = async(isbn13) => {
         reviews.value= [];
     }
     
-}
+};
 
-
+//isbn13이 변경될 때 마다 조회
+// watch(() => props.isbn13, (newIsbn13) => {
+//   if(newIsbn13){
+//     getList(newIsbn13);
+//   }
+// });
 
 </script>
 <style>
@@ -98,6 +104,8 @@ const getList = async(isbn13) => {
     margin-top: 80px;
     padding: 20px;
     box-sizing: border-box;
+    justify-content: center;
+    text-align: center;
     background-color: #ffffff;
   }
   
