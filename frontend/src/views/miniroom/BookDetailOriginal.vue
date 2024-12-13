@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
 <div>
     <div class="book-details">
         <div class="book-cover-section">
@@ -9,32 +9,26 @@
             <div class="title-and-icons">
                 <h1 class="book-title">{{ book.title }}</h1>
                 <div class="icons-container">
-                   
+                    <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
                     <img src="../../assets/icons/cart.png" class="detail-icons"/>
                 </div>
             </div>
-            <!--책 상세 부분 -->
-            <span>지은이: {{ book.author }}</span>
-            
-            <div>
-                <p class="book-intro-header">책소개</p>
-                <p class="book-intro">{{ book.description }}</p> 
-            </div>
             <span class="book-meta">
-                출판일: {{ book.pubdate }}
+                출판일: {{ book.pubdate.split('T')[0] }}
                 <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
                 ISBN: {{ book.isbn13 }}
             </span>
             <span class="book-meta">
                 출판사: {{ book.publisher }}
-                지은이: {{ book.author }}
+                지은이: {{ book.author.split('(')[0] }}
             </span>
-            <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
-            <div class="book-status-grid">
-                <div class="book-status-goal">바로 독서 설정</div>
-                <div class="book-status-wish">내 서재에 담기</div>
-                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+            <div>
+                <h2 class="book-intro-header">책소개</h2>
+                <p class="book-intro">{{ book.description }}</p> 
+                보기
             </div>
+            <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
+            
         </div>
         <ReadGoalModal 
             :visible="showModal"
@@ -62,15 +56,18 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import ReviewForm from "@/components/review/ReviewForm.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
-const book= ref({});
+const router= useRouter();
+const book= ref(JSON.parse(route.query.data));
 const isbn13 = route.params.isbn13;
 
+import { useAuthStore } from '@/stores/auth';
+const authStore= useAuthStore();
 
 const activeTab= ref('recommend');
 
@@ -104,11 +101,30 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
+const gotoGoal = (book) => {
+    console.log(book);
+    router.push({
+        path: `/miniroom/goal/${book.isbn13}`,
+        query: { 
+            data: JSON.stringify(book),
+        },  
+    });
+};
+
+const userInfo = async () => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
+        const userData= response.data;
+        
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 const loadBookDetail = async () => {
     try {
         const response = await apiClient.get(`/api/book/${isbn13}`)
         console.log("확인 : ",response);
-        book.value = response.data.data;
     } catch (error) {
         console.log(error);
     }
@@ -153,8 +169,8 @@ body {
 }
 
 .book-cover {
-    width: 200px;
-    height: 280px;
+    width: 100%;
+    max-width: 281px;
     height: auto;
     object-fit: cover;
 }
@@ -170,7 +186,7 @@ body {
 
 .book-title {
     font-family: "Inter-Bold", sans-serif;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: 700;
     color: #000000;
     margin-bottom: 10px;
@@ -316,15 +332,4 @@ body {
     display: flex; 
     gap: 10px; 
 }
-.book-status-grid {
-    display: grid;
-}
-
-.book-status-goal {
-    width: 40%;
-}
-
-.book-status-wish {
-    width: 40%;
-}
-</style>
+</style> -->

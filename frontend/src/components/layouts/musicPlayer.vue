@@ -13,7 +13,7 @@
         <p class="track-artist">{{ playerStore.currentTrack.artist }}</p>
         <input 
           type="range" 
-          class="progress-bar" 
+          class="music-progress-bar" 
           min="0" 
           :max="playerStore.currentTrack.duration" 
           v-model="playerStore.currentTime" 
@@ -136,7 +136,7 @@ onMounted(() => {
   object-fit: cover;
 }
 
-.progress-bar {
+.music-progress-bar {
   width: 100%;
   margin-top: 10px;
 }

@@ -549,7 +549,8 @@ onMounted(() => {
     z-index: 1000;
     top: -2px;
     left: 20px;
-    display: flex
+    display: flex;
+    min-width: 166px;
 ;
     flex-direction: column;
     width: max-content;
