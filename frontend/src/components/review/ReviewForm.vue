@@ -65,8 +65,9 @@
     emits: ['update:isVisible'],
     setup(props, { emit }) {
       onMounted(() => {
-        console.log(props.bookId);
+        console.log(JSON.stringify(props.bookId.isbn13));
         console.log(props.userId);
+
       })
 
       const rating = ref(0);
@@ -108,7 +109,7 @@
           try{
         const review =  {
         userId : props.userId,
-        isbn13 : props.bookId.value,
+        isbn13 : props.bookId.isbn13,
         reviewContent: reviewContent.value ,
         rating: rating.value
       };

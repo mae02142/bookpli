@@ -444,14 +444,6 @@ const selectStatus = (status) => {
     color: #000000;
     margin: 15px 0 10px;
   }
-  
-  .date {
-    font-family: "Inter-Regular", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
-    color: #909090;
-    margin-left: auto; /* 오른쪽으로 밀기 */
-  }
 
   .task-line:hover {
     cursor: pointer;

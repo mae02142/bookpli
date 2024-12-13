@@ -45,7 +45,7 @@ public class ReviewService {
 
     // 해당 도서에 대한 리뷰 전체 조회
     public List<ReviewDTO> readByIsbn (String isbn){
-        List<Review> list;
+        List<Object[]> list;
         try {
             list = repository.findByIsbn(isbn);
             if (list.isEmpty()) {
@@ -57,7 +57,12 @@ public class ReviewService {
             return Collections.emptyList();
         }
         return list.stream()
-                .map(ReviewDTO::fromEntity)
+                .map(row -> {
+                    Review review = (Review) row[0];
+                    String userNickname = row[1] != null ? row[1].toString() : null; // null 체크 추가
+                    String profilePath = row[2] != null ? row[2].toString() : null;
+                    return ReviewDTO.fromEntityForList(review,userNickname,profilePath);
+                })
                 .collect(Collectors.toList());
     }
 

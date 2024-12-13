@@ -33,11 +33,11 @@ public class ReviewController {
 
             // 해당 도서의 리뷰 전체 조회
     @GetMapping("/book/{isbn13}")
-    public ResponseEntity<List<ReviewDTO>> getListByisbn (@PathVariable String isbn){
-            List<ReviewDTO> review = service.readByIsbn(isbn);
+    public BaseResponse<List<ReviewDTO>> getListByisbn (@PathVariable String isbn13){
+            List<ReviewDTO> review = service.readByIsbn(isbn13);
             System.out.println("컨트롤러 : 도서 리뷰 전체 출력 : "+ review);
 
-            return ResponseEntity.ok(review);
+            return new BaseResponse<>(review);
     }
 
                 // 리뷰 수정
