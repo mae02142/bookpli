@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
 <div>
     <div class="book-details">
         <div class="book-cover-section">
@@ -6,7 +6,6 @@
         </div>
     <div class="book-info-section">
         <div>
-            <!-- split error-->
             <div class="title-and-icons">
                 <h1 class="book-title">{{ book.title }}</h1>
                 <div class="icons-container">
@@ -15,13 +14,13 @@
                 </div>
             </div>
             <span class="book-meta">
-                출판일: {{ book.pubdate }}
+                출판일: {{ book.pubdate.split('T')[0] }}
                 <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
                 ISBN: {{ book.isbn13 }}
             </span>
             <span class="book-meta">
                 출판사: {{ book.publisher }}
-                지은이: {{ book.author }}
+                지은이: {{ book.author.split('(')[0] }}
             </span>
             <div>
                 <h2 class="book-intro-header">책소개</h2>
@@ -57,15 +56,18 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import ReviewForm from "@/components/review/ReviewForm.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
-const book= ref({});
+const router= useRouter();
+const book= ref(JSON.parse(route.query.data));
 const isbn13 = route.params.isbn13;
 
+import { useAuthStore } from '@/stores/auth';
+const authStore= useAuthStore();
 
 const activeTab= ref('recommend');
 
@@ -99,11 +101,30 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
+const gotoGoal = (book) => {
+    console.log(book);
+    router.push({
+        path: `/miniroom/goal/${book.isbn13}`,
+        query: { 
+            data: JSON.stringify(book),
+        },  
+    });
+};
+
+const userInfo = async () => {
+    try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
+        const userData= response.data;
+        
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 const loadBookDetail = async () => {
     try {
         const response = await apiClient.get(`/api/book/${isbn13}`)
         console.log("확인 : ",response);
-        book.value = response.data.data;
     } catch (error) {
         console.log(error);
     }
@@ -311,4 +332,4 @@ body {
     display: flex; 
     gap: 10px; 
 }
-</style>
+</style> -->

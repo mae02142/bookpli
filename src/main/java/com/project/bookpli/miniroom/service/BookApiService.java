@@ -1,10 +1,11 @@
 package com.project.bookpli.miniroom.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.library.repository.LibraryRepository;
-import com.project.bookpli.miniroom.dto.BookDTO;
+import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
-import com.project.bookpli.miniroom.repository.BookRepository;
+import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,10 +13,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -89,18 +90,8 @@ public class BookApiService {
         bookrep.save(book);
     }
 
-    // Helper 메서드: pubDate 파싱
-    private Date parsePubDate(String pubDateStr) {
-        if (pubDateStr == null) {
-            return new java.sql.Date(System.currentTimeMillis()); // 기본값
-        }
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            return new java.sql.Date(dateFormat.parse(pubDateStr).getTime());
-        } catch (ParseException e) {
-            System.err.println("Failed to parse pubDate: " + pubDateStr + " - Setting default date.");
-            return new java.sql.Date(System.currentTimeMillis());
-        }
+    private static LocalDate parsePubDate(String pubDate) {
+        return LocalDate.parse(pubDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     // Helper 메서드: startIndex 파싱

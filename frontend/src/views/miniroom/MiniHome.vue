@@ -59,8 +59,8 @@
         <div class="reading-status-box">
             <ul v-if="readList.length > 0">
                 <div class="book-progress" v-for="(book, index) in readList" :key="index">
-                <p class="book-title">{{ book.title.split('-')[0] }}</p>
-                <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
+                <p class="book-title">{{ book.title }}</p>
+                <p class="book-start-date">시작일 {{ book.startDate }}</p>
                 <div class="progress-wrapper">
                 <!-- Progress Bar -->
                 <!-- 목표량 Progress Bar -->
@@ -280,7 +280,7 @@ const gotoDetail = (book) => {
     console.log(book);
     router.push({
         path: `/miniroom/book/${book.isbn13}`,
-        query: { data: JSON.stringify(book) },  
+        // query: { data: JSON.stringify(book) },  
     });
 };
 
