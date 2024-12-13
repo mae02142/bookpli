@@ -27,15 +27,7 @@ public interface ReviewRepository extends JpaRepository< Review, Long > {
 //            "JOIN Book b ON r.isbn13 = b.isbn13 " +
 //            "WHERE b.isbn13 = :isbn13")
 //    List<ReviewDTO> findByIsbn(@Param("isbn13") String  isbn13);
-
-//    @Query("SELECT new com.project.bookpli.review.dto.ReviewDTO( " +
-//            "r.reviewId, r.userId, r.isbn13, r.reviewContent, r.rating, " +
-//            "u.userNickname, u.profilePath) " +
-//            "FROM Review r " +
-//            "JOIN User u ON r.userId = u.userId " +
-//            "JOIN Book b ON r.isbn13 = b.isbn13 " +
-//            "WHERE b.isbn13 = :isbn13")
-
+    //도서 리뷰 조회
     @Query("SELECT new com.project.bookpli.review.dto.ReviewDTO( " +
             "r.reviewId, r.userId, r.isbn13, r.reviewContent, r.rating, " +
             "u.userNickname, u.profilePath) " +

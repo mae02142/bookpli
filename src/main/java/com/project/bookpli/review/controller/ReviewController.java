@@ -32,22 +32,12 @@ public class ReviewController {
     }
 
             // 해당 도서의 리뷰 전체 조회
-//    @GetMapping("/book/{isbn13}")
-//    public BaseResponse<List<ReviewDTO>> getListByisbn (@PathVariable String isbn13){
-//            List<ReviewDTO> review = service.readByIsbn(isbn13);
-//            System.out.println("컨트롤러 : 도서 리뷰 전체 출력 : "+ review);
-//
-//            return new BaseResponse<>(review);
-//    }
-
     @GetMapping("/book/{isbn13}")
-    public ResponseEntity<List<ReviewDTO>> getReviewList(@PathVariable String isbn13){
-        System.out.println("ISBN13: " + isbn13);
-        List<ReviewDTO> listall= service.readByIsbn(isbn13);
-        System.out.println("리뷰 리스트: " + listall);
+    public BaseResponse<List<ReviewDTO>> getListByisbn (@PathVariable String isbn13){
+            List<ReviewDTO> review = service.readByIsbn(isbn13);
+            System.out.println("컨트롤러 : 도서 리뷰 전체 출력 : "+ review);
 
-        return ResponseEntity.ok(listall);
-
+            return new BaseResponse<>(review);
     }
 
                 // 리뷰 수정

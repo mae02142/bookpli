@@ -17,7 +17,8 @@
         <div class="date-status">독서상태</div>
         <div class="date-row">
             <span class="date-label">
-                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
+                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
+                독서중
             </span>
             <span class="date-label">
                 <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
@@ -89,6 +90,7 @@ const progressStore= useProgressStore();
 defineProps({
     visible: Boolean,
     rbook: Object,
+
 });
 
 const emit= defineEmits(["close"]);
@@ -201,28 +203,28 @@ font-family: "Inter", sans-serif;
 }
 
 .title {
-font-size: 48px;
+font-size: 16px;
 font-weight: 700;
 color: #000000;
 text-align: center;
-margin: 20px 0;
+margin-top: 10px;
 }
 
 .book-section {
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 40px;
+margin-top: 10px;
 }
 
 .book-cover {
-width: 200px;
-height: 260px;
+width: 150px;
+height: 200px;
 object-fit: cover;
 }
 
 .book-info {
-font-size: 28px;
+font-size: 13px;
 color: #757575;
 margin-top: 20px;
 }
@@ -239,7 +241,7 @@ margin-top: 15px;
 }
 
 .reading-status-text {
-font-size: 28px;
+font-size: 16px;
 color: #000000;
 }
 
@@ -250,14 +252,14 @@ color: #000000;
 }
 
 .date-section {
-margin: 40px auto;
+margin: 20px auto;
 width: 80%;
 max-width: 800px;
 }
 
 .date-status{
     text-align: left;
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
     margin-bottom: 10px;
     
@@ -265,15 +267,15 @@ max-width: 800px;
 
 .date-header {
     text-align: left; 
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
-    margin: 20px 0 10px 0; 
+    margin: 10px; 
 }
 
 
 .date-label input[type="radio"] {
-    width: 24px; 
-    height: 24px; 
+    width: 20px; 
+    height: 20px; 
     margin-right: 10px; 
 }
 
@@ -283,18 +285,21 @@ max-width: 800px;
     align-items: center;
     background: #f0f0f0;
     border-radius: 15px;
-    padding: 15px 20px;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    padding: 10px 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .date-label {
-font-size: 28px;
+font-size: 14px;
 color: #000000;
+display: flex;
+align-items: center;
+gap: 5px;
 }
 
 .date-value {
-font-size: 28px;
+font-size: 14px;
 color: #000000;
 }
 
@@ -306,7 +311,7 @@ max-width: 800px;
 
 .progress-header {
     text-align: left;
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
 }
 
@@ -327,7 +332,7 @@ max-width: 800px;
 
 .progress-percentage {
     text-align: left;
-    font-size: 25px;
+    font-size: 16px;
 }
 
 .confirm-button {
@@ -335,7 +340,7 @@ max-width: 800px;
     border: none;
     border-radius: 15px;
     padding: 10px 15px;
-    font-size: 30px;
+    font-size: 15px;
     color: #000000;
     cursor: pointer;
 }
@@ -343,7 +348,7 @@ max-width: 800px;
 .date-label {
     display: inline-flex;
     align-items: center; 
-    font-size: 28px;
+    font-size: 15px;
     color: #000000;
     gap: 8px; 
 }
@@ -371,6 +376,15 @@ align-items: center;
 gap: 5px;
 }
 
+.date-status,
+.date-header {
+    text-align: left; /* 좌측 정렬 통일 */
+    font-size: 16px;
+    color: #000000;
+    margin: 0; /* 여백 초기화 */
+    padding-left: 5px; /* 동일한 패딩 적용 */
+}
+
 .date-value {
 margin-left: 10px;
 color: #555;
@@ -381,7 +395,6 @@ font-size: 14px;
     display: flex;
     justify-content: center;
     gap: 100px;
-    margin-top: 40px;
     margin-bottom: 10px;
 }
 
@@ -402,10 +415,12 @@ font-size: 14px;
     background: #fff;
     padding: 20px;
     border-radius: 10px;
-    width: 800px;
-    max-width: 90%;
+    width: 60%;
+    height: 80%;
+    max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
+    justify-content: center;
     display: flex;
     flex-direction: column;
     gap: 20px;

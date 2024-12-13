@@ -63,4 +63,5 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("update Library l set l.status='failed' where l.status='reading' and l.book.isbn13= :isbn13")
     int changeFail (@Param("isbn13") String isbn13);
 
+
 }

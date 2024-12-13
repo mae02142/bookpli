@@ -28,8 +28,8 @@ public class ReadingGoalController {
     //독서목표 설정 status 변경
     @PutMapping("register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate){
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDate endDate){
 
         int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
 

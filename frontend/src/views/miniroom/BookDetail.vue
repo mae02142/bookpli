@@ -29,9 +29,10 @@
 
         </div>
         <div class="book-status-grid">
-            <div class="book-status-goal" @click="openModal(book)" v-if="book.status !== 'reading'">
+            <div class="book-status-goal" @click="openModal(book)">
                 <img src="@/assets/icons/book_option.png" class="register-status-icon">
-                <span>바로 독서 설정</span>
+                <span v-if="book.status === 'reading'">독서 설정 변경</span>
+                <span v-else>바로 독서 설정</span>
             </div>
             <div class="book-status-wish" @click="toggleWishList">
                 <img src="@/assets/icons/add_book_shelf.png">
@@ -39,7 +40,7 @@
                 <span v-else>내 서재에 담기</span>
             </div>
             <div class="book-status-like">
-                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="likeAndToggle()"/>
             </div>
         </div>
         <ReadGoalModal 
@@ -62,7 +63,7 @@
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
         <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
     </div>
-    <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/><!--  :bookId="book.isbn13" :userId="authStore.user.userId" -->
+    <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
 </div>
 </template>
@@ -85,10 +86,7 @@ const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
 
-
-
 const activeTab= ref("");
-const id= ref("");
 
 const recomBook= ref(null);
 
@@ -107,6 +105,45 @@ const isLiked = ref(false);
 const toggleLike = () => {
     isLiked.value = !isLiked.value;
     // console.log("Like 상태:", isLiked.value);
+}
+
+//찜하기
+const likeBook = async ()  =>{
+
+    try{
+        const response= await apiClient.post(`/api/book/like/${authStore.user.userId}/${isbn13}`);
+        console.log("찜하기 성공",response.data);
+        alert("찜하기가 완료 되었습니다.");
+
+    }catch(error){
+        console.log(error);
+    }
+}
+
+//찜하기 해제
+const dislike = async ()  =>{
+
+try{
+    const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
+    console.log("찜해제 성공",response.data);
+    alert("찜해제가 완료 되었습니다.");
+
+}catch(error){
+    console.log(error);
+}
+}
+
+
+const likeAndToggle= async () => {
+
+    if(isLiked.value){
+        await dislike();
+    }else{
+        await likeBook();
+    }
+    
+    //상태 반대 토글
+    isLiked.value= !isLiked.value;
 }
 
 const setActiveTab= (tab) => {
@@ -188,8 +225,21 @@ const toggleWishList = async () => {
     }
 };
 
-onMounted(() => {
-    loadBookDetail();
+onMounted(async() => {
+    await loadBookDetail();
+
+    if(route.query.data){
+        try{
+            const queryData= JSON.parse(route.query.data);
+            console.log("도서상태가 궁금해",queryData.status);
+            if(book.value.isbn13 === queryData.isbn13){
+                book.value.status = queryData.status || book.value.status;
+            };
+            console.log("쿼리에서 읽어온 상태",book.value.status); 
+        }catch(error){
+            console.log(error);
+        }
+    }
 });
 
 </script>
@@ -297,7 +347,6 @@ body {
 .recommendation-covers {
     display: flex;
     justify-content: space-between;
-    margin-left: 100px;
 }
 
 .line-separator {

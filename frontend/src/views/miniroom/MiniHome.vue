@@ -120,7 +120,7 @@
 <script setup>
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
+import apiClient from '@/api/axiosInstance';
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router'; 
 import { useAuthStore } from '@/stores/auth';
@@ -269,7 +269,7 @@ const gotoGoal = (book) =>{
 const gotoDetail = (book) => {
     console.log(book);
     router.push({
-        path: `/miniroom/book/${book.isbn13}`,
+        path: `/main/book/${book.isbn13}`,
         query: { data: JSON.stringify(book) },  
     });
 };
@@ -277,7 +277,7 @@ const gotoDetail = (book) => {
 
 const loadMyLibrary = async (status='wished') => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
+        const response = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
         addList.value= response.data;
     } catch (error) {
         console.log(error);
@@ -286,7 +286,7 @@ const loadMyLibrary = async (status='wished') => {
 
 const readingBook = async (status='reading') => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
+        const response = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
         readList.value= response.data;
         calculateMonth();
     } catch (error) {
@@ -296,10 +296,8 @@ const readingBook = async (status='reading') => {
 
 const userInfo = async () => {
     try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
+        const response = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
         userData.value= response.data;
-        // userName.value= userData.display_name;
-        // userImg.value= userData.profilePath;
     } catch (error) {
         console.log(error);
     }
@@ -344,8 +342,7 @@ const changeToFail = async (book, index)=>{
 
     if(today > endDate){
         try{
-            const response= await axios.put(`/api/miniroom/fail/${book.isbn13}`);
-            console.log("+++++",response.data);
+            const response= await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
             alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
 
             // 실패 처리된 책을 목록에서 제거
@@ -373,7 +370,7 @@ const clearReading = async (readList) => {
         }
 
         const url = `/api/miniroom/clear/${readList.isbn13}?status=completed`;
-        const response = await axios.put(url);
+        const response = await apiClient.put(url);
 
         if (response.status === 200) {
             alert("도서가 완독 처리 되었습니다.");
@@ -390,7 +387,7 @@ const clearReading = async (readList) => {
 
 const finishStatus= async (status='completed') => {
     try{
-        const response= await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}})
+        const response= await apiClient.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}})
         compRead.value=response.data;
         calculateMonth();
         //1년동안 읽은 권 수
@@ -412,7 +409,7 @@ const finishStatus= async (status='completed') => {
         const MostReadMonth= () => {
             if(!compRead.value || compRead.value.length === 0){
                 console.log("독서를 완료한 도서가 존재하지 않습니다.");
-                return null;
+                return "0";
             }
 
             const monthCnt= {};
@@ -447,6 +444,7 @@ const finishStatus= async (status='completed') => {
 
 
 onMounted(() => {
+
     MusicPlayer;
     loadMyLibrary();
     readingBook().then(() => {
