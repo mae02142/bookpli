@@ -1,41 +1,48 @@
 <template>        
  <div class="container">
         <!-- 사이드 바 -->
-  <LeftSidebar />
-  <aside class="sidebar2">
-    <nav>
-      <ul>
-        <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title">
-          <img
-            :src="`/src/assets/sidebar/${menuItem.icon}`"
-            :alt="menuItem.title"
-            class="sidebar-icon"
-          />
-          <div class="menuitem-grid">
-            <h4>{{ menuItem.title }}</h4>
-            <p class="menuitem-count">{{ menuItem.count }}</p>
-          </div>
-        </li>
-      </ul>
-    </nav>
-    <!-- review 리스트 페이지 이동 -->
-    <router-link to="/review/mylist">
-      <div class="sidebar-item">  
-        <img src="@/assets/icons/reviewlist.png" 
-        alt="move to review List"
-        class="sidebar-icon"
+        <LeftSidebar />
+<aside class="sidebar2">
+  <nav>
+    <ul>
+      <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title"
+      :class="{ active: selectedStatus === menuItem.route }"
+        @click="selectStatus(menuItem.route)">
+        <img
+          :src="`/src/assets/sidebar/${menuItem.icon}`"
+          :alt="menuItem.title"
+          class="sidebar-icon"
         />
-        <h4>나의 리뷰</h4>
-      </div>
-    </router-link>  
-  </aside>
+        <div class="menuitem-grid">
+          <h4>{{ menuItem.title }}</h4>
+          <p class="menuitem-count">{{ menuItem.count }}</p>
+        </div>
+      </li>
+    </ul>
+  </nav>
+  <!-- review 리스트 페이지 이동 -->
+  <router-link to="/review/mylist">
+    <div class="sidebar-item">  
+      <img src="@/assets/icons/reviewlist.png" 
+      alt="move to review List"
+      class="sidebar-icon"
+      />
+      <h4>나의 리뷰</h4>
+    </div>
+  </router-link>  
+</aside>
 <!--     리뷰 리스트     -->
 <div class="review-container">
     <div class="review-header">
       <h2>나의 리뷰</h2>
       <hr style="color: #909090; opacity: 0.7;">
     </div>
-    <section  
+                <!-- 리뷰 없을 때 -->
+    <section v-if="serverReview.value">
+      <h1 class="none-review">등록된 리뷰가 없습니다.</h1>
+    </section>
+                <!-- 리뷰 있을 때 -->
+    <section v-else 
       class="review-item" 
       v-for="review in reviews" 
       :key="review.reviewId"
@@ -107,7 +114,7 @@ import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
 import RemoveReview from "@/components/review/RemoveReview.vue";
-import { onMounted, ref} from "vue";
+import { onMounted, ref, computed} from "vue";
 import apiClient from '@/api/axiosInstance';
 import { useAuthStore } from '@/stores/auth';
 
@@ -117,16 +124,51 @@ export default {
     LeftSidebar,
   },
   setup() {
-  
+  /* user info */
   const authStore = useAuthStore();
   
   onMounted(() => {
-    const checkUser = authStore.user.userId;
-    console.log("회원 아이디 확인 : ", checkUser);
-    getMyList(checkUser);
-
+    getMyList();
   });
   
+  /* 사이드 바 */
+  const menuItems = ref([]);
+  const selectedStatus = ref('reading');
+
+
+  const getMyLibrary = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
+    books.value = response.data.data;
+    updateMenuItems();
+  } catch (error) {
+    console.error('Error loading inquiries:', error);
+  }
+  };
+
+  //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
+  const groupedData = computed(() => {
+        return books.value.reduce((acc, item) => {
+          (acc[item.status] || (acc[item.status] = [])).push(item);
+          return acc;
+        }, {});
+      });
+
+  const updateMenuItems = () => {
+      menuItems.value = [
+        { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
+        { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+        { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
+      ];
+    };  
+
+    // 선택된 상태 변경
+const selectStatus = (status) => {
+  selectedStatus.value = status;
+};
+
+          /* 리뷰 조회 페이지 */ 
+
     //서버에서 받아온 리뷰 저장
     const serverReview = ref([]); 
     //브라우저에 출력할 리뷰의 값 
@@ -137,9 +179,9 @@ export default {
     const editingReview = ref({ });
 
             /*  리뷰  조회  */
-    const getMyList = async (checkUser) => {
+    const getMyList = async () => {
       try{
-        const response = await apiClient.get(`/api/review/myreview/${checkUser}`)
+        const response = await apiClient.get(`/api/review/myreview/${authStore.user.userId}`)
         if(response.status != 200){
           console.log("리뷰를 불러오는데 오류가 발생했습니다.");
           console.log(response.status);
@@ -219,19 +261,16 @@ export default {
       reviews.value.forEach(review => {
       review.showModal = false;
       });
-    }
-
-    /* 사이드 바 */
-  const menuItems = ref([
-    { title: '독서중', count: '1권', icon: 'openbook.png' },
-    { title: '찜한도서', count: '1권', icon: 'bookmark.png' },
-    { title: '완독', count: '2권', icon: 'closedbook.png' },
-  ]); 
-
- 
+    } 
     return {
+      /* 사이드바 */
       LeftSidebar,
       menuItems,
+      selectedStatus,
+      updateMenuItems,
+      selectStatus,
+      getMyLibrary,
+
       serverReview,
       reviews,
       getMyList,
@@ -291,6 +330,15 @@ export default {
   .menuitem-count {
     color: #383838;
     font-size: 14px;
+  }
+
+  /* no review */
+  .none-review {
+    font-size: 30px; 
+    text-align: center; 
+    color: #909090; 
+    opacity: 50%; 
+    margin : 100px;
   }
 
   /* 공통 스타일 */

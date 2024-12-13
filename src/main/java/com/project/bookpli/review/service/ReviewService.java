@@ -27,7 +27,7 @@ public class ReviewService {
             list = repository.findByUserId(userId);
             if (list.isEmpty()) {
                 System.out.println("서비스단 : 리스트가 비어있습니다. userId :" + userId);
-                return new ArrayList<>();
+                return Collections.emptyList();
             }
         }catch (Exception e) {
             System.out.println("서비스단에서 오류 발생 : " + e.getMessage());
@@ -50,6 +50,7 @@ public class ReviewService {
             list = repository.findByIsbn(isbn);
             if (list.isEmpty()) {
                 System.out.println("서비스단 : 리스트가 비어있습니다.  isbn : " + isbn);
+                return Collections.emptyList();
             }
         } catch (Exception e){
             System.out.println("서비스단에서 오류 발생 : "+ e.getMessage());

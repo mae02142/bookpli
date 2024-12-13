@@ -45,7 +45,7 @@
   import fullStarImage from "@/assets/icons/full_star.png";
   import emptyStarImage from "@/assets/icons/empty_star.png"
   import { onMounted, ref } from "vue";
-  import axios from "axios";
+  import apiClient from "@/api/axiosInstance";
 
   export default {
     props: {
@@ -58,7 +58,7 @@
         required: true,
       },
       bookId: {
-        type : String,
+        type : Object,
         required: true,
       }
     },
@@ -108,11 +108,11 @@
           try{
         const review =  {
         userId : props.userId,
-        isbn13 : props.bookId,
+        isbn13 : props.bookId.value,
         reviewContent: reviewContent.value ,
         rating: rating.value
       };
-        await axios.post("http://localhost:8081/api/review/post",review);
+        await apiClient.post("/api/review/post",review);
       } catch(error){
         console.log(error,"등록 중 에러 발생");
       };
