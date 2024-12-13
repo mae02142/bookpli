@@ -2,11 +2,11 @@
     <div class="community-post">
       <div class="community-label">커뮤니티</div>
       <header class="header">
-        <img class="profile-image" :src="info.profile || Profile" alt="Profile" />
+        <img class="profile-image" :src="userInfo.profilePath || Profile" alt="Profile" />
         <div class="title-icon">
             <div class="post-header">
-                <div class="post-title">{{ info.title}}</div>
-                <div class="title">{{ info.nickname || '아무개' }} 님의 활동</div> 
+                <div class="post-title">{{ bookInfo.title.replace(/\(.*?\)/g, '').trim()}}</div>
+                <div class="title">{{ userInfo.userNickname || 'USER' }} 님의 활동</div> 
             </div>
           </div>
                 <nav class="nav-container">
@@ -14,8 +14,8 @@
                     <li v-for="(item, index) in navItems" :key="index" class="nav-item">
                        <!-- 첫 번째 항목은 라우터 링크로 이동 -->
                       <RouterLink v-if="index === 0" :to="{path : item.link, 
-                        query : {title: info.title, author : info.author,
-                          cover : info.cover, bookClubId : info.bookclubId
+                        query : {title: bookInfo.title, author : bookInfo.author,
+                          cover : bookInfo.cover, bookClubId : bookInfo.bookclubId
                         }
                       }"> 
                         <svg
@@ -49,23 +49,23 @@
       </div>
       <PostForm :modelValue="addPost"
        @update:modelValue="addPost = $event" 
-       :userId="info.userId" 
-       :bookclubId="info.bookclubId" 
+       :userId="userInfo.userId" 
+       :bookclubId="bookInfo.bookclubId" 
        @reload="reloadpost"
        />
              <!-- 게시글 리스트 -->
     <MyPost 
       v-if="selected === 1" 
-      :userId="info.userId" 
-      :bookclubId="info.bookclubId" 
-      :nickname="info.nickname" 
-      :profile="info.profile" 
+      :userId="userInfo.userId" 
+      :bookclubId="bookInfo.bookclubId" 
+      :nickname="userInfo.userNickname" 
+      :profile="userInfo.profilePath" 
       ref="myPostComponent"
     />
     <MyComment
      v-if="selected === 2"
-     :userId="info.userId"
-     :bookclubId="info.bookclubId"
+     :userId="userInfo.userId"
+     :bookclubId="bookInfo.bookclubId"
     />
     </div>
   </template>
@@ -78,6 +78,7 @@
   import { useRoute } from "vue-router";
   import { useAuthStore } from '@/stores/auth';
   import Profile from"@/assets/icons/profile.png";
+import apiClient from "@/api/axiosInstance";
 
 
 
@@ -92,8 +93,7 @@
       const authStore = useAuthStore();
       onMounted(()=>{
         console.log('전달받은 데이터 : '+ JSON.stringify(route.query));
-        console.log('userId : ' + authStore.user.userId);
-        console.log('bookclubid' + route.query.bookClubId);
+        getInfo();
       })
 
       const navItems = ref([
@@ -119,19 +119,26 @@
       selected.value = index;  // 클릭된 항목을 선택으로 표시
     };
 
-      const info = ref(
+      const bookInfo = ref(
           { title : route.query.title,
-          userId : authStore.user.userId,
-          nickname : "", 
-          profile : "",
           bookclubId: Number(route.query.bookClubId),
           author : route.query.author,
           cover : route.query.cover,
           });  
        
         const addPost = ref(false);
-        //버튼도 각각 지정해야하기 때문에 배열로...
-    
+        
+        const userInfo = ref({});
+        const getInfo = async() => {
+          const response = await apiClient.get(`api/mypage/${authStore.user.userId}`);
+          if(response.status == 200){
+            userInfo.value = response.data.data;
+            console.log(userInfo.value);
+          }else{
+            console.error('오류 발생');
+          }
+        }
+
            /* mypost로 게시글 리로딩 전달 */
         const myPostComponent = ref(null);
         const reloadpost = ( ) => {
@@ -145,7 +152,9 @@
         selected,
         navItems,
         addPost,
-        info,
+        bookInfo,
+        userInfo,
+        getInfo,
         myPostComponent,
         reloadpost,
       };

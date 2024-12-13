@@ -1,5 +1,7 @@
 <template>
-<div class="modal-wrap" v-show="modelValue" @click="closeModal">
+<div class="modal-wrap"
+ v-show="modelValue"
+  @click="closeModal">
     <div class="modal-content" @click.stop>
         <div class="modal-items">
             <header class="header">
@@ -8,16 +10,26 @@
             </header>
         <article class="post-form">
             <div class="preview">
-                <div :v-show="uploadImg" v-for="img,index in imageSrc" :key="index">
+                <!-- 이미지 미리보기 -->
+                <div :v-if="imageSrc.length > 0 " 
+                    v-for="img,index in imageSrc" 
+                    :key="index"
+                >
                     <div class="preImg-box">
-                      <img @click="removeImg(index)" src="@/assets/icons/close.png" alt="delete image" class="del-img">
+                      <img 
+                      @click="removeImg(index)"
+                       src="@/assets/icons/close.png" 
+                       alt="delete image" class="del-img"
+                       >
                       <img :src="img.url" class="preview-img">
                     </div>
                 </div>       
             </div>
             <textarea class="post-text" v-model="form.postContent" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요."></textarea>
             <div class="icon-btn">
-                <button class="open-file" @click="triggerFileInput">
+                <button class="open-file" 
+                @click="triggerFileInput"
+                >
                 <span class="file-wrapper">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 71 67">
                     <path
@@ -30,7 +42,11 @@
                 </span>
                 Open file
                 </button>
-                <input type="file" ref="fileInput" style="display: none;" @change="onFileChange" multiple accept="image/*">
+                <input type="file" ref="fileInput" 
+                style="display: none;"
+                @change="onFileChange" 
+                multiple accept="image/*"
+                >
                 <button @click="putUpPost" class="modal-btn">게시</button>
             </div>
         </article>
@@ -41,6 +57,7 @@
 <script>
 import apiClient from '@/api/axiosInstance';
 import {onMounted, ref, toRaw} from "vue";
+import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "firebase/storage";
     export default {
         props: {
             modelValue : {
@@ -64,8 +81,8 @@ import {onMounted, ref, toRaw} from "vue";
                 console.log('userId : '+props.userId);
 
             })
-
-            const uploadImg = ref(false);
+            const storage = getStorage();  // firebase storage 초기화
+         
             const fileInput = ref(null); //input file 참조
             const imageSrc = ref([]);   //선택된 이미지의 경로
             const onFileChange = (event) =>{
@@ -129,6 +146,7 @@ import {onMounted, ref, toRaw} from "vue";
                 emit("reload");
             }
             return{
+                storage,
                 closeModal,
                 form,
                 putUpPost,
@@ -136,7 +154,6 @@ import {onMounted, ref, toRaw} from "vue";
                 onFileChange,
                 fileInput,
                 imageSrc,
-                uploadImg,
                 removeImg,
             };
         },

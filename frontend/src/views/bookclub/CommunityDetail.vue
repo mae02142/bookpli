@@ -69,7 +69,7 @@
             <div class="post-items">
                 <div class="post-header">
                     <img class="post-profile" :src="post.profilePath || profile" alt="커뮤니티 이미지" />
-                    <p class="username">{{post.userNickname == null ? 'USER' : 'post.userNickname'}}</p>
+                    <p class="username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
                 </div>
                 <div style="width: 100%;">
                     <p class="post-cnt">
@@ -410,7 +410,6 @@
   .post-profile {
     width: 50px;
     height: 50px;
-    margin-right: 10px;
     border-radius: 10px;
     margin-top: 10px;
   }

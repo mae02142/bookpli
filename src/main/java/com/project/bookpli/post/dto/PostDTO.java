@@ -3,6 +3,7 @@ package com.project.bookpli.post.dto;
 import com.project.bookpli.entity.Post;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @NoArgsConstructor
@@ -16,7 +17,7 @@ public class PostDTO {
     private Long userId;
     private Long bookClubId;
     private String postContent;
-    private Date postDate;
+    private LocalDate postDate;
 
     private String userNickname;
     private String profilePath;

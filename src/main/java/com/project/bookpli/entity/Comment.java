@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -22,7 +23,7 @@ public class Comment {
     private String commentContent;
 
     @CreationTimestamp
-    private Date commentDate;
+    private LocalDate commentDate;
 
 
 }
