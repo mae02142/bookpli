@@ -53,7 +53,7 @@
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
           />
-          <div class="book-details">
+          <div class="book-details-block">
             <div class="title-grid">
               <h3 class="book-title">{{ book.title }}</h3>
               <p class="book-author">{{ book.author }}</p>
@@ -306,7 +306,7 @@ onMounted(async() => {
     object-fit: cover;
   }
   
-  .book-details {
+  .book-details-block {
     margin-top: 10px;
   }
   

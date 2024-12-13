@@ -279,7 +279,7 @@ const gotoGoal = (book) =>{
 const gotoDetail = (book) => {
     console.log(book);
     router.push({
-        path: `/miniroom/book/${book.isbn13}`,
+        path: `/main/book/${book.isbn13}`,
         // query: { data: JSON.stringify(book) },  
     });
 };

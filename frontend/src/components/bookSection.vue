@@ -7,7 +7,7 @@
         <div class="book-list">
             <div v-for="book in newBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
                 <div class="image-container" style="padding-bottom: 10px;">
-                    <img :src="book.cover" :alt="book.title" class="book-image" />
+                    <img :src="book.cover" :alt="book.title" class="book-image" @click="gotoDetail(book.isbn13)"/>
                     <button class="add-btn" style="">+</button>
                 </div>
                 <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
@@ -87,6 +87,7 @@
 <script>
 import MusicPlayer from "@/components/layouts/musicPlayer.vue"; // Corrected casing
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
     components: {
@@ -153,7 +154,9 @@ export default {
                 title: book.title,
                 author: book.author,
                 cover: book.cover,
+                isbn13: book.isbn13
             }));
+            console.log(newBooks.value);
         } catch (error) {
             console.error("Error fetching New Books data:", error);
         }
@@ -190,7 +193,9 @@ export default {
                 title: book.title,
                 author: book.author,
                 cover: book.cover,
+                isbn13: book.isbn13
             }));
+            console.log("bestBooksData : ", bestBooksData.value);
         } catch (error) {
             console.error("Error fetching Best Books data:", error);
         }
@@ -227,10 +232,20 @@ export default {
                 title: book.title,
                 author: book.author,
                 cover: book.cover,
+                isbn13: book.isbn13
             }));
         } catch (error) {
             console.error("Error fetching Blog Books data:", error);
         }
+    };
+    
+    const router = useRouter();
+
+    const gotoDetail = (isbn13) => {
+        console.log("isbn 확인>>", isbn13);
+        router.push({
+            path: `/main/book/${isbn13}`,
+        });
     };
 
     onMounted(async () => {
@@ -239,7 +254,8 @@ export default {
         await fetchBlogBooks();
     });
 
-    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2 };
+
+    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2, gotoDetail };
     },
 };
 </script>
@@ -299,6 +315,7 @@ body {
     height: 200px;
     object-fit: cover;
     margin-bottom: 0.5rem;
+    cursor: pointer;
 }
 
 .image-container {

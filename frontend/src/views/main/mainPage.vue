@@ -13,10 +13,10 @@
 
   <!-- Conditional rendering for bookSection and musicSection -->
   <div v-if="!isMusicSection" style="padding-bottom: 100px;">
-    <book-section />
+    <bookSection />
   </div>
   <div v-else style="padding-bottom: 100px;">
-    <music-section />
+    <musicSection />
   </div>
 </template>
 

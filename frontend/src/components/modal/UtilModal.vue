@@ -8,7 +8,7 @@
         <div class="modal-center">
           <div class="modal-body">
             <img class="warning-icon" :src="modalImage" alt="Modal Image" />
-            <p class="warning-message">{{ modalStore.message }}</p>
+            <p class="warning-message" v-html="modalStore.message"></p>
           </div>
           <div class="modal-footer">
             <button class="close-button" @click="modalStore.closeModal">확인</button>
@@ -30,6 +30,8 @@ const modalImage = computed(() => {
       return new URL('@/assets/modal/already-exist.gif', import.meta.url).href;
     case "alert":
       return new URL('@/assets/modal/warning.gif', import.meta.url).href;
+    case "add-book":
+      return new URL('@/assets/modal/success_add_book.gif', import.meta.url).href;
     default:
       return new URL('@/assets/modal/success.gif', import.meta.url).href;
   }
@@ -67,7 +69,7 @@ const modalImage = computed(() => {
     background-color: #FFFDF1;
     border-radius: 10px;
     padding: 10px 12px;
-    height: 7%;
+    height: 15%;
   }
   
   .modal-header span {
@@ -128,6 +130,12 @@ const modalImage = computed(() => {
     display: grid;
     height: 83%;
     align-content: center;
+  }
+
+  .modal-body {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
   }
   </style>
   
