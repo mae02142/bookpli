@@ -64,10 +64,6 @@ const router = createRouter({
       path: "/miniroom",
       children: [
         {
-          path: "book/:isbn13",
-          component: () => import("@/views/miniroom/BookDetail.vue"),
-        },
-        {
           path: "minihome",
           component: () => import("@/views/miniroom/MiniHome.vue"),
         },
@@ -89,6 +85,10 @@ const router = createRouter({
           path: "music",
           component: () => import("@/components/musicSection.vue"),
         },
+        {
+          path: "book/:isbn13",
+          component: () => import("@/views/miniroom/BookDetail.vue"),
+        },
       ],
     },
 
@@ -96,7 +96,7 @@ const router = createRouter({
       path: "/search",
       component: () => import("@/views/main/bookSearch.vue"),
     },
-    
+
     {
       path: "/bookclub",
       children: [

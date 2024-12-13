@@ -22,7 +22,6 @@ public class Library {
     private Date endDate;
 
     @Builder
-
     public Library(Long libraryId, Long userId, Book book, String status, Date startDate, Date endDate) {
         this.libraryId = libraryId;
         this.userId = userId;
