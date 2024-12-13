@@ -137,7 +137,6 @@ export default {
             };
 
             window[callbackName] = (response) => {
-            console.log("API Response:", response); // 추가된 로그
             resolve(response);
             delete window[callbackName];
             document.body.removeChild(script);
@@ -156,7 +155,6 @@ export default {
                 cover: book.cover,
                 isbn13: book.isbn13
             }));
-            console.log(newBooks.value);
         } catch (error) {
             console.error("Error fetching New Books data:", error);
         }
@@ -176,7 +174,6 @@ export default {
             };
 
             window[callbackName] = (response) => {
-            console.log("API Response:", response); // 추가된 로그
             resolve(response);
             delete window[callbackName];
             document.body.removeChild(script);
@@ -195,7 +192,6 @@ export default {
                 cover: book.cover,
                 isbn13: book.isbn13
             }));
-            console.log("bestBooksData : ", bestBooksData.value);
         } catch (error) {
             console.error("Error fetching Best Books data:", error);
         }
@@ -215,7 +211,6 @@ export default {
             };
 
             window[callbackName] = (response) => {
-            console.log("API Response:", response); // 추가된 로그
             resolve(response);
             delete window[callbackName];
             document.body.removeChild(script);
@@ -242,7 +237,6 @@ export default {
     const router = useRouter();
 
     const gotoDetail = (isbn13) => {
-        console.log("isbn 확인>>", isbn13);
         router.push({
             path: `/main/book/${isbn13}`,
         });

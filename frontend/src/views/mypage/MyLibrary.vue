@@ -204,7 +204,6 @@ const calculateRemainingDays = (endDate) => {
 
 const deleteLibrary = async (libraryId) => {
    // 삭제된 항목을 로컬 리스트에서 제거
-   console.log("도착,,,,,,,,", libraryId);
    try {
       await apiClient.delete(`/api/library`, {
       data: {
@@ -283,17 +282,14 @@ onMounted(async() => {
   
   .book-list {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4개의 열을 동일한 크기로 */
-    gap: 40px;
+    grid-template-columns: repeat(5, 1fr);
     justify-items: start;
   }
   
   .book-item {
-    width: fit-content;
-    padding: 10px;
     display: grid;
-    padding: 10px;
-    justify-content: center;
+    width: min-content;
+    justify-self: center;
   }
   
   .book-item:hover {
@@ -301,8 +297,8 @@ onMounted(async() => {
   }
   
   .book-cover {
-    width: 160px;
-    height: 220px;
+    width: 143px;
+    height: 210px;
     object-fit: cover;
   }
   

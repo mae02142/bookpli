@@ -276,7 +276,6 @@ const gotoGoal = (book) =>{
 
 
 const gotoDetail = (book) => {
-    console.log(book);
     router.push({
         path: `/main/book/${book.isbn13}`,
         // query: { data: JSON.stringify(book) },  
@@ -307,7 +306,6 @@ const userInfo = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
         userData.value= response.data;
-        console.log('dddddd'+ userData.value.display_name);
         // userName.value= userData.display_name;
         // userImg.value= userData.profilePath;
         // console.log(">>>>>>>>>>>>",userName.value);
@@ -394,7 +392,6 @@ const finishStatus= async (status='completed') => {
         //가장 많이 읽은달 계산
         const MostReadMonth= () => {
             if(!compRead.value || compRead.value.length === 0){
-                console.log("독서를 완료한 도서가 존재하지 않습니다.");
                 return null;
             }
 

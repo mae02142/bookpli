@@ -44,12 +44,10 @@
     const data = await response.json();
     const accessToken = data.access_token;
     
-    console.log("토큰 받아오기 성공띠");
     // Get the user store instance here
     const userStore = useUserStore(); 
     
     userStore.setAccessToken(accessToken);
-    console.log("토큰 전달 성공띠");
   };
 
   onMounted(async () => {

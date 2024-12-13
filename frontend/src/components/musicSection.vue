@@ -174,7 +174,6 @@ setup() {
 
     const openSongDetail = (song) => {
         selectedSong.value = song;
-        console.log(selectedSong.value);
         modalStore.openModal("SongDetailModal");
     };
 
@@ -251,7 +250,6 @@ setup() {
         albumId: track.track.album.id || "",
         }));
 
-        console.log("Top 10 Songs for Domestic Rankings:", domesticRankingPli.value);
     } catch (error) {
         console.error(
         "Error fetching domestic playlist or songs:",
@@ -302,10 +300,6 @@ setup() {
         albumId: track.track.album.id || "",
         }));
 
-        console.log(
-        "Top 10 Songs for International Rankings:",
-        internationalRankingPli.value
-        );
     } catch (error) {
         console.error(
         "Error fetching international playlist or songs:",
@@ -358,7 +352,6 @@ setup() {
         }
         );
 
-        console.log(`Playing song: ${uri}`);
     } catch (error) {
         console.error(
         "Error playing song:",
@@ -395,7 +388,6 @@ setup() {
         }
         );
 
-        console.log(`Playing playlist: ${playlistUri}`);
         alert("플레이리스트를 재생합니다.");
     } catch (error) {
         console.error(
