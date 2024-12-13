@@ -23,7 +23,7 @@ public class LibraryController {
     }
 
     @DeleteMapping
-    public BaseResponse<Void> getMyLibrary(@RequestBody Map<String, Long> request){
+    public BaseResponse<Void> deleteMyLibrary(@RequestBody Map<String, Long> request){
         System.out.println(">>>>>>>."+request);
         libraryService.deleteMyLibrary(request.get("userId"), request.get("libraryId"));
         return new BaseResponse<>();
