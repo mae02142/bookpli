@@ -83,7 +83,7 @@ public class BookApiService {
                 .build();
 
         // Entity 변환 및 저장
-        Book book = dto.toEntity();
+        Book book = BookDTO.toEntity(dto);
         bookrep.save(book);
     }
 
