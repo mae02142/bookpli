@@ -71,7 +71,7 @@
        <!-- 리뷰 모달  -->
     <ReviewForm :isVisible="showForm"
      :userId = authStore.user.userId
-     :bookId="isbn.toString()"
+     :bookId="selectedBook"
      @update:isVisible="showForm = $event" />
     </div>
 
@@ -107,7 +107,7 @@
 
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
-  const isbn = ref('12345678');
+ 
 
 
 const getMyLibrary = async () => {

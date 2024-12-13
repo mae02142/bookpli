@@ -25,37 +25,19 @@ public class ReviewController {
             // 해당 유저가 작성한 리뷰 전체 조회
     @GetMapping("/myreview/{userId}")
     public ResponseEntity<List<ReviewDTO>> getListByUserId (@PathVariable Long userId ){
-
-        try {
             List<ReviewDTO> mylist = service.readByUserId(userId);
             System.out.println(mylist);
-            if(mylist.isEmpty()){
-                // List가 비어있는 경우에는 빈 리스트를 그대로 반환하고, 상태 코드로 오류를 나타냄
-                return ResponseEntity.badRequest().body(Collections.emptyList());  // 빈 리스트 반환
-            }
+
             return ResponseEntity.ok(mylist);
-        }catch (Exception e){
-            log.error(e.getMessage(), "컨트롤러 : 리뷰 조회에 오류 발생 ");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
     }
 
             // 해당 도서의 리뷰 전체 조회
     @GetMapping("/book/{isbn13}")
-    public ResponseEntity<List<ReviewDTO>> getListByisbn (@PathVariable String isbn){
-        try{
-            List<ReviewDTO> review = service.readByIsbn(isbn);
+    public BaseResponse<List<ReviewDTO>> getListByisbn (@PathVariable String isbn13){
+            List<ReviewDTO> review = service.readByIsbn(isbn13);
             System.out.println("컨트롤러 : 도서 리뷰 전체 출력 : "+ review);
-            if(review.isEmpty()){
-                // List가 비어있는 경우에는 빈 리스트를 그대로 반환하고, 상태 코드로 오류를 나타냄
-                return ResponseEntity.badRequest().body(Collections.emptyList());  // 빈 리스트 반환
-            }
-            return ResponseEntity.ok(review);
-        }catch (Exception e){
-            log.error(e.getMessage(), "컨트롤러 : 조회 중 에러발생");
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+            return new BaseResponse<>(review);
     }
 
                 // 리뷰 수정

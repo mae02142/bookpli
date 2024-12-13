@@ -5,9 +5,9 @@
     <!-- 사용자 프로필 -->
         <div class="user-profile">
             <div class="user-info">
-                <img :src="userImg" class="avatar"></img>
+                <img :src="userData.profilePath" class="avatar"></img>
                 <div class="book-plan">
-                    <p class="userNm">{{userName}}님</p><br>
+                    <p class="userNm">{{userData.display_name}}님</p><br>
                     <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
                     <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
                 </div>
@@ -132,10 +132,10 @@
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router'; 
 import { useAuthStore } from '@/stores/auth';
-import { onMounted } from 'vue';
+// import { onMounted } from 'vue';
 import musicPlayer from '@/components/layouts/musicPlayer.vue';
 
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
@@ -145,11 +145,10 @@ const authStore= useAuthStore();
 const addList= ref([]);
 const readList= ref([]);
 
+const userData = ref({});
 
 const currentPage= ref(readList.value.map(() => 0)); //초기값 0으로 설정
 const isEditing= ref(readList.value.map(()=> false)); //현재 페이지 입력 편집모드
-const userName= ref("");
-const userImg= ref("");
 const compRead= ref([]);
 const yearCount= ref(0);
 const mostReadInfo= ref({ month: null, count: 0 });
@@ -307,9 +306,11 @@ const readingBook = async (status='reading') => {
 const userInfo = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        const userData= response.data;
-        userName.value= userData.display_name;
-        userImg.value= userData.profilePath;
+        userData.value= response.data;
+        console.log('dddddd'+ userData.value.display_name);
+        // userName.value= userData.display_name;
+        // userImg.value= userData.profilePath;
+        // console.log(">>>>>>>>>>>>",userName.value);
     } catch (error) {
         console.log(error);
     }
