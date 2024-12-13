@@ -13,7 +13,7 @@
                     <img src="../../assets/icons/cart.png" class="detail-icons"/>
                 </div>
             </div>
-            <span class="book-meta">
+            <span class="book-meta" v-if="book.pubdate">
                 출판일: {{ book.pubdate.split('T')[0] }}
                 <p class="book-meta" v-if="book.startindex">쪽수: {{ book.startindex }}쪽</p>
                 ISBN: {{ book.isbn13 }}
@@ -25,7 +25,6 @@
             <div>
                 <h2 class="book-intro-header">책소개</h2>
                 <p class="book-intro">{{ book.description }}</p> 
-                보기
             </div>
             <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
             
@@ -48,7 +47,7 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
-        <Recommend v-if="activeTab ==='recommend'" />
+        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
     </div>
     <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="authStore.user.userId"/>
 </div>
@@ -72,6 +71,12 @@ const authStore= useAuthStore();
 const activeTab= ref("");
 const id= ref("");
 
+const recomBook= ref(null);
+
+const recomBookClick= (recomBook) => {
+    book.value=recomBook;
+}
+
 import dislikeImage from '@/assets/icons/dislike.png';
 import likeImage from '@/assets/icons/like.png';
 
@@ -83,7 +88,6 @@ const isLiked = ref(false);
 const toggleLike = () => {
     isLiked.value = !isLiked.value;
 }
-
 
 const setActiveTab= (tab) => {
     activeTab.value= tab;
@@ -102,15 +106,15 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
-const gotoGoal = (book) => {
-    console.log(book);
-    router.push({
-        path: `/miniroom/goal/${book.isbn13}`,
-        query: { 
-            data: JSON.stringify(book),
-        },  
-    });
-};
+// const gotoGoal = (book) => {
+//     console.log(book);
+//     router.push({
+//         path: `/miniroom/goal/${book.isbn13}`,
+//         query: { 
+//             data: JSON.stringify(book),
+//         },  
+//     });
+// };
 
 const userInfo = async () => {
     try {
@@ -233,17 +237,6 @@ body {
     margin-left: 100px;
 }
 
-/* .recommendation-covers img {
-    width: 281px;
-    height: 383px;
-}
-
-.recommendation-cover {
-    width: 182px;
-    height: 280px;
-    object-fit: cover;
-} */
-
 .line-separator {
     border-top: 1px solid #000000;
     width: 100%;
@@ -278,8 +271,9 @@ body {
 .tabs {
     display: flex;
     justify-content: flex-start;
-    margin: 20px auto;
+    margin: 20px auto; 
     gap: 20px;
+    margin-left: 100px;
 }
 
 .tab {

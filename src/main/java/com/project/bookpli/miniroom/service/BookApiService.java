@@ -10,8 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.swing.text.DateFormatter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -90,16 +94,16 @@ public class BookApiService {
     }
 
     // Helper 메서드: pubDate 파싱
-    private Date parsePubDate(String pubDateStr) {
-        if (pubDateStr == null) {
-            return new java.sql.Date(System.currentTimeMillis()); // 기본값
+    public LocalDate parsePubDate(String pubDateStr) {
+        if (pubDateStr == null|| pubDateStr.isEmpty()) {
+            return null; // 기본값
         }
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            return new java.sql.Date(dateFormat.parse(pubDateStr).getTime());
-        } catch (ParseException e) {
-            System.err.println("Failed to parse pubDate: " + pubDateStr + " - Setting default date.");
-            return new java.sql.Date(System.currentTimeMillis());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            return LocalDate.parse(pubDateStr, formatter);
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid pubDate format: " + pubDateStr);
+            return null; // 잘못된 형식 처리
         }
     }
 

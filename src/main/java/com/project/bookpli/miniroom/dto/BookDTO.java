@@ -3,6 +3,7 @@ package com.project.bookpli.miniroom.dto;
 import com.project.bookpli.entity.Book;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -15,7 +16,7 @@ public class BookDTO {
     private String title;
     private String author;
     private String description;
-    private Date pubdate;
+    private LocalDate pubdate;
     private String publisher;
     private String cover;
     private Integer startindex;

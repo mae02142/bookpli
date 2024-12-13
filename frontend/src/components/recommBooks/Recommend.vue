@@ -1,15 +1,15 @@
 <template>
     <div class="rec-app">
         <section class="recommendations">
-            <!-- <h1 class="section-title">추천 신간</h1> -->
-            <!-- <hr> -->
             <div class="book-list">
-                <div v-for="book in newBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
-                    <div class="image-container" style="padding-bottom: 10px;">
+                <div 
+                    v-for="book in newBooks" 
+                    :key="book.id" class="book-item" 
+                    @click="bookclick(book)">
+                    <div class="image-container">
                         <img :src="book.cover" :alt="book.title" class="book-image" />
-                        <!-- <button class="add-btn" style="">+</button> -->
                     </div>
-                    <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
+                    <p class="book-title">{{ book.title }}</p>
                     <p class="book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
                 </div>
             </div>
@@ -18,8 +18,11 @@
 </template>
 <script>
 import { ref, onMounted } from "vue";
+
 export default {
-    setup() {
+    emits:["recomBook"], //부모 컴포넌트로 이벤트 전달
+
+    setup(_, {emit}) {
     const newBooks = ref([]);
     const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
     const ttbKey = "ttbyoungjae.bae1809001";
@@ -42,6 +45,7 @@ export default {
             document.body.appendChild(script);
         });
     };
+
     const fetchNewBooks = async () => {
         try {
             const newBooksData = await fetchNewBooksJSONP();
@@ -49,18 +53,26 @@ export default {
                 title: book.title,
                 author: book.author,
                 cover: book.cover,
+                pubdate: book.pubdate,
+                isbn13: book.isbn13,
+                description: book.description,
+                startindex: book.startindex,
+                publisher: book.publisher,
             }));
         } catch (error) {
             console.error("Error fetching New Books data:", error);
         }
     };
 
+    const bookclick = (book) => {
+        emit("recomBook", book); //부모 컴포넌트로 선택된 책 정보 전달
+    };
+
     
     onMounted(async () => {
         await fetchNewBooks();
-        // await fetchBestBooks();
     });
-    return { newBooks, };
+    return { newBooks, bookclick};
     },
 };
 </script>
@@ -82,9 +94,11 @@ body {
 .book-item{
     width: 150px;
     text-align: center;
+    padding-top: 50px
 }
 .image-container{
     width: 100%;
+    padding-bottom: 10px;
 }
 .book-image{
     object-fit: cover;
@@ -100,6 +114,8 @@ body {
     font-size: 16px;
     font-weight: bold;
     margin: 10px 0 5px;
+    font-size: 20px; 
+    padding-bottom: 5px;
 }
 
 .book-author {

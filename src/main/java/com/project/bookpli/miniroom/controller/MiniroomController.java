@@ -22,7 +22,7 @@ public class MiniroomController {
     private MypageService mypService;
 
     //도서 저장
-    @PostMapping("/search/{itemId}")
+ /*   @PostMapping("/search/{itemId}")
     public ResponseEntity<String> searchBook(@PathVariable String itemId){
         try {
              bookApiService.searchBook(itemId);
@@ -32,7 +32,7 @@ public class MiniroomController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류: " + e.getMessage());
         }
-    }
+    }*/
 
 
     //담은 도서 리스트

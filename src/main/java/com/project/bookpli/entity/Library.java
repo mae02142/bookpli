@@ -3,6 +3,7 @@ package com.project.bookpli.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -18,12 +19,12 @@ public class Library {
     @JoinColumn(name = "isbn13")
     private Book book;
     private String status;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     @Builder
 
-    public Library(Long libraryId, Long userId, Book book, String status, Date startDate, Date endDate) {
+    public Library(Long libraryId, Long userId, Book book, String status, LocalDate startDate, LocalDate endDate) {
         this.libraryId = libraryId;
         this.userId = userId;
         this.book = book;

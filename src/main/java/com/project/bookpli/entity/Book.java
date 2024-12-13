@@ -3,6 +3,7 @@ package com.project.bookpli.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -15,14 +16,14 @@ public class Book {
     private String title;
     private String author;
     private String description;
-    private Date pubdate;
+    private LocalDate pubdate;
     private String publisher;
     private String cover;
     private Integer startindex;
     private String genre;
 
     @Builder
-    public Book(String isbn13, String title, String author, String description, Date pubdate, String publisher, String cover, Integer startindex, String genre) {
+    public Book(String isbn13, String title, String author, String description, LocalDate pubdate, String publisher, String cover, Integer startindex, String genre) {
         this.isbn13 = isbn13;
         this.title = title;
         this.author = author;
