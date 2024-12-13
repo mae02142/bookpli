@@ -1,4 +1,4 @@
-package com.project.bookpli.miniroom.dto;
+package com.project.bookpli.book.dto;
 
 import com.project.bookpli.entity.Book;
 import lombok.*;

@@ -18,6 +18,8 @@ public class ReviewDTO {
     private String title;
     private String cover;
 
+    private String userNickname;
+    private String profilePath;
 
     //dto ->  엔티티  변환
     public Review toEntity() {
@@ -51,6 +53,20 @@ public class ReviewDTO {
                 .rating(review.getRating())
                 .cover(cover)
                 .title(title)
+                .build();
+    }
+
+
+    // 엔티티를 DTO로 변환하는 메서드
+    public static ReviewDTO fromEntityForList(Review review, String userNickname, String profilePath) {
+        return ReviewDTO.builder()
+                .reviewId(review.getReviewId())
+                .userId(review.getUserId())
+                .isbn13(review.getIsbn13())
+                .reviewContent(review.getReviewContent())
+                .rating(review.getRating())
+                .cover(userNickname)
+                .title(profilePath)
                 .build();
     }
 }

@@ -2,6 +2,7 @@ package com.project.bookpli.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -17,6 +18,7 @@ public class Book {
     private String author;
     private String description;
     private LocalDate pubdate;
+
     private String publisher;
     private String cover;
     private Integer startindex;

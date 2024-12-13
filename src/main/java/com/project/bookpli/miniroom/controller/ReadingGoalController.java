@@ -1,6 +1,6 @@
 package com.project.bookpli.miniroom.controller;
 
-import com.project.bookpli.miniroom.repository.BookRepository;
+import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.springframework.beans.factory.annotation.Autowired;

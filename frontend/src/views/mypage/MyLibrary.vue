@@ -81,7 +81,7 @@
       :book="selectedBook"
       @close="closeModal"
       @openForm="showForm=true"
-      @update-library="getMyLibrary"
+      @delete-library="deleteLibrary"
     />
   </div>
 </template>
@@ -91,7 +91,6 @@
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
   import ReviewForm from '@/components/review/ReviewForm.vue';
-  import axios from 'axios';
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
   import { useProgressStore } from '@/stores/readingProgressbar';
@@ -108,6 +107,7 @@
 
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
+ 
 
 
 const getMyLibrary = async () => {
@@ -201,6 +201,22 @@ const calculateRemainingDays = (endDate) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 일 단위로 변환
   return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
 };
+
+const deleteLibrary = async (libraryId) => {
+   // 삭제된 항목을 로컬 리스트에서 제거
+   console.log("도착,,,,,,,,", libraryId);
+   try {
+      await apiClient.delete(`/api/library`, {
+      data: {
+        userId: authStore.user.userId,
+        libraryId: libraryId,
+      },
+    });
+    getMyLibrary();
+    } catch (error) {
+      console.log(error);
+    }
+}
 
 
 onMounted(async() => {

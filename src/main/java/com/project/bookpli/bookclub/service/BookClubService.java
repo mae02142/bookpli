@@ -4,7 +4,7 @@ import com.project.bookpli.bookclub.dto.BookClubDTO;
 import com.project.bookpli.bookclub.repository.BookClubRepository;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookClub;
-import com.project.bookpli.miniroom.repository.BookRepository;
+import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

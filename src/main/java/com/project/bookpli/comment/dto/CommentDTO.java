@@ -4,6 +4,7 @@ package com.project.bookpli.comment.dto;
 import com.project.bookpli.entity.Comment;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @NoArgsConstructor
@@ -18,7 +19,7 @@ public class CommentDTO {
     private Long userId;
     private Long postId;
     private String commentContent;
-    private Date commentDate;
+    private LocalDate commentDate;
 
     private String userNickname;
     private String profilePath;

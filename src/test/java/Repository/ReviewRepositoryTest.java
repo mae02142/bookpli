@@ -49,13 +49,6 @@ public class ReviewRepositoryTest {
         result.forEach(row -> System.out.println(Arrays.toString(row)));
     }
 
-
-    @Test
-    void findByIsbn () {
-        List<Review> rv = repo.findByIsbn("9781234567890");
-        rv.stream().forEach(System.out::println);
-    }
-
     @Transactional
     @Test
     void insert (){
