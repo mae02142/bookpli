@@ -7,7 +7,7 @@
             <div class="user-info">
                 <img :src="userImg" class="avatar"></img>
                 <div class="book-plan">
-                    <p class="userNm">{{userName}}님</p><br>
+                    <p class="userNm">{{ userName .display_name }}님</p><br>
                     <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
                     <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
                 </div>
@@ -153,6 +153,7 @@ const userImg= ref("");
 const compRead= ref([]);
 const yearCount= ref(0);
 const mostReadInfo= ref({ month: null, count: 0 });
+const userData = ref({});
 
 //모달 
 const showModal = ref(false);
@@ -307,9 +308,11 @@ const readingBook = async (status='reading') => {
 const userInfo = async () => {
     try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        const userData= response.data;
-        userName.value= userData.display_name;
-        userImg.value= userData.profilePath;
+        // userData.value = response.data;
+        // console.log(userData.value.display_name);
+        // return userData;
+        userName.value= response.data.display_name;
+        // userImg.value= userData.profilePath;
     } catch (error) {
         console.log(error);
     }
@@ -430,6 +433,7 @@ const finishStatus= async (status='completed') => {
 
 onMounted(() => {
     MusicPlayer;
+    userInfo();
     loadMyLibrary();
     readingBook().then(() => {
         isEditing.value = readList.value.map(() => false); // 각 책의 편집 상태 초기화
@@ -445,9 +449,8 @@ onMounted(() => {
             }
         });
     });
-    userInfo();
-    finishStatus();
     
+    finishStatus();
 });
 
 

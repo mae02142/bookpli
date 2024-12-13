@@ -17,7 +17,6 @@ export const usePlayerStore = defineStore('player', {
         initPlayer(token) {
             const userStore = useUserStore();
             this.token = userStore.accessToken;
-            console.log(this.deviceId);
             console.log("token in playerStore : " + this.token)
             if (this.player) {
                 return ;
@@ -33,6 +32,8 @@ export const usePlayerStore = defineStore('player', {
                 this.player.addListener('ready', ({ device_id }) => {
                     this.deviceId = device_id;
                     this.transferPlayback(device_id);
+                    console.log("Device ID : " + this.deviceId);
+                    console.log("connected to device")
                 });
 
                 this.player.addListener('player_state_changed', (state) => {
