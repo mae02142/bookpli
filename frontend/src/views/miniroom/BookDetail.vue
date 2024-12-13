@@ -6,13 +6,19 @@
         </div>
     <div class="book-info-section">
         <div>
-            <!-- split error-->
             <div class="title-and-icons">
                 <h1 class="book-title">{{ book.title }}</h1>
                 <div class="icons-container">
-                    <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+                   
                     <img src="../../assets/icons/cart.png" class="detail-icons"/>
                 </div>
+            </div>
+            <!--책 상세 부분 -->
+            <span>지은이: {{ book.author }}</span>
+            
+            <div>
+                <p class="book-intro-header">책소개</p>
+                <p class="book-intro">{{ book.description }}</p> 
             </div>
             <span class="book-meta">
                 출판일: {{ book.pubdate }}
@@ -23,13 +29,12 @@
                 출판사: {{ book.publisher }}
                 지은이: {{ book.author }}
             </span>
-            <div>
-                <h2 class="book-intro-header">책소개</h2>
-                <p class="book-intro">{{ book.description }}</p> 
-                보기
-            </div>
             <button class="btn-read" @click="openModal(book)" v-if="book.status !== 'reading'">선택</button>
-            
+            <div class="book-status-grid">
+                <div class="book-status-goal">바로 독서 설정</div>
+                <div class="book-status-wish">내 서재에 담기</div>
+                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+            </div>
         </div>
         <ReadGoalModal 
             :visible="showModal"
@@ -148,8 +153,8 @@ body {
 }
 
 .book-cover {
-    width: 100%;
-    max-width: 281px;
+    width: 200px;
+    height: 280px;
     height: auto;
     object-fit: cover;
 }
@@ -165,7 +170,7 @@ body {
 
 .book-title {
     font-family: "Inter-Bold", sans-serif;
-    font-size: 40px;
+    font-size: 30px;
     font-weight: 700;
     color: #000000;
     margin-bottom: 10px;
@@ -310,5 +315,16 @@ body {
 .icons-container {
     display: flex; 
     gap: 10px; 
+}
+.book-status-grid {
+    display: grid;
+}
+
+.book-status-goal {
+    width: 40%;
+}
+
+.book-status-wish {
+    width: 40%;
 }
 </style>
