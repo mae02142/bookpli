@@ -31,7 +31,7 @@
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
-          <p class="btn" @click="handleClick(book)">도서 상세 보기</p>
+          <p class="btn" @click="handleClick">도서 상세 보기</p>
           <p class="btn remove-book" @click="removeBook">
             내 서재에서 삭제
           </p>
@@ -43,11 +43,9 @@
   
   <script setup>
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { gotoDetail } from '@/router/routerUtils';
+import { useRouterUtils } from '@/router/routerUtils';
+const { gotoDetail } = useRouterUtils();
 
-const authStore = useAuthStore();
-   
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
     book: {
@@ -85,9 +83,9 @@ const authStore = useAuthStore();
     emit('close'); // 부모로 close 이벤트 전달
   };
 
-  const handleClick = (book) => {
-    console.log("book>>>>>>", book);
-    gotoDetail(book);
+  const handleClick = () => {
+    console.log(props.book.isbn13);
+    gotoDetail(props.book.isbn13);
   }
   </script>
   

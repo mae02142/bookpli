@@ -13,12 +13,14 @@ public class AuthService {
     private final SpotifyApiService spotifyApiService;
     private final TokenCacheService tokenCacheService;
     private final UserRepository userRepository;
+    private final RandomNicknameService randomNicknameService;
 
 
-    public AuthService(SpotifyApiService spotifyApiService, TokenCacheService tokenCacheService, UserRepository userRepository, JwtService jwtService) {
+    public AuthService(SpotifyApiService spotifyApiService, TokenCacheService tokenCacheService, UserRepository userRepository, JwtService jwtService, RandomNicknameService randomNicknameService) {
         this.spotifyApiService = spotifyApiService;
         this.tokenCacheService = tokenCacheService;
         this.userRepository = userRepository;
+        this.randomNicknameService = randomNicknameService;
     }
 
     public Map<String, Object> processSpotifyCallback(String code) {
@@ -39,7 +41,9 @@ public class AuthService {
                     return existingUser;
                 })
                 .orElseGet(() -> {
+                    String randomNick = randomNicknameService.generateNickname();
                     User newUser = userDTO.toEntity();
+                    newUser.updateNickName(randomNick);
                     newUser.updateRefreshToken(refreshToken);
                     return userRepository.save(newUser);
                 });

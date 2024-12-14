@@ -1,9 +1,9 @@
 <template>
-  <div class="modal-container">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
+  <div class="profile-modal-container">
+    <div class="profile-modal-overlay"></div>
+    <div class="profile-modal-content">
       <img class="user-avatar"  :src="user.profilePath || '@/assets/images/default_image.png'" alt="User Avatar" />
-      <h2 class="modal-title">회원 정보 확인</h2>
+      <h2 class="profile-modal-title">회원 정보 확인</h2>
       <div class="input-grid">
         <div class="info-section">
           <label class="info-label">이름</label>
@@ -130,7 +130,7 @@ const cancelEdit = () => {
 
 // 모달 닫기
 const closeModal = () => {
-  emit("close");
+  emit("close-modal");
 };
 
 // 유저 정보 로드
@@ -172,7 +172,7 @@ onMounted(() => {
 
   
   <style scoped>
-  .modal-container {
+  .profile-modal-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -185,14 +185,14 @@ onMounted(() => {
     z-index: 1000;
   }
   
-  .modal-overlay {
+  .profile-modal-overlay {
     position: absolute;
     width: 100%;
     height: 100%;
     background: transparent;
   }
   
-  .modal-content {
+  .profile-modal-content {
     background: #ffffff;
     padding: 20px;
     border-radius: 8px;
@@ -210,7 +210,7 @@ onMounted(() => {
     margin: 20px 0px;
   }
   
-  .modal-title {
+  .profile-modal-title {
     text-align: center;
     font-size: 24px;
     font-weight: bold;
