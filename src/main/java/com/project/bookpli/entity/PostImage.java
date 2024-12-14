@@ -1,16 +1,15 @@
 package com.project.bookpli.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
+
 
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "postimage")
 public class PostImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,5 +17,9 @@ public class PostImage {
     private Long postId;
     private String imageUrl;
 
+    public PostImage(Long postId, String imageUrl){
+        this.postId = postId;
+        this.imageUrl = imageUrl;
+    }
 
 }
