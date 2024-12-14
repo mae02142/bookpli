@@ -33,7 +33,7 @@ public class BookApiService {
     private LibraryRepository librep;
 
     @Autowired
-    private BookLikeRepository bkrep;
+    private BookLikeRepository blrep;
 
     @Autowired
     private UserRepository userrep;
@@ -148,21 +148,26 @@ public class BookApiService {
         BookLike bookLike=dto.toEntity(null);
 
         // 중복 여부 확인
-        if (bkrep.existsByUserIdAndIsbn13(userId,isbn13)) {
+        if (blrep.existsByUserIdAndIsbn13(userId,isbn13)) {
             throw new IllegalArgumentException("이미 찜한 도서입니다.");
         }
 
-        return bkrep.save(bookLike);
+        return blrep.save(bookLike);
     }
 
     //찜하기 해제
     public void  dislike(Long userId, String isbn13){
-        Optional<BookLike> dislike=bkrep.findByUserIdAndIsbn13(userId, isbn13);
+        Optional<BookLike> dislike=blrep.findByUserIdAndIsbn13(userId, isbn13);
 
         if(dislike.isPresent()){
-            bkrep.delete(dislike.get());
+            blrep.delete(dislike.get());
         }else {
             throw new IllegalArgumentException("해당 도서가 찜 목록에 없습니다.");
         }
+    }
+
+    //찜한 도서?
+    public boolean isLiked(Long userId, String isbn13){
+        return blrep.existsByUserIdAndIsbn13(userId, isbn13);
     }
 }

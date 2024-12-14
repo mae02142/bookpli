@@ -104,15 +104,12 @@ const isLiked = ref(false);
 // 좋아요 상태 토글 함수
 const toggleLike = () => {
     isLiked.value = !isLiked.value;
-    // console.log("Like 상태:", isLiked.value);
 }
 
 //찜하기
 const likeBook = async ()  =>{
-
     try{
         const response= await apiClient.post(`/api/book/like/${authStore.user.userId}/${isbn13}`);
-        console.log("찜하기 성공",response.data);
         alert("찜하기가 완료 되었습니다.");
 
     }catch(error){
@@ -122,20 +119,30 @@ const likeBook = async ()  =>{
 
 //찜하기 해제
 const dislike = async ()  =>{
+    try{
+        const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
+        alert("찜해제가 완료 되었습니다.");
 
-try{
-    const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
-    console.log("찜해제 성공",response.data);
-    alert("찜해제가 완료 되었습니다.");
-
-}catch(error){
-    console.log(error);
+    }catch(error){
+        console.log(error);
+    }
 }
+
+const liked= ref("");
+
+//찜한 도서인지
+const likeordislike = async () => {
+    try{
+        const response= await apiClient.get(`/api/book/${authStore.user.userId}/${isbn13}`);
+        isLiked.value=response.data;
+        console.log(liked.data);
+    }catch(error){
+        console.log(error);
+    }
 }
 
 
 const likeAndToggle= async () => {
-
     if(isLiked.value){
         await dislike();
     }else{
@@ -231,15 +238,20 @@ onMounted(async() => {
     if(route.query.data){
         try{
             const queryData= JSON.parse(route.query.data);
-            console.log("도서상태가 궁금해",queryData.status);
-            if(book.value.isbn13 === queryData.isbn13){
-                book.value.status = queryData.status || book.value.status;
+            
+            //쿼리로 전달한 데이터를 book.value에 병합
+            Object.assign(book.value, queryData);
+
+            if(queryData.status){
+                book.value.status = queryData.status;
+                
             };
-            console.log("쿼리에서 읽어온 상태",book.value.status); 
         }catch(error){
             console.log(error);
         }
     }
+
+    await likeordislike();
 });
 
 </script>

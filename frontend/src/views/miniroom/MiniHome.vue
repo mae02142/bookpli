@@ -45,15 +45,15 @@
         <h3 class="title-header">이번달 독서통계</h3>
         <div class="reading-status-box">
             <ul v-if="readList.length > 0">
-                <div class="book-progress" v-for="(book, index) in readList" :key="index">
+                <div class="book-progress" v-for="(book, index) in readList" :key="index" @click="openModal(book)">
                 <p class="book-title">{{ book.title.split('-')[0] }}</p>
                 <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
-                <!-- 실패처리를 위해 날짜, 퍼센트 확인 -->
+                <!-- 종료일이 지나면 실패처리 -->
                 <div class="progress-wrapper" v-if="new Date(book.endDate) > new Date()">
                 <!-- Progress Bar -->
                 <!-- 목표량 Progress Bar -->
                 <div class="full-progress" max="100"></div>
-                <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}"></div> 
+                <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}" ></div> 
                                 
                 <!-- 현재 Progress Bar -->
                 <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"
@@ -80,9 +80,12 @@
         </div>
 
         <h3 class="title-header">내가 읽고 있는 책</h3>    
+        <p class="more-wrapper book-more">
+            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+        </p>
         <div class="book-section">
             <div v-if="readList.length > 0" class="book-covers">
-                <div class="book-item" v-for="rbook in readList" :key="rbook.isbn13">
+                <div class="book-item" v-for="rbook in readList.slice(0,4)" :key="rbook.isbn13">
                     <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
                     <p class="book-info">
                         <span class="book-icon" @click="openModal(rbook)">📖</span>&nbsp;&nbsp;
@@ -100,7 +103,7 @@
         </p>
         <div class="book-section">
             <div v-if="addList.length > 0" class="book-covers">
-                <div class="book-item" v-for="wbook in addList" :key="addList.isbn13">
+                <div class="book-item" v-for="wbook in addList.slice(0,4)" :key="addList.isbn13">
                     <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
                 </div>
             </div>
@@ -250,28 +253,32 @@ const saveProgress = (index) => {
 
 };
 
+const liked= ref("");
 
-const gotoGoal = (book) =>{
-    if(book.status === "reading"){
-        router.push({
-            path:`/miniroom/goal/${book.isbn13}`,
-            query: {data: JSON.stringify(book)},
-        });
-    }else{
-        router.push({
-            path:`/miniroom/goal/${book.isbn13}`,
-            query: {data: JSON.stringify(book)},
-        });
+//찜한 도서인지
+const likeordislike = async () => {
+    try{
+        const response= await apiClient.get(`/api/book/${authStore.user.userId}/${isbn13}`);
+        liked.value=response.data;
+        console.log(liked.data);
+    }catch(error){
+        console.log(error);
     }
-};
+}
 
-
-const gotoDetail = (book) => {
-    console.log(book);
-    router.push({
-        path: `/main/book/${book.isbn13}`,
-        query: { data: JSON.stringify(book) },  
-    });
+const gotoDetail = async(book) => {
+    try{
+        const response= await apiClient.get(`/api/book/${authStore.user.userId}/${book.isbn13}`);
+        liked.value=response.data;
+        
+        // console.log(book);
+        router.push({
+            path: `/main/book/${book.isbn13}`,
+            query: { data: JSON.stringify(book) },  
+        });
+    }catch(error){
+        console.log(error);
+    }
 };
 
 
@@ -537,6 +544,8 @@ flex-direction: column;
 
 .right-section{
     margin-left: 30px;
+    width: 90%;
+    margin-right: 20px;
 }
 
 .reading-status-box {
