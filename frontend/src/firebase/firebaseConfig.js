@@ -1,8 +1,6 @@
 // Firebase SDK import
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getStorage } from 'firebase/storage';
 
 // Firebase 프로젝트 설정 (Firebase 콘솔에서 제공된 구성값 사용)
 const firebaseConfig = {
@@ -15,8 +13,6 @@ const firebaseConfig = {
   measurementId: "G-S5Q8Q9QYQE"
 };
 
-// Firebase 앱 초기화
-const firebaseApp = initializeApp(firebaseConfig);
 
 // Firebase 서비스 인스턴스
 const app = initializeApp(firebaseConfig);

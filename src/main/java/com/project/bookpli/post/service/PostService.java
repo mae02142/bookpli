@@ -7,17 +7,20 @@ import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.Comment;
 import com.project.bookpli.entity.Post;
+import com.project.bookpli.entity.PostImage;
 import com.project.bookpli.post.dto.PostDTO;
+import com.project.bookpli.post.dto.PostRequestDTO;
+import com.project.bookpli.post.dto.PostResponseDTO;
+import com.project.bookpli.post.repository.PostImageRepository;
 import com.project.bookpli.post.repository.PostLikeRepository;
 import com.project.bookpli.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -29,8 +32,11 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final PostLikeRepository postLikeRepository;
+    private final PostImageRepository postImageRepository;
+
+
     // 해당 북클럽의 전체 게시글 조회
-    public List<PostDTO> readClubPosts (Long bookclubId){
+    public List<PostResponseDTO> readClubPosts (Long bookclubId){
 
         List<Object[]> listAll = postRepository.findByBookClubId(bookclubId);
 
@@ -38,8 +44,15 @@ public class PostService {
             System.out.println("리스트가 비어있습니다");
             return new ArrayList<>();
         }
+
+        List<PostImage> imgList = postImageRepository.findImageUrlByBookclubId(bookclubId);
+        if(imgList.isEmpty()){
+            System.out.println("등록된 이미지가 없습니다.");
+            return new ArrayList<>();
+        }
+
         // Object[]를 PostDTO로 변환
-        return listAll.stream()
+        List<PostDTO> posts =  listAll.stream()
                 .map(row -> {
                     Post post = (Post) row[0];
                     String nickname = (String) row[1];
@@ -47,12 +60,30 @@ public class PostService {
                     return PostDTO.fromEntity(post, nickname, profilePath);
                 })
                 .collect(Collectors.toList());
+
+        // post id 기준으로 이미지 매칭
+        Map<Long, List<String>> imageMap = imgList.stream()
+                .collect(Collectors.groupingBy(
+                        PostImage::getPostId,
+                        Collectors.mapping(PostImage::getImageUrl,Collectors.toList())
+                ));
+
+        // 이미지랑 post 병합..
+        List<PostResponseDTO> response = posts.stream()
+                .map(post -> {
+                    List<String>images = imageMap.getOrDefault(post.getPostId(), new ArrayList<>());
+                    return  PostResponseDTO.fromEntity(post,images);
+                })
+                .collect(Collectors.toList());
+
+        return response;
     }
 
 
     // 유저의 해당 북클럽 전체 게시글 조회
-    public List<PostDTO> readUserPosts (Long userId, Long bookclubId){
+    public List<PostResponseDTO> readUserPosts (Long userId, Long bookclubId){
 
+        // post 조회
         List<Object[]> listAll = postRepository.findByUserIdAndBookClubId(userId, bookclubId);
 
         if(listAll.isEmpty()){
@@ -60,7 +91,7 @@ public class PostService {
             return new ArrayList<>();
         }
 
-        return listAll.stream()
+        List<PostDTO> posts = listAll.stream()
                 .map(row -> {
                     Post post = (Post) row[0];
                     String nickname = (String) row[1];
@@ -68,6 +99,30 @@ public class PostService {
                     return PostDTO.fromEntity(post, nickname, profilePath);
                 })
                 .collect(Collectors.toList());
+
+        // image 조회
+        List<PostImage> imageList = postImageRepository.findByUserIdAndBookClubId(userId,bookclubId);
+
+        if(imageList.isEmpty()){
+            System.out.println("등록한 이미지가 존재하지 않습니다.");
+            return new ArrayList<>();
+        }
+
+        // post id 로 이미지 매칭
+        Map<Long, List<String>> imgMap  = imageList.stream()
+                .collect(Collectors.groupingBy(
+                        PostImage::getPostId,
+                        Collectors.mapping(PostImage::getImageUrl,Collectors.toList())
+                ));
+
+        // 이미지랑 게시글 병합
+        List<PostResponseDTO> response = posts.stream()
+                .map(post -> {
+                    List<String>imgUrl = imgMap.getOrDefault(post.getPostId(),new ArrayList<>());
+                    return PostResponseDTO.fromEntity(post, imgUrl);
+                }).collect(Collectors.toList());
+
+        return response;
     }
 
     // 수정할 때 특정 게시글 조회 하기 위함
@@ -96,27 +151,36 @@ public class PostService {
         return post;
     }
 
-    // 게시글 등록
+    // 게시글 저장
     @Transactional
-    public boolean save(PostDTO postDTO){
-
+    public Boolean createPost(PostRequestDTO requestDTO) {
         try {
-            if(postDTO == null){
-                throw new BaseException(BaseResponseStatus.INVAILD_POST);
+            Post post = Post.builder()
+                    .userId(requestDTO.getUserId())
+                    .postContent(requestDTO.getPostContent())
+                    .bookClubId(requestDTO.getBookClubId())
+                    .build();
+
+            postRepository.save(post);  // 게시글 저장...
+
+            Long postId = post.getPostId(); // 저장 후 해당 postId 얻기
+
+            if (requestDTO.getImageUrl() != null) {
+                for (String imageUrl : requestDTO.getImageUrl()) {
+                    PostImage image = PostImage.builder()
+                            .postId(postId)
+                            .imageUrl(imageUrl)
+                            .build();
+                    postImageRepository.save(image);
+                }
+                return true;
             }
-
-            Post post = postDTO.toEntity();
-            postRepository.save(post);
-            System.out.println("서비스단: 게시글 등록 성공");
-
-            return true;
-
         }catch (Exception e){
-            System.out.println("서비스단: 오류 발생");
-            e.printStackTrace();
-            return false;
+            System.out.println("등록 중 오류 발생"+ e.getMessage());
         }
+        return false;
     }
+
 
     //게시글 수정
     @Transactional
