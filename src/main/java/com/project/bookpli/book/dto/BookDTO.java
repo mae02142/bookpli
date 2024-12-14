@@ -23,17 +23,17 @@ public class BookDTO {
     private String genre;
 
     // DTO -> Entity
-    public Book toEntity() {
+    public static Book toEntity(BookDTO bookDTO) {
         return Book.builder()
-            .isbn13(this.isbn13)
-            .title(this.title)
-            .author(this.author)
-            .description(this.description)
-            .pubdate(this.pubdate)
-            .publisher(this.publisher)
-            .cover(this.cover)
-            .startindex(this.startindex)
-            .genre(this.genre)
+            .isbn13(bookDTO.getIsbn13())
+            .title(bookDTO.getTitle())
+            .author(bookDTO.getAuthor())
+            .description(bookDTO.getDescription())
+            .pubdate(bookDTO.getPubdate())
+            .publisher(bookDTO.getPublisher())
+            .cover(bookDTO.getCover())
+            .startindex(bookDTO.getStartindex())
+            .genre(bookDTO.getGenre())
             .build();
     }
 

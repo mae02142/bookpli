@@ -13,10 +13,10 @@
 
   <!-- Conditional rendering for bookSection and musicSection -->
   <div v-if="!isMusicSection" style="padding-bottom: 100px;">
-    <book-section />
+    <bookSection />
   </div>
   <div v-else style="padding-bottom: 100px;">
-    <music-section />
+    <musicSection />
   </div>
 </template>
 
@@ -26,34 +26,35 @@
   import { useAuthStore } from '@/stores/auth.js';
   import bookSection from "@/components/bookSection.vue";
   import musicSection from "@/components/musicSection.vue";
+  import apiClient from "@/api/axiosInstance";
 
   const isMusicSection = ref(false);
   const authStore = useAuthStore();
 
-  const getToken = async() => {
+  // Access Token을 가져오는 함수
+const getToken = async () => {
+  if (authStore.isAuthenticated) {
     const spotifyId = authStore.user.spotifyId;
 
     const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
-        credentials: 'include',
+      credentials: "include",
     });
-    
+
     if (!response.ok) {
-        throw new Error('Failed to fetch access token');
+      throw new Error("Failed to fetch access token");
     }
 
     const data = await response.json();
     const accessToken = data.access_token;
-    
-    console.log("토큰 받아오기 성공띠");
-    // Get the user store instance here
     const userStore = useUserStore(); 
-    
     userStore.setAccessToken(accessToken);
-    console.log("토큰 전달 성공띠");
-  };
+  }else {
+
+  }
+};
 
   onMounted(async () => {
-    getToken();
+    await getToken();
   });
 </script>
 

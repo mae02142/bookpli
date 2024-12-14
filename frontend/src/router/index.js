@@ -4,6 +4,10 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: "/",
+      redirect: "/main", // 기본 경로에서 /main으로 리다이렉트
+    },
+    {
       path: "/auth",
       children: [
         {
@@ -36,6 +40,10 @@ const router = createRouter({
           path: "form",
           component: () => import("@/components/review/ReviewForm.vue"),
         },
+        {
+          path: "book",
+          component: () => import("@/components/review/BookReview.vue"),
+        },
       ],
     },
     {
@@ -60,10 +68,6 @@ const router = createRouter({
       path: "/miniroom",
       children: [
         {
-          path: "book/:isbn13",
-          component: () => import("@/views/miniroom/BookDetail.vue"),
-        },
-        {
           path: "minihome",
           component: () => import("@/views/miniroom/MiniHome.vue"),
         },
@@ -85,14 +89,29 @@ const router = createRouter({
           path: "music",
           component: () => import("@/components/musicSection.vue"),
         },
+        {
+          path: "book/:isbn13",
+          component: () => import("@/views/miniroom/BookDetail.vue"),
+        },
       ],
     },
 
     {
-      path: "/search",
+      path: "/search-book",
       component: () => import("@/views/main/bookSearch.vue"),
     },
-    
+
+    {
+    path: "/search-music",
+      component: () => import("@/views/main/MusicSearch.vue"),
+      props: route => ({ query: route.query.q }),
+    },
+
+    { 
+      path: "/details/:category", 
+      component: () => import("@/views/main/DetailsPage.vue") 
+    },
+
     {
       path: "/bookclub",
       children: [
