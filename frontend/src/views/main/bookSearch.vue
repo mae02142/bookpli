@@ -46,11 +46,13 @@
         </div>
     </div>
     </div>
+    <MusicPlayer/>
 </template>
 
 <script>
 import { ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 export default {
     setup() {

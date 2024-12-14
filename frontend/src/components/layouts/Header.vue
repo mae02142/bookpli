@@ -1,75 +1,74 @@
 <template>
-  <header class="header">
-    <div class="left-section">
-      <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
-      <nav class="nav">
-        <router-link to="/miniroom/minihome">
-          <span class="nav-item">미니룸</span>
-        </router-link>
-        <router-link to="/bookclub">
-          <span class="nav-item">북적북적</span>
-        </router-link>
-      </nav>
-    </div>
-    <div class="search-bar">
-      <img
-        class="search-icon"
-        src="@/assets/icons/search.png"
-        alt="Search Icon"
-        @click="submitSearch"
-      />
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Q"
-        v-model="searchQuery"
-        @keyup.enter="submitSearch"
-      />
-    </div>
-    <router-link v-if="!isAuthenticated" to="/auth/login">
-      <div class="log-button">
-        <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
-        <span>LOGIN</span>
+  <div class="spotify-search">
+    <header class="header">
+      <div class="left-section">
+        <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
+        <nav class="nav">
+          <router-link to="/miniroom/minihome">
+            <span class="nav-item">미니룸</span>
+          </router-link>
+          <router-link to="/bookclub">
+            <span class="nav-item">북적북적</span>
+          </router-link>
+        </nav>
       </div>
-    </router-link>
-    <div v-else @click="handleLogout" class="log-button">
-      <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
-      <span>LOGOUT</span>
+      <div class="search-bar">
+        <select v-model="searchType" class="search-type-selector">
+          <option value="book">책</option>
+          <option value="music">음악</option>
+        </select>
+        <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" @click="submitSearch"/>
+        <input
+          type="text"
+          v-model="query"
+          @keyup.enter="submitSearch"
+          placeholder="검색어를 입력하세요"
+          class="search-input"
+        />
+      </div>
+      <router-link v-if="!isAuthenticated" to="/auth/login">
+        <div class="log-button">
+          <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
+          <span>LOGIN</span>
+        </div>
+      </router-link>
+      <div v-else @click="handleLogout" class="log-button">
+        <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
+        <span>LOGOUT</span>
+      </div>
+    </header>
     </div>
-  </header>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import { useUserStore } from "@/stores/user.js";
+
+const query = ref("");
+const searchType = ref("book");
 
 const authStore = useAuthStore();
 const router = useRouter();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
-// Navigation Methods
 function goHome() {
   router.push({ path: "/main" });
 }
 
-// Authentication State
-const isAuthenticated = computed(() => authStore.isAuthenticated);
-
-// Logout Handler
 const handleLogout = () => {
   authStore.clearAuthData();
   router.push({ path: "/main" });
 };
 
-// Search State
-const searchQuery = ref("");
-
-// Search Submission Handler
 const submitSearch = () => {
-  const query = searchQuery.value.trim();
-  if (query) {
-    router.push({ path: "/search", query: { q: query } });
+  const searchQuery = query.value.trim();
+  if (searchQuery) {
+    if (searchType.value === "book") {
+      router.push({ path: "/search-book", query: { q: searchQuery, type: "book" } });
+    } else if (searchType.value === "music") {
+      router.push({ path: "/search-music", query: { q: searchQuery, type: "music" } });
+    }
   } else {
     alert("검색어를 입력하세요.");
   }
@@ -77,6 +76,10 @@ const submitSearch = () => {
 </script>
 
 <style scoped>
+.spotify-search {
+  font-family: Arial, sans-serif;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -94,10 +97,6 @@ const submitSearch = () => {
 }
 
 .logo {
-  cursor: pointer;
-}
-
-.logo:hover {
   cursor: pointer;
 }
 
@@ -143,6 +142,14 @@ const submitSearch = () => {
   padding: 0px 10px;
 }
 
+.search-type-selector {
+  margin-right: 10px;
+  padding: 5px;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+}
+
 .log-button {
   display: flex;
   font-size: 16px;
@@ -150,5 +157,22 @@ const submitSearch = () => {
   align-items: center;
   gap: 5px;
   font-weight: bold;
+}
+
+.error {
+  color: red;
+}
+
+h2 {
+  margin-top: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 5px 0;
 }
 </style>

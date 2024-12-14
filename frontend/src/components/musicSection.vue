@@ -20,7 +20,15 @@
                             style="cursor: pointer;"
                             :title="`플레이리스트 재생: ${pli.title}`"
                         />
-                        <button class="add-btn" @click="addPlaylistToMyPlaylists(pli.id)">+</button>
+                        <!-- Add Button with Disabled State -->
+                        <button
+                            class="add-btn"
+                            @click="addPlaylistToMyPlaylists(pli.id)"
+                            :disabled="!userProfile"
+                            :title="userProfile ? '플레이리스트 추가하기' : '사용자 정보를 불러오는 중입니다.'"
+                        >
+                            +
+                        </button>
                     </div>
                     <p class="pli-title" style="font-size: 20px; padding-bottom: 5px;">
                         {{ pli.title }}
@@ -64,7 +72,7 @@
                                 ⋮
                                 <div v-show="showOptionMenu1[index]" class="option-menu">
                                     <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
-                                    <span style="padding-bottom: 5px;" @click="addToPlaylist(song.uri)">내 플리에 추가하기</span>
+                                    <span style="padding-bottom: 5px;" @click="selectPlaylist">내 플리에 추가하기</span>
                                     <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
                                 </div>
                             </td>
@@ -100,7 +108,7 @@
                                 ⋮
                                 <div v-show="showOptionMenu2[index]" class="option-menu">
                                     <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
-                                    <span style="padding-bottom: 5px;" @click="addToPlaylist(song.uri)">내 플리에 추가하기</span>
+                                    <span style="padding-bottom: 5px;" @click="selectPlaylist">내 플리에 추가하기</span>
                                     <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
                                 </div>
                             </td>
@@ -121,14 +129,15 @@
         />
     </div>
 </template>
-
 <script>
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 import { useUserStore } from "@/stores/user";
 import { useModalStore } from '@/stores/modalState';
-import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
+import SongDetailModal from "@/components/playlist/MusicDetailModal.vue";
+import { useUtilModalStore } from "@/stores/utilModalStore";
+import apiClient from "@/api/axiosInstance";
 
 export default {
     components: {
@@ -142,41 +151,80 @@ export default {
         const userStore = useUserStore();
         const modalStore = useModalStore();
         const selectedSong = ref(null);
+        const userProfile = ref(null);
+        const showPlaylistModal = ref(false);
 
         const token = userStore.accessToken;
 
         const showOptionMenu1 = ref([]);
         const showOptionMenu2 = ref([]);
 
+        // Function to fetch current user's profile
+        const fetchUserProfile = async () => {
+            try {
+                const response = await axios.get("https://api.spotify.com/v1/me", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                userProfile.value = response.data;
+                console.log("User Profile:", userProfile.value);
+            } catch (error) {
+                console.error(
+                    "Error fetching user profile:",
+                    error.response ? error.response.data : error.message
+                );
+            }
+        };
+
         const toggleOptionMenu1 = (index) => {
             showOptionMenu1.value[index] = !showOptionMenu1.value[index];
-            for (var i = 0; i < showOptionMenu1.value.length; i ++) {
-                if (i != index) {
+            for (let i = 0; i < showOptionMenu1.value.length; i++) {
+                if (i !== index) {
                     showOptionMenu1.value[i] = null;
                 }
             }
-            for (var i = 0; i < showOptionMenu1.value.length; i ++) {
+            for (let i = 0; i < showOptionMenu1.value.length; i++) {
                 showOptionMenu2.value[i] = null;
             }
         };
 
         const toggleOptionMenu2 = (index) => {
-            showOptionMenu2.value[index] = !showOptionMenu2ㅁ.value[index];
-            for (var i = 0; i < showOptionMenu2.value.length; i ++) {
-                if (i != index) {
+            showOptionMenu2.value[index] = !showOptionMenu2.value[index];
+            for (let i = 0; i < showOptionMenu2.value.length; i++) {
+                if (i !== index) {
                     showOptionMenu2.value[i] = null;
                 }
             }
-            for (var i = 0; i < showOptionMenu2.value.length; i ++) {
+            for (let i = 0; i < showOptionMenu2.value.length; i++) {
                 showOptionMenu1.value[i] = null;
             }
         };
 
-
         const addPlaylistToMyPlaylists = async (playlistId) => {
+            if (!userProfile.value || !userProfile.value.id) {
+                alert("사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+                return;
+            }
+
+            const userId = userProfile.value.id;
+            const checkFollowUrl = `https://api.spotify.com/v1/playlists/${playlistId}/followers/contains?ids=${userId}`;
             const followUrl = `https://api.spotify.com/v1/playlists/${playlistId}/followers`;
 
             try {
+                // Check if the user already follows the playlist
+                const checkResponse = await axios.get(checkFollowUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (checkResponse.data[0]) {
+                    alert("이미 이 플레이리스트를 팔로우하고 있습니다.");
+                    return;
+                }
+
+                // Follow the playlist
                 await axios.put(
                     followUrl,
                     {},
@@ -187,17 +235,27 @@ export default {
                         },
                     }
                 );
+
                 alert("플레이리스트가 성공적으로 추가되었습니다!");
             } catch (error) {
                 console.error(
                     "Error adding playlist:",
                     error.response ? error.response.data : error.message
                 );
-                alert("플레이리스트를 추가하는 데 실패했습니다. 다시 시도해주세요.");
+
+                // Handle specific error responses
+                if (error.response && error.response.status === 401) {
+                    alert("인증에 실패했습니다. 다시 로그인해주세요.");
+                } else if (error.response && error.response.status === 403) {
+                    alert("이 플레이리스트를 팔로우할 권한이 없습니다.");
+                } else {
+                    alert("플레이리스트를 추가하는 데 실패했습니다. 다시 시도해주세요.");
+                }
             }
         };
+
         const recommendPliApiUrl =
-            "https://api.spotify.com/v1/search?q=book&type=playlist&include_external=audio";
+            "https://api.spotify.com/v1/search?q=playlist+for+reading&type=playlist&offset=0";
         const domesticRankingsApiUrl =
             "https://api.spotify.com/v1/search?q=melon+top100&type=playlist&include_external=audio";
         const internationalRankingsApiUrl =
@@ -208,6 +266,48 @@ export default {
             console.log(selectedSong.value);
             modalStore.openModal("SongDetailModal");
         };
+
+
+        const selectPlaylist = async (playlistId) => {
+            try {
+                // 1. 선택한 플레이리스트에 곡 존재 여부 확인
+                const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
+
+                // 2. 곡이 이미 존재하면 확인 창 표시
+                const utilModalStore = useUtilModalStore();
+                const tracks = response.data.data.items.map((item) => item.track.id);
+                
+                if (tracks.includes(songData.value.id)) {
+                utilModalStore.showModal(
+                    '플레이리스트 담기',
+                    `"${playlists.value.find((p) => p.id === playlistId)?.name}"에 이미 존재하는 곡입니다.`,
+                    'already-exist'
+                );
+                } else {
+                await addMusicToPlaylist(playlistId);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+            showPlaylistModal.value = false; // 선택 후 모달 닫기
+        };
+
+        const addMusicToPlaylist = async(playlistId) => {
+            const songUri = `spotify:track:${songData.value.id}`;
+            try {
+                await apiClient.post(`/api/mypli/playlist/${playlistId}`, {
+                    uris: [songUri],
+                });
+
+                const playlist = playlists.value.find((p) => p.id === playlistId);
+                displayNotification(`"${playlist.name}"에 추가되었습니다.`);
+                emit('update-playlist');
+                emit('update-tracks');
+            } catch (error) {
+                window.alert("노래를 선택해주세요.");
+                console.log(error);
+            }
+        }
 
         // Function to fetch recommended playlists
         const fetchRecommendedPlaylists = async () => {
@@ -462,11 +562,15 @@ export default {
             showOptionMenu2.value = [];
         };
 
+        // Function to fetch user profile and get user ID
+        // Already implemented above as fetchUserProfile
+
         // Fetch playlists and rankings on component mount
         onMounted(() => {
             fetchRecommendedPlaylists();
             fetchDomesticRanking();
             fetchInternationalRanking();
+            fetchUserProfile(); // Fetch user profile on mount
         });
 
         return {
@@ -475,6 +579,7 @@ export default {
             internationalRankingPli,
             playSong,
             playPlaylist,
+            addPlaylistToMyPlaylists,
             addToPlaylist,
             viewAlbumInfo,
             toggleOptionMenu1,
@@ -486,12 +591,12 @@ export default {
             modalStore,
             openSongDetail,
             selectedSong,
-            addPlaylistToMyPlaylists,
+            userProfile, // Expose userProfile
+            selectPlaylist,
         };
     },
 };
 </script>
-
 <style scoped>
 /* 기존 스타일 유지 */
 body {
@@ -569,6 +674,13 @@ body {
     bottom: 20px;
     right: 10px;
     z-index: 10;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.add-btn:disabled {
+    background-color: #e0e0e0;
+    color: #a0a0a0;
+    cursor: not-allowed;
 }
 
 .rankings-container {

@@ -8,7 +8,6 @@
             <div v-for="book in newBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
                 <div class="image-container" style="padding-bottom: 10px;">
                     <img :src="book.cover" :alt="book.title" class="book-image" @click="gotoDetail(book.isbn13)"/>
-                    <button class="add-btn" style="">+</button>
                 </div>
                 <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
                 <p class="book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
@@ -320,21 +319,6 @@ body {
 
 .image-container {
     position: relative;
-}
-
-.add-btn {
-    background-color: #ffff;
-    border: none;
-    padding: 0.5rem;
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-    border-radius: 50%;
-    cursor: pointer;
-    position: absolute;
-    bottom: 20px;
-    right: 10px;
-    z-index: 2;
 }
 
 /* Rankings Section */
