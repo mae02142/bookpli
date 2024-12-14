@@ -174,7 +174,6 @@ const loadBookDetail = async () => {
     try {
         const response = await apiClient.get(`/api/book/${isbn13}`)
         book.value = response.data.data;
-        console.log("확인 : ",book.value);
         // 도서 상세를 로드한 후 상태 확인
         await checkLibraryStatus();
     } catch (error) {
