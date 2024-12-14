@@ -149,6 +149,10 @@ const showModal = ref(false);
 const selectBook = ref({});
 const liked= ref("");
 
+const totalPgn=ref(1);
+const currentPgn=ref(0);
+const pageSize= ref(4);
+
 const openModal = (book) => {
   selectBook.value = book;
   showModal.value = true;

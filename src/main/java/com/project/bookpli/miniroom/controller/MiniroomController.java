@@ -35,6 +35,7 @@ public class MiniroomController {
     }*/
 
 
+
     //담은 도서 리스트
     @GetMapping("/user/{userId}/book")
     public ResponseEntity<List<BookResponseDTO>> getBookList(@PathVariable Long userId,
@@ -57,8 +58,7 @@ public class MiniroomController {
         return ResponseEntity.ok(updateStatus);
     }
 
-
-    //도서 실패처리- 자동
+    //도서 실패처리
     @PutMapping("/fail/{isbn13}")
     public ResponseEntity<Integer> changeToFail(@PathVariable String isbn13){
         int failRead= bookApiService.failReading(isbn13);
