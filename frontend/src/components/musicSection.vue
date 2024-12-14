@@ -38,6 +38,77 @@
             </div>
         </section>
 
+    <!-- Rankings Section -->
+    <section class="rankings" style="padding-top: 50px;">
+        <h2 class="section-title">음악 순위</h2>
+        <hr />
+        <div class="rankings-container" style="width: 100%;">
+            <!-- Domestic Rankings -->
+            <div class="ranking" style="padding-top: 30px;">
+                <h3 class="ranking-title">국내</h3>
+                <table class="ranking-table">
+                    <tr
+                        class="ranking-tr"
+                        v-for="(song, index) in domesticRankingPli.slice(0, 5)"
+                        :key="song.uri"
+                    >
+                        <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
+                        <td>
+                            <img
+                                :src="song.image"
+                                class="album-cover"
+                                @click="playSong(song.uri)"
+                                style="cursor: pointer;"
+                                :title="`재생: ${song.title} - ${song.artist}`"
+                            />
+                        </td>
+                        <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
+                        <td class="song-artist">{{ song.artist }}</td>
+                        <td class="song-details" @click="toggleOptionMenu1(index)">
+                        <span class="toggle-button">⋮</span>
+                        <div v-show="showOptionMenu1[index]" class="music-option-menu">
+                            <span @click="playSong(song.uri)">재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span @click="openSongDetail(song)">앨범 정보 보기</span>
+                        </div>
+                    </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- International Rankings -->
+            <div class="ranking" style="padding-top: 30px;">
+                <h3 class="ranking-title">해외</h3>
+                <table class="ranking-table">
+                    <tr
+                        class="ranking-tr"
+                        v-for="(song, index) in internationalRankingPli.slice(0, 5)"
+                        :key="song.uri"
+                    >
+                        <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
+                        <td>
+                            <img
+                                :src="song.image"
+                                class="album-cover"
+                                @click="playSong(song.uri)"
+                                style="cursor: pointer;"
+                                :title="`재생: ${song.title} - ${song.artist}`"
+                            />
+                        </td>
+                        <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
+                        <td class="song-artist">{{ song.artist }}</td>
+                        <td class="song-details" @click="toggleOptionMenu2(index)">
+                        <span class="toggle-button">⋮</span>
+                        <div v-show="showOptionMenu2[index]" class="music-option-menu">
+                            <span>재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span>앨범 정보 보기</span>
+                        </div>
+                    </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </section>
         <!-- Rankings Section -->
         <section class="rankings" style="padding-top: 50px;">
             <h2 class="section-title">음악 순위</h2>
@@ -276,7 +347,7 @@ export default {
                 // 2. 곡이 이미 존재하면 확인 창 표시
                 const utilModalStore = useUtilModalStore();
                 const tracks = response.data.data.items.map((item) => item.track.id);
-                
+
                 if (tracks.includes(songData.value.id)) {
                 utilModalStore.showModal(
                     '플레이리스트 담기',
@@ -611,11 +682,27 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     z-index: 1000;
-    display: flex;
-    padding: 5px;
+    flex-direction: column;
     width: max-content;
-    flex-flow: column;
-    align-items: flex-start;
+    top: 32%;
+    left: 20px;
+    display: flex;
+}
+
+/* Option Menu 항목 스타일 */
+.music-option-menu span {
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.music-option-menu span:hover {
+    color: #67de86;
+}
+
+.toggle-button {
+    cursor: pointer;
 }
 
 .music-app {
@@ -731,6 +818,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
+}
+
+.song-details {
+    cursor: pointer;
+    text-align: center;
+    position: relative;
 }
 
 .song-details:hover {

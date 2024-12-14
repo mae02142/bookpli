@@ -1,43 +1,48 @@
 <template>
-  <div class="spotify-search">
-    <header class="header">
-      <div class="left-section">
-        <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
-        <nav class="nav">
-          <router-link to="/miniroom/minihome">
-            <span class="nav-item">미니룸</span>
-          </router-link>
-          <router-link to="/bookclub">
-            <span class="nav-item">북적북적</span>
-          </router-link>
-        </nav>
-      </div>
-      <div class="search-bar">
+  <header class="header">
+    <div class="left-section">
+      <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
+      <nav class="nav">
+        <router-link to="/miniroom/minihome">
+          <span class="nav-item">미니룸</span>
+        </router-link>
+        <router-link to="/bookclub">
+          <span class="nav-item">북적북적</span>
+        </router-link>
+      </nav>
+    </div>
+    <div class="search-bar">
         <select v-model="searchType" class="search-type-selector">
           <option value="book">책</option>
           <option value="music">음악</option>
         </select>
-        <img class="search-icon" src="@/assets/icons/search.png" alt="Search Icon" @click="submitSearch"/>
         <input
-          type="text"
-          v-model="query"
-          @keyup.enter="submitSearch"
-          placeholder="검색어를 입력하세요"
-          class="search-input"
+        type="text"
+        class="search-input"
+        placeholder="Search.."
+        v-model="query"
+        @keyup.enter="submitSearch"
+        />
+      <div class="search-icon-grid">
+        <img
+          class="search-icon"
+          src="@/assets/icons/search_white.png"
+          alt="Search Icon"
+          @click="submitSearch"
         />
       </div>
-      <router-link v-if="!isAuthenticated" to="/auth/login">
-        <div class="log-button">
-          <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
-          <span>LOGIN</span>
-        </div>
-      </router-link>
-      <div v-else @click="handleLogout" class="log-button">
-        <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
-        <span>LOGOUT</span>
-      </div>
-    </header>
     </div>
+    <router-link v-if="!isAuthenticated" to="/auth/login">
+      <div class="log-button">
+        <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
+        <span>LOGIN</span>
+      </div>
+    </router-link>
+    <div v-else @click="handleLogout" class="log-button">
+      <img src="@/assets/icons/login.png" alt="로그아웃 아이콘" />
+      <span>LOGOUT</span>
+    </div>
+  </header>
 </template>
 
 <script setup>
@@ -100,6 +105,10 @@ const submitSearch = () => {
   cursor: pointer;
 }
 
+.logo:hover {
+  cursor: pointer;
+}
+
 .nav {
   display: flex;
   gap: 30px;
@@ -114,32 +123,36 @@ const submitSearch = () => {
 }
 
 .search-bar {
-  position: absolute;
+  /* position: absolute; */
   left: 50%;
   transform: translateX(-50%);
-  width: 400px;
-  height: 40px;
-  display: flex;
+  /* width: 400px; */
+  /* height: 40px; */
+  /* display: flex; */
+  /* align-items: center; */
+  /* border-radius: 50px; */
+
+
+  display: flex; /* 검색창과 돋보기를 나란히 배치 */
   align-items: center;
-  background: #eaeaea;
-  border-radius: 50px;
-  padding: 0 10px;
+  gap: 10px; /* 검색창과 돋보기 사이 간격 */
 }
 
 .search-icon {
   height: auto;
-  margin-left: 15px;
   cursor: pointer;
 }
 
 .search-input {
-  width: 100%;
-  height: 40px;
-  border: none;
-  background: transparent;
-  font-size: 17px;
+  flex: 1; /* 검색창이 남은 공간을 차지 */
+  height: 40px; /* 검색창 높이 */
+  border: 1px solid #ccc;
+  border-radius: 20px; /* 둥근 모서리 */
+  padding: 0 15px; /* 텍스트 좌우 패딩 */
+  font-size: 16px;
   outline: none;
-  padding: 0px 10px;
+  width: 230px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
 }
 
 .search-type-selector {
@@ -157,6 +170,19 @@ const submitSearch = () => {
   align-items: center;
   gap: 5px;
   font-weight: bold;
+}
+
+.search-icon-grid {
+  width: 40px;
+  height: 40px;
+  background-color: #3a3a3a; /* 돋보기 버튼 배경색 */
+  border: none;
+  border-radius: 50%; /* 동그란 모양 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
 }
 
 .error {

@@ -129,329 +129,202 @@
 </template>
 
 <script setup>
-import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
-import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router'; 
-import { useAuthStore } from '@/stores/auth';
-// import { onMounted } from 'vue';
-import musicPlayer from '@/components/layouts/musicPlayer.vue';
-
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+import { useProgressStore } from "@/stores/readingProgressbar";
+// import MusicPlayer from "@/components/layouts/MusicPlayer.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
+import apiClient from "@/api/axiosInstance";
+import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
 
-const router= useRouter();
-const authStore= useAuthStore();
-const addList= ref([]);
-const readList= ref([]);
+const router = useRouter();
+const authStore = useAuthStore();
+const progressStore = useProgressStore();
 
 const userData = ref({});
-
-const currentPage= ref(readList.value.map(() => 0)); //초기값 0으로 설정
-const isEditing= ref(readList.value.map(()=> false)); //현재 페이지 입력 편집모드
-const compRead= ref([]);
-const yearCount= ref(0);
-const mostReadInfo= ref({ month: null, count: 0 });
-
-//모달 
+const addList = ref([]);
+const readList = ref([]);
+const completedBooks = ref([]);
+const currentPage = ref([]);
+const isEditing = ref([]);
+const currentGoal = ref(0);
+const currentRead = ref(0);
+const yearCount = ref(0);
+const mostReadInfo = ref({ month: "0", count: 0 });
 const showModal = ref(false);
-const selectBook= ref({});
+const selectBook = ref({});
 
-const openModal= (readList) => {
-    selectBook.value=readList;
-    showModal.value=true;
+const openModal = (book) => {
+  selectBook.value = book;
+  showModal.value = true;
 };
 
-const closeModal= () =>{
-    showModal.value=false;
+const closeModal = () => {
+  showModal.value = false;
 };
 
-
-//입력 페이지 퍼센트 렌더링
-const calInputPage = computed(() => 
-    readList.value.map((book, index) => {
-    const currentPages= currentPage.value[index] || 0;
-    const totalPages= book.startindex || 1;
-
-    if (currentPages <= 0) return 0; // 최소값 0
-    if (currentPages >= totalPages) return 100; // 최대값 100
-    return Math.round((currentPages / totalPages) * 100); //퍼센트 계산
-    }) 
+// 독서 진행률 계산
+const calInputPage = computed(() =>
+  readList.value.map((book, index) => {
+    const current = currentPage.value[index] || 0;
+    const total = book.startindex || 1;
+    return Math.min(Math.max(Math.round((current / total) * 100), 0), 100);
+  })
 );
 
-
-//1일 독서량 계산
-const calDailyRead= (startDate, endDate, startindex) => {
-    const start= new Date(startDate);
-    const end= new Date(endDate);
-
-    //기간계산 (밀리초 -> 일 단위)
-    const days= (start-end)/(1000 * 60 * 60 * 24);
-
-    //하루 목표량
-    return Math.ceil(startindex/days);
-}
-
-//편집모드 시작
-const startEdit= (index) => {
-    isEditing.value[index]=true;
-
-    //값이 변경될때마다 저장
-    saveProgress(index);
-}
-
-//편집모드 종료
-const stopEdit= (index) => {
-    const currentPages = currentPage.value[index];
-    const totalPages = readList.value[index].startindex;
-
-    // 유효한 범위 내로 제한
-    if (currentPages < 0) currentPage.value[index] = 0;
-    if (currentPages > totalPages) currentPage.value[index] = totalPages;
-
-    isEditing.value[index] = false;
-
-    saveProgress(index); //진행상황 저장
-};
-
-
-// 반응형 목표량 누적 계산
-const calculateGoalProgress = computed(() => {
-    return readList.value.map((book) => {
+// 목표 진행률 계산
+const calculateGoalProgress = computed(() =>
+  readList.value.map((book) => {
     const start = new Date(book.startDate);
     const end = new Date(book.endDate);
     const today = new Date();
-
-    // 목표 기간 계산 (밀리초 → 일)
     const totalDays = (end - start) / (1000 * 60 * 60 * 24);
-
-    // 오늘까지의 경과일 계산
     const elapsedDays = (today - start) / (1000 * 60 * 60 * 24);
+    return Math.min(Math.max((elapsedDays / totalDays) * 100, 0), 100).toFixed(2);
+  })
+);
 
-    // 경과일이 0보다 작으면 (시작 전) 0%, 종료일 이후면 100%
-    if (elapsedDays < 0) return 0;
-    if (elapsedDays > totalDays) return 100;
+// 완료된 책 통계 계산
+const calculateCompletedStats = () => {
+  const currentYear = new Date().getFullYear();
 
-    // 목표량 누적 계산 (경과 비율 * 총 페이지 수)
-    const progress = (elapsedDays / totalDays) * 100;
-    return parseFloat(progress.toFixed(2)); // 소수점 2자리까지 표시
+  // 1년 동안 읽은 책
+  yearCount.value = completedBooks.value.filter((book) => {
+    const bookYear = new Date(book.endDate).getFullYear();
+    return bookYear === currentYear;
+  }).length;
+
+  // 가장 많이 읽은 달 계산
+  const monthCounts = completedBooks.value.reduce((acc, book) => {
+    const month = new Date(book.endDate).getMonth() + 1;
+    acc[month] = (acc[month] || 0) + 1;
+    return acc;
+  }, {});
+
+  const mostRead = Object.entries(monthCounts).reduce(
+    (max, [month, count]) => (count > max.count ? { month, count } : max),
+    { month: "0", count: 0 }
+  );
+
+  mostReadInfo.value = mostRead;
+};
+
+// 독서 데이터 로드
+const loadBooks = async (status, targetList) => {
+  try {
+    const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/book`, {
+      params: { status },
     });
-});
+    targetList.value = data;
+  } catch (error) {
+    console.error(`${status} 상태의 책 로드 실패:`, error);
+  }
+};
 
-import { useProgressStore } from '../../stores/readingProgressbar';
-import MusicPlayer from '@/components/layouts/musicPlayer.vue';
+// 사용자 정보 로드
+const loadUserProfile = async () => {
+  try {
+    const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/profile`);
+    userData.value = data;
+  } catch (error) {
+    console.error("사용자 정보 로드 실패:", error);
+  }
+};
 
-const progressStore = useProgressStore();
+// 이번달 독서 목표 및 진행 계산
+const calculateMonthStats = () => {
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
 
+  currentGoal.value = readList.value.filter((book) => {
+    const bookDate = new Date(book.startDate);
+    return bookDate.getFullYear() === currentYear && bookDate.getMonth() + 1 === currentMonth;
+  }).length;
+
+  currentRead.value = completedBooks.value.filter((book) => {
+    const bookDate = new Date(book.endDate);
+    return bookDate.getFullYear() === currentYear && bookDate.getMonth() + 1 === currentMonth;
+  }).length;
+};
+
+// 독서 기록 저장
 const saveProgress = (index) => {
-    const book = readList.value[index];
-    if (!book || !book.isbn13) return;
+  const book = readList.value[index];
+  if (!book || !book.isbn13) return;
 
-    const progressData = {
-    startDate: book.startDate,
-    endDate: book.endDate,
+  const progressData = {
     currentPage: currentPage.value[index],
     totalPages: book.startindex || 1,
-    progressPercentage: Math.round((currentPage.value[index] / (book.startindex || 1)) * 100)
-    };
+    progressPercentage: Math.round((currentPage.value[index] / (book.startindex || 1)) * 100),
+  };
 
-  progressStore.saveProgress(book.isbn13, progressData); //Pinia에 상태 저장
-
+  progressStore.saveProgress(book.isbn13, progressData);
 };
 
+// 편집 모드 제어
+const startEdit = (index) => {
+  isEditing.value[index] = true;
+};
 
-const gotoGoal = (book) =>{
-    if(book.status === "reading"){
-        router.push({
-            path:`/miniroom/goal/${book.isbn13}`,
-            query: {data: JSON.stringify(book)},
-        });
-    }else{
-        router.push({
-            path:`/miniroom/goal/${book.isbn13}`,
-            query: {data: JSON.stringify(book)},
-        });
+const stopEdit = (index) => {
+  const book = readList.value[index];
+  currentPage.value[index] = Math.max(0, Math.min(currentPage.value[index], book.startindex));
+  isEditing.value[index] = false;
+  saveProgress(index);
+};
+
+// 도서 완독 처리
+const clearReading = async (book) => {
+  try {
+    const confirmClear = confirm("도서를 완독 처리하시겠습니까?");
+    if (!confirmClear) return;
+
+    const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
+    if (status === 200) {
+      alert("완독 처리되었습니다.");
+      await loadBooks("reading", readList);
+      await loadBooks("completed", completedBooks);
+      calculateCompletedStats(); // 통계 재계산
+      calculateMonthStats(); // 이번달 통계 재계산
     }
+  } catch (error) {
+    console.error("완독 처리 실패:", error);
+  }
 };
 
-
+// 페이지 이동
 const gotoDetail = (book) => {
-    console.log(book);
-    router.push({
-        path: `/main/book/${book.isbn13}`,
-        // query: { data: JSON.stringify(book) },
-    });
+  router.push({ path: `/main/book/${book.isbn13}` });
 };
 
+// 로그인 직후 회원 정보 저장
+const getUserInfo = async() => {
+  try {
+    const response = await apiClient.get("/api/auth/user-info");
 
-const loadMyLibrary = async (status='wished') => {
-    try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
-        addList.value= response.data;
-    } catch (error) {
-        console.log(error);
+    if (response.data.data) {
+      const userInfo = {
+        spotifyId: response.data.data.spotifyId,
+        userId: response.data.data.userId,
+      };
+      authStore.setUser(userInfo);
     }
-}
-
-const readingBook = async (status='reading') => {
-    try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}});
-        readList.value= response.data;
-        calculateMonth();
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const userInfo = async () => {
-    try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/profile`);
-        userData.value= response.data;
-        console.log('dddddd'+ userData.value.display_name);
-        // userName.value= userData.display_name;
-        // userImg.value= userData.profilePath;
-        // console.log(">>>>>>>>>>>>",userName.value);
-    } catch (error) {
-        console.log(error);
-    }
-}
-
-const currentGoal= ref("");
-const currentRead= ref("");
-
-//이번달 목표
-const calculateMonth= () => {
-    const month= new Date().getMonth()+1;
-    const year= new Date().getFullYear();
-
-    //이번달 목표 도서 수 
-    currentGoal.value= readList.value.filter((book)=>{
-        if(book.startDate){
-            const bookDate= new Date(book.startDate);
-            return(
-                bookDate.getFullYear() === year && bookDate.getMonth()+1 === month
-            );
-        }
-        return false;
-    }).length;
-
-    //이번달 읽은 도서 수
-    currentRead.value=compRead.value.filter((book)=>{
-        if(book.startDate){
-            const bookDate= new Date(book.startDate);
-            return(
-                bookDate.getFullYear() === year && bookDate.getMonth()+1 === month
-            );
-        }
-        return false;
-    }).length;
+  } catch (error) {
+    console.error("사용자 정보 요청 실패:", error);
+  }
 };
 
-const clearReading = async (readList) => {
-    try {
-
-        const userConfirmed = confirm("도서를 완독 처리 하시겠습니까?");
-        if (!userConfirmed) {
-            return; // 사용자가 취소를 선택한 경우 함수 종료
-        }
-
-        const url = `/api/miniroom/clear/${readList.isbn13}?status=completed`;
-        const response = await axios.put(url);
-
-        if (response.status === 200) {
-            alert("도서가 완독 처리 되었습니다.");
-
-            // 데이터를 다시 로드
-            await readingBook(); // 읽고 있는 책 목록 갱신
-            await finishStatus(); // 완독 책 목록 갱신
-        }
-    } catch (error) {
-        console.error("API 호출 중 오류 발생:", error);
-        alert("요청 처리에 실패했습니다.");
-    }
-};
-
-const finishStatus= async (status='completed') => {
-    try{
-        const response= await axios.get(`${import.meta.env.VITE_API_URL}/api/miniroom/user/${authStore.user.userId}/book`,{params: {status}})
-        compRead.value=response.data;
-        calculateMonth();
-        //1년동안 읽은 권 수
-        const calYearCnt= () =>{
-            const currentY= new Date().getFullYear();
-            return compRead.value.filter((book) =>{
-                if(book.endDate){
-                    const bookYear= new Date(book.endDate).getFullYear();
-                    return bookYear === currentY;
-                }
-                return false;
-            }).length;
-        };
-
-        yearCount.value=calYearCnt();
-
-
-        //가장 많이 읽은달 계산
-        const MostReadMonth= () => {
-            if(!compRead.value || compRead.value.length === 0){
-                console.log("독서를 완료한 도서가 존재하지 않습니다.");
-                return null;
-            }
-
-            const monthCnt= {};
-
-            compRead.value.forEach((book) => {
-                if(book.endDate){
-                    const month= new Date(book.endDate).getMonth()+1; 
-                    monthCnt[month] = (monthCnt[month] || 0) + 1;
-                }
-            });
-        
-
-            let maxCnt= 0;
-            let mostRMonth= "";
-
-            for(const [month, count] of Object.entries(monthCnt)){
-                if( count > maxCnt){
-                    maxCnt=count;
-                    mostRMonth= month;
-                }
-            } 
-
-            return {month:mostRMonth, count: maxCnt};
-        };
-
-        mostReadInfo.value= MostReadMonth();
-    
-    }catch(error){
-        console.log(error);
-    }
-};
-
-
-onMounted(() => {
-    MusicPlayer;
-    loadMyLibrary();
-    readingBook().then(() => {
-        isEditing.value = readList.value.map(() => false); // 각 책의 편집 상태 초기화
-
-        //저장된 진행상황 불러오기
-        readList.value.forEach((book, index)=>{
-            const savedProgress= progressStore.getProgress(book.isbn13);
-            if(savedProgress){
-                currentPage.value[index]= savedProgress.currentPage; //저장된 현재페이지
-                book.progressPercentage = savedProgress.progressPercentage || 0;
-            } else {
-                book.progressPercentage = 0;
-            }
-        });
-    });
-    userInfo();
-    finishStatus();
+// 컴포넌트 초기화
+onMounted(async () => {
+  await getUserInfo();
+  await loadUserProfile();
+  await loadBooks("reading", readList);
+  await loadBooks("completed", completedBooks);
+  await loadBooks("wished", addList);
+  calculateCompletedStats();
+  calculateMonthStats();
 });
-
-
-
 </script>
 
 <style scoped>

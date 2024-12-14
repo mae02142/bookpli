@@ -4,6 +4,10 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: "/",
+      redirect: "/main", // 기본 경로에서 /main으로 리다이렉트
+    },
+    {
       path: "/auth",
       children: [
         {
@@ -37,9 +41,9 @@ const router = createRouter({
           component: () => import("@/components/review/ReviewForm.vue"),
         },
         {
-          path  : "book",
-          component : () => import("@/components/review/BookReview.vue"),
-        }
+          path: "book",
+          component: () => import("@/components/review/BookReview.vue"),
+        },
       ],
     },
     {

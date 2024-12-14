@@ -213,14 +213,11 @@ const playSong = async (uri) => {
           },
       }
       );
-
-      console.log(`Playing song: ${uri}`);
   } catch (error) {
       console.error(
       "Error playing song:",
       error.response ? error.response.data : error.message
       );
-      console.log(uri);
   }
 };
 
@@ -260,8 +257,6 @@ const playAlbum = async (albumId) => {
         },
       }
     );
-
-    console.log(`Playing album: ${albumUri}`);
   } catch (error) {
     if (error.response?.status === 403) {
       if (error.response.data.error.reason === "PREMIUM_REQUIRED") {

@@ -11,7 +11,7 @@
       </router-link>
         <img class="sidebar-icon" src="@/assets/sidebar/usericon.png" @click="openModal">
         <UserInfoModal   v-if="modalStore.activeModal === 'UserInfoModal'" 
-        @close="closeModal" />
+        @close-modal="closeModal" />
     </div>
 </template>
 

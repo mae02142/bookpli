@@ -1,6 +1,5 @@
 package com.project.bookpli.auth.controller;
 
-import com.project.bookpli.auth.manager.TokenManager;
 import com.project.bookpli.auth.service.AuthService;
 import com.project.bookpli.auth.service.JwtService;
 import com.project.bookpli.common.exception.BaseException;
@@ -12,7 +11,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,7 +47,6 @@ public class AuthController {
                 "&redirect_uri=" + redirectUri +
                 "&scope=user-read-private user-read-email playlist-read-private streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played playlist-modify-private "+
                 "playlist-modify-public";
-        System.out.println("spotifyAuthUrl>>>>>>>>"+spotifyAuthUrl);
         return ResponseEntity.ok(spotifyAuthUrl); // URL 반환
     }
 
@@ -72,7 +69,7 @@ public class AuthController {
             response.addCookie(cookie);
             log.debug("JWT 쿠키 생성: {}", cookie);
 
-            response.sendRedirect("http://localhost:3000/mypage/mypli");
+            response.sendRedirect("http://localhost:3000/miniroom/minihome");
 
         } catch (Exception e) {
             e.printStackTrace();
