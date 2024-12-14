@@ -17,8 +17,6 @@ public class Book {
     private String title;
     private String author;
     private String description;
-    //자바 8 이상부터는 LocalDate 권장
-//    private Date pubdate;
     private LocalDate pubdate;
 
     private String publisher;

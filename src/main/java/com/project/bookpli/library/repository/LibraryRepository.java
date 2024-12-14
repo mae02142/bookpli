@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 @Repository
@@ -30,7 +31,7 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Transactional
     @Modifying
     @Query("update Library l set l.status='reading', l.startDate= :startDate, l.endDate= :endDate where l.status='wished' AND l.book.isbn13 = :isbn13")
-    int setReadGoal(@Param("isbn13") String isbn13, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    int setReadGoal(@Param("isbn13") String isbn13, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     //독서 상태 해제로 변경
     @Transactional
@@ -50,8 +51,17 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
             "WHERE l.userId = :userId")
     List<LibraryResponseDTO> getMyLibrary(Long userId);
 
+
     @Transactional
     @Modifying
     @Query("DELETE FROM Library l WHERE l.userId = :userId AND l.libraryId = :libraryId")
     void deleteByLibraryIdAndUserId(@Param("userId") Long userId, @Param("libraryId") Long libraryId);
+
+    //도서 실패처리
+    @Transactional
+    @Modifying
+    @Query("update Library l set l.status='failed' where l.status='reading' and l.book.isbn13= :isbn13")
+    int changeFail (@Param("isbn13") String isbn13);
+
+
 }

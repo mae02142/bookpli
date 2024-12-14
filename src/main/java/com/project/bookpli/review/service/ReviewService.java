@@ -44,26 +44,21 @@ public class ReviewService {
     }
 
     // 해당 도서에 대한 리뷰 전체 조회
-    public List<ReviewDTO> readByIsbn (String isbn){
-        List<Object[]> list;
+    public List<ReviewDTO> readByIsbn (String isbn13){
         try {
-            list = repository.findByIsbn(isbn);
-            if (list.isEmpty()) {
-                System.out.println("서비스단 : 리스트가 비어있습니다.  isbn : " + isbn);
+            // 이미 repository.findByIsbn은 List<ReviewDTO>를 반환
+            List<ReviewDTO> list = repository.findByIsbn(isbn13);
+
+            if ( list.isEmpty()) {
+                System.out.println("서비스단 : 리스트가 비어있습니다. isbn : " + isbn13);
                 return Collections.emptyList();
             }
-        } catch (Exception e){
-            System.out.println("서비스단에서 오류 발생 : "+ e.getMessage());
+
+            return list; // 직접 반환
+        } catch (Exception e) {
+            System.out.println("서비스단에서 오류 발생 : " + e.getMessage());
             return Collections.emptyList();
         }
-        return list.stream()
-                .map(row -> {
-                    Review review = (Review) row[0];
-                    String userNickname = row[1] != null ? row[1].toString() : null; // null 체크 추가
-                    String profilePath = row[2] != null ? row[2].toString() : null;
-                    return ReviewDTO.fromEntityForList(review,userNickname,profilePath);
-                })
-                .collect(Collectors.toList());
     }
 
     // 리뷰 수정
