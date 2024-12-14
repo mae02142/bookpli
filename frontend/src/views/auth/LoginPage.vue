@@ -1,17 +1,17 @@
 <template>
-    <div class="container">
-      <div class="login-sidebar">
-        <img class="book-image" src="@/assets/logos/mascot.png" />
-        <div class="brand-name">Bookpli.</div>
+    <div class="login-container">
+      <div class="left-side-thumbnail">
+        <img class="login-thumbnail" src="@/assets/images/thumbnail3.png" />
       </div>
       <div class="content-wrapper">
-        <div class="header">
+        <div class="login-header"  @click="goHome">
           <img src="@/assets/icons/left_arrow.png" class="left-arrow"/>
-          <span class="home-text" @click="goHome">홈으로</span>
+          <img class="book-image" src="@/assets/logos/mascot.png" />
+          <span class="home-text">홈으로</span>
         </div>
         <div class="main-content">
-          <p class="title">플레이리스트와 독서 추천을 한번에</p>
-          <p class="subtitle">인생책과 노래를 찾아보세요:)</p>
+          <p class="login-title">플레이리스트와 독서 추천을 한번에</p>
+          <p class="subtitle">북플리에서 인생책과 노래를 찾아보세요:)</p>
           <div class="spotify-login-box" @click="handleLogin">
             <img class="spotify-logo" src="@/assets/logos/spotify_logo.png" />
             <div class="spotify-login">Spotify 로그인</div>
@@ -42,25 +42,13 @@ const handleLogin = async () => {
 </script>
   
   <style>
-  .container,
-  .container * {
-    box-sizing: border-box;
-  }
-  .container {
+  .login-container {
     display: flex;
     height: 100vh;
     width: 100%;
   }
-  .login-sidebar {
-    background: #fffdf1;
-    width: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
   .book-image {
-    width: 400px;
+    width: 60px;
     height: auto;
     object-fit: cover;
   }
@@ -75,14 +63,14 @@ const handleLogin = async () => {
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
-    width: 50%;
-    padding: 30px;
+    width: 45%;
     background: #ffffff;
+    padding: 10px;
   }
-  .header {
+  .login-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    cursor: pointer;
   }
   .home-text {
     color: #000;
@@ -90,20 +78,16 @@ const handleLogin = async () => {
     font-weight: 400;
   }
 
-  .home-text:hover{
-    cursor: pointer;
-  }
-
   .main-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
+    gap: 10px;
     height: 100%;
     justify-content: center;
     align-self: center;
   }
-  .title {
+  .login-title {
     color: #000000;
     font-size: 25px;
     font-weight: 600;
@@ -124,8 +108,8 @@ const handleLogin = async () => {
     justify-content: center;
   }
   .spotify-logo {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     object-fit: cover;
   }
   .spotify-login {
@@ -146,5 +130,14 @@ const handleLogin = async () => {
 
   .spotify-login-box:hover{
     cursor: pointer;
+  }
+
+  .login-thumbnail {
+    height: 100%;
+    width: fit-content;
+  }
+
+  .left-side-thumbnail {
+    width: 65%;
   }
   </style>

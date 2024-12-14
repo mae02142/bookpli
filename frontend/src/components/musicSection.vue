@@ -56,15 +56,12 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td
-                        class="song-details"
-                        style="min-width: 20px; text-align: center; position: relative;"
-                        @click="toggleOptionMenu1(index)">
-                        ⋮
-                        <div v-show="showOptionMenu1[index]" class="option-menu">
-                            <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
-                            <span style="padding-bottom: 5px;">내 플리에 추가하기</span>
-                            <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
+                        <td class="song-details" @click="toggleOptionMenu1(index)">
+                        <span class="toggle-button">⋮</span>
+                        <div v-show="showOptionMenu1[index]" class="music-option-menu">
+                            <span @click="playSong(song.uri)">재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span @click="openSongDetail(song)">앨범 정보 보기</span>
                         </div>
                     </td>
                     </tr>
@@ -91,15 +88,12 @@
                         </td>
                         <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                         <td class="song-artist">{{ song.artist }}</td>
-                        <td
-                        class="song-details"
-                        style="min-width: 20px; text-align: center; position: relative;"
-                        @click="toggleOptionMenu2(index)">
-                        ⋮
-                        <div v-show="showOptionMenu2[index]" class="option-menu">
-                            <span style="padding-bottom: 5px;">재생하기</span>
-                            <span style="padding-bottom: 5px;">내 플리에 추가하기</span>
-                            <span style="padding-bottom: 5px;">앨범 정보 보기</span>
+                        <td class="song-details" @click="toggleOptionMenu2(index)">
+                        <span class="toggle-button">⋮</span>
+                        <div v-show="showOptionMenu2[index]" class="music-option-menu">
+                            <span>재생하기</span>
+                            <span>내 플리에 추가하기</span>
+                            <span>앨범 정보 보기</span>
                         </div>
                     </td>
                     </tr>
@@ -448,18 +442,34 @@ body {
     background-color: #ffff;
 }
 
-.option-menu {
-    position : absolute;
-    background-color: white;
+.music-option-menu {
+    position: absolute;
+    background-color: #fff;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     z-index: 1000;
-    display: flex;
-    padding: 5px;
+    flex-direction: column;
     width: max-content;
-    flex-flow: column;
-    align-items: flex-start;
+    top: 32%;
+    left: 20px;
+    display: flex;
+}
+
+/* Option Menu 항목 스타일 */
+.music-option-menu span {
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.music-option-menu span:hover {
+    color: #67de86;
+}
+
+.toggle-button {
+    cursor: pointer;
 }
 
 .music-app {
@@ -564,6 +574,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
+}
+
+.song-details {
+    cursor: pointer;
+    text-align: center;
+    position: relative;
 }
 
 .song-details:hover {

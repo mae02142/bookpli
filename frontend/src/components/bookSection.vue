@@ -17,7 +17,7 @@
     </section>
 
     <!-- Rankings Section -->
-    <section class="rankings" style="padding-top: 30px;">
+    <section class="rankings">
         <h2 class="section-title">도서 순위</h2>
         <hr>
         <div class="rankings-container" style="width: 90%;">
@@ -29,17 +29,15 @@
                     class="ranking-tr" 
                     v-for="(book, index) in bestBooks" 
                     :key="book.rank" 
-                    style="vertical-align: middle;"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                     <td 
                         class="book-details" 
-                        style="min-width: 20px; text-align: center; position: relative;" 
                         @click="toggleOptionMenu1(index)"
                     >
-                        ⋮
+                        <span class="toggle-button">⋮</span>
                         <div v-show="showOptionMenu1[index]" class="option-menu">
                             <span>재생하기</span>
                             <span>내 플리에 추가하기</span>
@@ -51,7 +49,7 @@
         </div>
 
         <!-- Blog Best Seller -->
-        <div class="ranking" style="padding-top: 30px;">
+        <div class="ranking">
             <h3 class="ranking-title">블로거 추천 도서</h3>
             <table class="ranking-table">
                 <tr 
@@ -65,10 +63,9 @@
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                     <td 
                         class="book-details" 
-                        style="min-width: 20px; text-align: center; position: relative;" 
                         @click="toggleOptionMenu2(index)"
                     >
-                        ⋮
+                        <span class="toggle-button">⋮</span>
                         <div v-show="showOptionMenu2[index]" class="option-menu">
                             <span>재생하기</span>
                             <span>내 플리에 추가하기</span>
@@ -234,12 +231,14 @@ export default {
         }
     };
     
+    
     const router = useRouter();
-
     const gotoDetail = (isbn13) => {
         router.push({
             path: `/main/book/${isbn13}`,
-        });
+        }).catch((err) => {
+        console.error("Navigation Error:", err);
+    });
     };
 
     onMounted(async () => {
@@ -256,11 +255,6 @@ export default {
 
 <style scoped>
 /* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #ffff;
-}
-
 .book-app {
     max-width: 1200px;
     margin: auto;
@@ -278,20 +272,12 @@ body {
     margin-bottom: 1rem;
 }
 
-.book-title {
+.book-title, .book-author {
     max-width: 170px;
     white-space: nowrap;
     overflow: hidden; 
     text-overflow: ellipsis; 
     display: block;
-}
-
-.book-author {
-    max-width: 170px;
-    white-space: nowrap;
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    display: block; 
 }
 
 .book-list {
@@ -317,7 +303,7 @@ body {
 }
 
 .add-btn {
-    background-color: #ffff;
+    background-color: #fff;
     border: none;
     padding: 0.5rem;
     width: 32px;
@@ -339,8 +325,13 @@ body {
     justify-content: space-between;
 }
 
+.rankings {
+    padding-top: 30px;
+}
+
 .ranking {
     width: 45%;
+    padding-top: 30px;
 }
 
 .ranking-title {
@@ -349,31 +340,52 @@ body {
 }
 
 .ranking-table {
-    width:100%;
+    width: 100%;
     margin: auto;
-    vertical-align: middle;
+    overflow: visible;
 }
 
 .ranking-tr {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #ccc;
     height: 50px;
-    table-layout: auto;
+    vertical-align: middle;
+    position: relative;
 }
 
-.book-details:hover {
-    cursor:pointer;
+.book-details {
+    cursor: pointer;
+    text-align: center;
+    position: relative;
 }
 
 .option-menu {
-    position : absolute;
-    background-color: white;
+    position: absolute;
+    background-color: #fff;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     z-index: 1000;
-    display: flex;
+    flex-direction: column;
     width: max-content;
-    flex-flow: column;
-    align-items: flex-start;
+    top: 20%;
+    left: 20px;
+    display: flex;
 }
+
+/* Option Menu 항목 스타일 */
+.option-menu span {
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.option-menu span:hover {
+    color: #67de86;
+}
+
+.toggle-button {
+    cursor: pointer;
+}
+
 </style>

@@ -71,6 +71,10 @@
       </div>
     </div>
     <div class="content">
+      <!-- 안내 메시지 -->
+      <div v-if="!selectedPlaylist" class="playlist-placeholder">
+        <p>플레이리스트를 선택해주세요</p>
+      </div>
       <div class="song-list" v-if="selectedPlaylist">
         <div>
           <!-- 타이틀 변경 input -->
@@ -149,9 +153,9 @@
                 </div>
               </td>
               <td class="song-album">{{ song.album }}</td>
-              <td class="song-duration">{{ formatDuration(song.duration) }}</td>
+              <td class="song-duration">{{ handleFormat(song.duration) }}</td>
               <td class="delete-button-container" v-if="selectedPlaylist.owner === authStore.user.spotifyId">
-                <button class="delete-button" @click="deleteSongFromPlaylist(selectedPlaylist.id, song.id)">삭제               </button>
+                <button class="delete-button" @click="removeMusic(selectedPlaylist.id, song.id)">삭제               </button>
               </td>
             </tr>
           </tbody>
@@ -178,8 +182,9 @@ import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUserStore } from '@/stores/user.js';
-
 import { useUtilModalStore } from '@/stores/utilModalStore';
+import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
+
 
 // 상태 관리
 const userStore = useUserStore()
@@ -285,10 +290,8 @@ const confirmDeletePlaylist = (playlistId) => {
 }
 
 // 유틸 함수: 곡 길이 포맷
-const formatDuration = (ms) => {
-  const minutes = Math.floor(ms / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
+const handleFormat = (ms) => {
+  return formatDuration(ms);
 };
 
 // 노래 세부 정보 열기
@@ -300,7 +303,7 @@ const openSongDetail = (song) => {
 // 플레이리스트 로드
 const loadTracks = async (playlistId) => {
   try {
-    songs.value = await getPlaylistTracks(playlistId); // 트랙 가져오기
+    songs.value = await getPlaylistTracks(apiClient, playlistId) // 트랙 가져오기
     selectedPlaylist.value = playlists.value.find(
       (playlist) => playlist.id === playlistId
     );
@@ -332,60 +335,13 @@ const getUserPlaylist = async () => {
   }
 };
 
-// Spotify API: 특정 플레이리스트의 트랙 가져오기
-const getPlaylistTracks = async (playlistId) => {
-  try {
-    const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
-    return response.data.data.items.map((item) => {
-      const track = item.track;
-      return {
-        id: track.id,
-        name: track.name,
-        album: track.album.name,
-        albumId: track.album.id,
-        artists: track.artists.map((artist) => artist.name).join(", "),
-        duration: track.duration_ms,
-        albumCover: track.album.images[0]?.url || "",
-      };
-    });
-  } catch (error) {
-    console.error("트랙 가져오기 실패:", error);
-    return [];
-  }
-};
-
-const getUserInfo = async() => {
-  try {
-    const response = await apiClient.get("/api/auth/user-info");
-
-    if (response.data.data) {
-      const userInfo = {
-        spotifyId: response.data.data.spotifyId,
-        userId: response.data.data.userId,
-      };
-      authStore.setUser(userInfo);
-    }
-  } catch (error) {
-    console.error("사용자 정보 요청 실패:", error);
-  }
-};
-
-// 페이지 로드 시 실행
-onMounted(() => {
-  getUserInfo();
-  getUserPlaylist(); // 플레이리스트 가져오기
-});
-
 // 노래 삭제
-const deleteSongFromPlaylist = async (playlistId, songId) => {
-  const songUri = `spotify:track:${songId}`; // Spotify 트랙 URI 형식
+const removeMusic = async (playlistId, songId) => {
   try {
-    await apiClient.delete(`/api/mypli/playlist/${playlistId}/tracks`, {
-      data: { uri: songUri },
-    });
+    await deleteSongFromPlaylist(apiClient, playlistId, songId);
     songs.value = songs.value.filter((song) => song.id !== songId);
   } catch (error) {
-    console.error("플레이리스트에서 노래 삭제 실패:", error);
+    console.error("노래 삭제 중 오류:", error);
   }
 };
 
@@ -432,7 +388,10 @@ const refreshPlaylistTracks = async () => {
   }
 };
 
-
+// 페이지 로드 시 실행
+onMounted(() => {
+  getUserPlaylist(); // 플레이리스트 가져오기
+});
 </script>
 
 <style scoped>
@@ -807,5 +766,14 @@ text-align: center;
 
 .other-list {
   margin-top: 30px;
+}
+
+.playlist-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 1.5rem;
+  color: #888;
 }
 </style>

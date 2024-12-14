@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll() // 인증 없이 접근 가능
+                        .requestMatchers("/api/auth/**").permitAll() // 인증 없이 접근 가능
                         .requestMatchers("/static/**").permitAll() // 정적 파일 접근 허용
                                 .anyRequest().permitAll() // 모든 요청 허용
 //                        .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요

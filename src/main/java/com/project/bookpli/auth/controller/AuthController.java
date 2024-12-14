@@ -69,7 +69,7 @@ public class AuthController {
             response.addCookie(cookie);
             log.debug("JWT 쿠키 생성: {}", cookie);
 
-            response.sendRedirect("http://localhost:3000/mypage/mypli");
+            response.sendRedirect("http://localhost:3000/miniroom/minihome");
 
         } catch (Exception e) {
             e.printStackTrace();
