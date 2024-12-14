@@ -2,15 +2,15 @@
 <template>
     <div v-if="visible" class="modal-overlay" @click.self="emitClose">
         <div class="modal-content">
-        <div class="title">{{rbook.title}}</div>
-
-        <div class="book-section">
-        <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
-        <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
-        <div class="reading-status" v-if="rbook.status === 'reading'">
-            <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
-            <span class="reading-status-text">읽고 있는 책</span>
-        </div>
+            
+            <div class="book-section">
+                <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
+                <div class="title">{{rbook.title}}</div>
+                <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
+                <div class="reading-status" v-if="rbook.status === 'reading'">
+                    <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
+                    <span class="reading-status-text">읽고 있는 책</span>
+            </div>
         </div>
 
         <div class="date-section">
@@ -82,6 +82,7 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import axios from "axios";
+import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
 const router= useRouter();
@@ -107,6 +108,25 @@ const confirmAction= () => {
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
 
+const changeDate= async (rbook) => {
+
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+    
+    try{
+        const response= await apiClient.put(`/api/goal/reset/${book.isbn13}`, null, {
+            params: {
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
+        alert("독서기간이 수정되었습니다.");
+        
+    }catch(error){
+        console.log("독서기간 수정중 에러",error);
+    }
+}
+
 
 const book =ref(
     route.query.data ? JSON.parse(route.query.data): {}
@@ -131,13 +151,19 @@ const showEndPicker = ref(false);
 const radioSelect= ref("");
 
 const handleAction= async () => {
-    if(radioSelect.value === "reading"){
-        await changeStatus();
-    }else if(radioSelect.value === "dropped"){
-        await dropReading();
-    }else{
-        alert("독서상태를 선택해주세요");
-    }
+    try{
+        await changeDate(rbook);
+
+        if(radioSelect.value === "reading"){
+            await changeStatus();
+        }else if(radioSelect.value === "dropped"){
+            await dropReading();
+        }else{
+            alert("독서상태를 선택해주세요");
+        }
+    }catch(error){
+        console.log("ㅇㄹㅇㄹㅇ",error);
+    }; 
 }
 
 const changeStatus = async () => {
@@ -226,7 +252,7 @@ object-fit: cover;
 .book-info {
 font-size: 13px;
 color: #757575;
-margin-top: 20px;
+margin-top: 7px;
 }
 
 .reading-status {
@@ -235,8 +261,8 @@ align-items: center;
 justify-content: center;
 background: #fffdf1;
 border-radius: 25px;
-width: 281px;
-height: 56px;
+width: 190px;
+height: 40px;
 margin-top: 15px;
 }
 
@@ -246,13 +272,13 @@ color: #000000;
 }
 
 .bookmark {
-    width: 40px;
-    height: 35px;
+    width: 23px;
+    height: 25px;
     margin-right: 10px;
 }
 
 .date-section {
-margin: 20px auto;
+margin: 15px auto;
 width: 80%;
 max-width: 800px;
 }
@@ -423,7 +449,6 @@ font-size: 14px;
     justify-content: center;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
 </style>
 

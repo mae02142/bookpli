@@ -53,4 +53,13 @@ public class ReadingGoalController {
         }
     }
 
+    //독서 기간 수정
+    @PutMapping("/reset/{isbn13}")
+    public ResponseEntity<Integer> resetDate(@PathVariable String isbn13,
+                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+        int setPeriod = libraryrep.updateDate(isbn13,startDate,endDate);
+        return ResponseEntity.ok(setPeriod);
+    }
+
 }

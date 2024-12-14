@@ -80,12 +80,12 @@
         </div>
 
         <h3 class="title-header">내가 읽고 있는 책</h3>    
-        <p class="more-wrapper book-more">
+        <p class="more-wrapper book-more" @click="loadReadList">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
         </p>
         <div class="book-section">
             <div v-if="readList.length > 0" class="book-covers">
-                <div class="book-item" v-for="rbook in readList.slice(0,4)" :key="rbook.isbn13">
+                <div class="book-item" v-for="rbook in pageinationRead.slice(0,4)" :key="rbook.isbn13">
                     <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
                     <p class="book-info">
                         <span class="book-icon" @click="openModal(rbook)">📖</span>&nbsp;&nbsp;
@@ -98,12 +98,12 @@
         </div>
 
         <h3 class="title-header">내가 담아놓은 책</h3>
-        <p class="more-wrapper book-more">
+        <p class="more-wrapper book-more" @click="loadWishList">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
         </p>
         <div class="book-section">
             <div v-if="addList.length > 0" class="book-covers">
-                <div class="book-item" v-for="wbook in addList.slice(0,4)" :key="addList.isbn13">
+                <div class="book-item" v-for="wbook in pageinationWish.slice(0,4)" :key="wbook.isbn13">
                     <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
                 </div>
             </div>
@@ -143,15 +143,65 @@ const isEditing = ref([]);
 const currentGoal = ref(0);
 const currentRead = ref(0);
 const yearCount = ref(0);
-const compRead= ref([]);
 const mostReadInfo = ref({ month: "0", count: 0 });
 const showModal = ref(false);
 const selectBook = ref({});
 const liked= ref("");
 
-const totalPgn=ref(1);
-const currentPgn=ref(0);
-const pageSize= ref(4);
+const currentReading=ref(1);
+const currentWished=ref(1);
+const itemsPerPage= ref(4);
+
+const pageinationRead = computed (() => {
+    const startIndex= (currentReading.value -1) * itemsPerPage.value;
+    const endIndex= startIndex+itemsPerPage.value;
+
+    return readList.value.slice(startIndex, endIndex);
+});
+
+const pageinationWish = computed (() => {
+    const startIndex= (currentWished.value -1) * itemsPerPage.value;
+    const endIndex= startIndex+itemsPerPage.value;
+
+    return addList.value.slice(startIndex, endIndex);
+});
+
+const loadReadList = () =>{
+    if(currentReading.value * itemsPerPage.value < readList.value.length){
+        currentReading.value+=1;
+    }else{
+        alert("마지막 페이지 입니다.");
+        currentReading.value=1;
+    }
+};
+
+const loadWishList = () =>{
+    if(currentWished.value * itemsPerPage.value < addList.value.length){
+        currentWished.value+=1;
+    }else{
+        alert("마지막 페이지 입니다.");
+        currentWished.value=1;
+    }
+};
+
+//목표기간 변경
+const updateStartDate= (value)=> {
+    startDate.value=value;
+    updateBookGoal();
+}
+
+const updateEndDate= (value)=> {
+    endDate.value=value;
+    updateBookGoal();
+}
+
+const updateBookGoal = () => {
+    const bookIdx= readList.value.findIndex((b) => b.isbn13 === book.value.isbn13);
+    if(bookIdx !== -1){
+        readList.value[bookIdx].startDate=startDate.value;
+        readList.value[bookIdx].endDate=endDate.value;
+    }
+}
 
 const openModal = (book) => {
   selectBook.value = book;
@@ -270,6 +320,7 @@ const updateFailedBooks = (index) => {
         readList.value.splice(index, 1); 
     }
 };
+
 
 // 독서 기록 저장
 const saveProgress = (index) => {
@@ -790,5 +841,9 @@ position: relative;
 
 .userNm{
     font-size: x-large;
+}
+
+.book-icon {
+    cursor: pointer;
 }
 </style>
