@@ -4,7 +4,7 @@ import com.project.bookpli.entity.Post;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
+
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +21,7 @@ public class PostDTO {
 
     private String userNickname;
     private String profilePath;
+
 
           // DTO -> Entity
     public Post toEntity() {
@@ -56,4 +57,6 @@ public class PostDTO {
                 .postDate(post.getPostDate())
                 .build();
     }
+
+
 }

@@ -1,22 +1,24 @@
 package com.project.bookpli.miniroom.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.project.bookpli.entity.Book;
-import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.book.dto.BookDTO;
-import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.book.repository.BookRepository;
+import com.project.bookpli.booklike.repository.BookLikeRepository;
+import com.project.bookpli.entity.Book;
+import com.project.bookpli.entity.BookLike;
+import com.project.bookpli.library.repository.LibraryRepository;
+import com.project.bookpli.miniroom.dto.BookLikeDTO;
+import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -29,6 +31,9 @@ public class BookApiService {
 
     @Autowired
     private LibraryRepository librep;
+
+    @Autowired
+    private BookLikeRepository blrep;
 
     @Autowired
     private UserRepository userrep;
@@ -117,9 +122,7 @@ public class BookApiService {
             return bookrep.addBookList(userId);
         } else if("completed".equalsIgnoreCase(status)) {
             return bookrep.finishBookList(userId);
-        } else if("like".equalsIgnoreCase(status)) {
-            return bookrep.likeBookList(userId);
-        }else{
+        } else{
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
@@ -129,4 +132,42 @@ public class BookApiService {
         return librep.completeBook(isbn13, status);
     }
 
+    //도서 실패
+    public int failReading(String isbn13){
+        return librep.changeFail(isbn13);
+    }
+
+    //찜하기
+    public BookLike likeBook(Long userId, String isbn13){
+
+        BookLikeDTO dto= BookLikeDTO.builder()
+                        .user_id(userId)
+                        .isbn13(isbn13)
+                        .build();
+
+        BookLike bookLike=dto.toEntity(null);
+
+        // 중복 여부 확인
+        if (blrep.existsByUserIdAndIsbn13(userId,isbn13)) {
+            throw new IllegalArgumentException("이미 찜한 도서입니다.");
+        }
+
+        return blrep.save(bookLike);
+    }
+
+    //찜하기 해제
+    public void  dislike(Long userId, String isbn13){
+        Optional<BookLike> dislike=blrep.findByUserIdAndIsbn13(userId, isbn13);
+
+        if(dislike.isPresent()){
+            blrep.delete(dislike.get());
+        }else {
+            throw new IllegalArgumentException("해당 도서가 찜 목록에 없습니다.");
+        }
+    }
+
+    //찜한 도서?
+    public boolean isLiked(Long userId, String isbn13){
+        return blrep.existsByUserIdAndIsbn13(userId, isbn13);
+    }
 }

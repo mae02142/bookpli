@@ -21,6 +21,17 @@ public class ReviewDTO {
     private String userNickname;
     private String profilePath;
 
+    //리뷰조회 생성자
+    public ReviewDTO(Long reviewId, Long userId, String isbn13, String reviewContent, Integer rating, String userNickname, String profilePath) {
+        this.reviewId = reviewId;
+        this.userId = userId;
+        this.isbn13 = isbn13;
+        this.reviewContent = reviewContent;
+        this.rating = rating;
+        this.userNickname = userNickname;
+        this.profilePath = profilePath;
+    }
+    
     //dto ->  엔티티  변환
     public Review toEntity() {
         return Review.builder()
@@ -65,8 +76,10 @@ public class ReviewDTO {
                 .isbn13(review.getIsbn13())
                 .reviewContent(review.getReviewContent())
                 .rating(review.getRating())
-                .cover(userNickname)
-                .title(profilePath)
+//                .cover(userNickname)
+//                .title(profilePath)
+                .userNickname(userNickname)
+                .profilePath(profilePath)
                 .build();
     }
 }

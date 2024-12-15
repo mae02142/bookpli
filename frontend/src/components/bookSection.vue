@@ -8,7 +8,6 @@
             <div v-for="book in newBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
                 <div class="image-container" style="padding-bottom: 10px;">
                     <img :src="book.cover" :alt="book.title" class="book-image" @click="gotoDetail(book.isbn13)"/>
-                    <button class="add-btn" style="">+</button>
                 </div>
                 <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
                 <p class="book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
@@ -28,13 +27,13 @@
                 <tr 
                     class="ranking-tr" 
                     v-for="(book, index) in bestBooks" 
-                    :key="book.rank" 
+                    :key="book.rank"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                     <td 
-                        class="book-details" 
+                        class="book-details"
                         @click="toggleOptionMenu1(index)"
                     >
                         <span class="toggle-button">⋮</span>
@@ -62,7 +61,7 @@
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                     <td 
-                        class="book-details" 
+                        class="book-details"
                         @click="toggleOptionMenu2(index)"
                     >
                         <span class="toggle-button">⋮</span>
@@ -231,7 +230,7 @@ export default {
         }
     };
     
-    
+
     const router = useRouter();
     const gotoDetail = (isbn13) => {
         router.push({

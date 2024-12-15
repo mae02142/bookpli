@@ -12,11 +12,15 @@
       </nav>
     </div>
     <div class="search-bar">
+        <select v-model="searchType" class="search-type-selector">
+          <option value="book">책</option>
+          <option value="music">음악</option>
+        </select>
         <input
         type="text"
         class="search-input"
         placeholder="Search.."
-        v-model="searchQuery"
+        v-model="query"
         @keyup.enter="submitSearch"
         />
       <div class="search-icon-grid">
@@ -42,35 +46,34 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
+const query = ref("");
+const searchType = ref("book");
+
 const authStore = useAuthStore();
 const router = useRouter();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
-// Navigation Methods
 function goHome() {
   router.push({ path: "/main" });
 }
 
-// Authentication State
-const isAuthenticated = computed(() => authStore.isAuthenticated);
-
-// Logout Handler
 const handleLogout = () => {
   authStore.clearAuthData();
   router.push({ path: "/main" });
 };
 
-// Search State
-const searchQuery = ref("");
-
-// Search Submission Handler
 const submitSearch = () => {
-  const query = searchQuery.value.trim();
-  if (query) {
-    router.push({ path: "/search", query: { q: query } });
+  const searchQuery = query.value.trim();
+  if (searchQuery) {
+    if (searchType.value === "book") {
+      router.push({ path: "/search-book", query: { q: searchQuery, type: "book" } });
+    } else if (searchType.value === "music") {
+      router.push({ path: "/search-music", query: { q: searchQuery, type: "music" } });
+    }
   } else {
     alert("검색어를 입력하세요.");
   }
@@ -78,6 +81,10 @@ const submitSearch = () => {
 </script>
 
 <style scoped>
+.spotify-search {
+  font-family: Arial, sans-serif;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -124,7 +131,7 @@ const submitSearch = () => {
   /* display: flex; */
   /* align-items: center; */
   /* border-radius: 50px; */
-  
+
 
   display: flex; /* 검색창과 돋보기를 나란히 배치 */
   align-items: center;
@@ -148,6 +155,14 @@ const submitSearch = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
 }
 
+.search-type-selector {
+  margin-right: 10px;
+  padding: 5px;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+}
+
 .log-button {
   display: flex;
   font-size: 16px;
@@ -168,5 +183,22 @@ const submitSearch = () => {
   align-items: center;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
+}
+
+.error {
+  color: red;
+}
+
+h2 {
+  margin-top: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 5px 0;
 }
 </style>

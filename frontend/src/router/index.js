@@ -97,8 +97,19 @@ const router = createRouter({
     },
 
     {
-      path: "/search",
+      path: "/search-book",
       component: () => import("@/views/main/bookSearch.vue"),
+    },
+
+    {
+    path: "/search-music",
+      component: () => import("@/views/main/MusicSearch.vue"),
+      props: route => ({ query: route.query.q }),
+    },
+
+    { 
+      path: "/details/:category", 
+      component: () => import("@/views/main/DetailsPage.vue") 
     },
 
     {
