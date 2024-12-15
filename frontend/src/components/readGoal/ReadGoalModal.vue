@@ -190,17 +190,6 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-}
-
-body {
-background: #ffffff;
-font-family: "Inter", sans-serif;
-}
-
 .title {
 font-size: 16px;
 font-weight: 700;

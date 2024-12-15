@@ -136,4 +136,9 @@ input:checked + .slider:before {
 .right-label {
   right: 23px; /* Align to the right */
 }
+
+.main-thumbnail {
+  width: 100%;
+}
+
 </style>

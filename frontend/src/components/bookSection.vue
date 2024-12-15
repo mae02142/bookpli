@@ -1,19 +1,63 @@
 <template>
     <div class="book-app">
     <!-- Recommendations Section -->
-    <section class="recommendations">
-        <h1 class="section-title">추천 신간</h1>
-        <hr>
-        <div class="book-list">
-            <div v-for="book in newBooks" :key="book.id" class="book-item" style="padding-top: 50px;">
-                <div class="image-container" style="padding-bottom: 10px;">
-                    <img :src="book.cover" :alt="book.title" class="book-image" @click="gotoDetail(book.isbn13)"/>
+    <section class="book-recommendations">
+            <h1 class="section-title">추천 신간</h1>
+            <hr>
+            <div id="carouselExampleControlsNoTouching" class="carousel slide" data-bs-touch="true" data-bs-interval="false">
+                <div class="carousel-inner">
+                    <div 
+                        v-for="(group, groupIndex) in groupedBooks" 
+                        :key="groupIndex" 
+                        class="carousel-item"
+                        :class="{ active: groupIndex === 0 }"
+                    >
+                        <div class="book-group">
+                            <div 
+                                v-for="book in group" 
+                                :key="book.id" 
+                                class="book-item"
+                            >
+                                <div class="image-container">
+                                    <img
+                                        :src="book.cover"
+                                        :alt="book.title"
+                                        class="book-image"
+                                        @click="gotoDetail(book.isbn13)"
+                                    />
+                                </div>
+                                <p class="book-title">
+                                    {{ book.title.length > 20 ? book.title.slice(0, 20) + '...' : book.title }}
+                                </p>
+                                <p class="book-author" style="font-size: 14px;">
+                                    {{ book.author.replace(/\(.*\)/, '').length > 15 
+                                        ? book.author.replace(/\(.*\)/, '').slice(0, 15) + '...' 
+                                        : book.author.replace(/\(.*\)/, '') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p class="book-title" style="font-size: 20px; padding-bottom: 5px;">{{ book.title }}</p>
-                <p class="book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
+                <button 
+                    class="carousel-control-prev" 
+                    type="button" 
+                    data-bs-target="#carouselExampleControlsNoTouching"
+                    data-bs-slide="prev"
+                >
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button 
+                    class="carousel-control-next" 
+                    type="button" 
+                    data-bs-target="#carouselExampleControlsNoTouching"
+                    data-bs-slide="next"
+                >
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
             </div>
-        </div>
-    </section>
+        </section>
 
     <!-- Rankings Section -->
     <section class="rankings">
@@ -82,7 +126,7 @@
 
 <script>
 import MusicPlayer from "@/components/layouts/musicPlayer.vue"; // Corrected casing
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 
 export default {
@@ -93,6 +137,7 @@ export default {
     const newBooks = ref([]);
     const bestBooks = ref([]);
     const blogBooks = ref([]);
+
 
     const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
     const ttbKey = "ttbyoungjae.bae1809001";
@@ -125,7 +170,7 @@ export default {
             const callbackName = `jsonpCallback_${Date.now()}`;
             const script = document.createElement("script");
 
-            script.src = `${apiUrl}?ttbkey=${ttbKey}&QueryType=ItemNewSpecial&MaxResults=5&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
+            script.src = `${apiUrl}?ttbkey=${ttbKey}&QueryType=ItemNewSpecial&MaxResults=10&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
 
             script.onerror = () => {
             reject(new Error("JSONP request failed"));
@@ -240,6 +285,15 @@ export default {
     });
     };
 
+    const groupedBooks = computed(() => {
+    const groups = [];
+    for (let i = 0; i < newBooks.value.length; i += 5) {
+        groups.push(newBooks.value.slice(i, i + 5)); // 5권씩 묶기
+    }
+    console.log("Grouped Books:", groups); // 디버깅용 출력
+    return groups;
+    });
+
     onMounted(async () => {
         await fetchNewBooks();
         await fetchBestBooks();
@@ -247,7 +301,9 @@ export default {
     });
 
 
-    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2, gotoDetail };
+    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2, gotoDetail,
+        groupedBooks
+     };
     },
 };
 </script>
@@ -261,39 +317,52 @@ export default {
 }
 
 /* Recommendations Section */
-.recommendations {
+.book-recommendations {
     margin-bottom: 2rem;
     margin-top: 1rem;
 }
 
 .section-title {
-    font-size: 3rem;
+    font-size: 28px;
     margin-bottom: 1rem;
+    font-weight: bold;
 }
 
-.book-title, .book-author {
+.book-title {
     max-width: 170px;
     white-space: nowrap;
     overflow: hidden; 
     text-overflow: ellipsis; 
     display: block;
+    font-size: 16px; 
+    margin-bottom: 0px;
+    font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.book-author {
+    max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: block;
+    font-size: 16px; 
+    margin-bottom: 0px;
 }
 
 .book-list {
-    display: flex;
     gap: 1rem;
-}
-
-.book-item {
-    text-align: center;
-    margin: auto;
+    display: flex;
+  transition: transform 0.5s ease-in-out; /* 부드러운 애니메이션 */
+  will-change: transform; /* 성능 최적화 */
 }
 
 .book-image {
     width: 150px;
     height: 200px;
-    object-fit: cover;
-    margin-bottom: 0.5rem;
+    cursor: pointer;
+    max-width: 200px;
     cursor: pointer;
 }
 
@@ -386,5 +455,102 @@ export default {
 .toggle-button {
     cursor: pointer;
 }
+
+
+/* 신간 도서 캐러셀 */
+
+.book-group {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-left: 20px;
+}
+
+.book-item {
+    display: flex;
+    flex-direction: column;
+    margin: 0 10px;
+    align-items: flex-start;
+    min-width: 170px;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.carousel {
+    position: relative;
+    height: 300px;
+    display: flex;
+    align-items: center;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(255, 255, 255, 1); /* 배경 흰색 */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
+    transition: all 0.3s ease-in-out; /* 부드러운 애니메이션 */
+    opacity: 1; /* hover 시 투명도 제거 */
+    display: grid;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 버튼 hover 시 스타일 */
+.carousel-control-prev-icon:hover,
+.carousel-control-next-icon:hover {
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); /* hover 시 그림자 강조 */
+    transform: scale(1.1); /* hover 시 크기 약간 확대 */
+}
+
+/* 내부 화살표 크기 조정 */
+.carousel-control-prev-icon::before {
+    content: ''; /* 기본값 제거 */
+    display: inline-block;
+    border: solid rgba(0, 0, 0, 0.6); /* 화살표 색상 */
+    border-width: 0 2px 2px 0; /* 화살표 스타일 */
+    padding: 5px; /* 화살표 크기 */
+    transform: rotate(135deg); /* 기본 방향 */
+    margin-left: 5px;
+}
+
+.carousel-control-next-icon::before {
+    content: ''; /* 기본값 제거 */
+    display: inline-block;
+    border: solid rgba(0, 0, 0, 0.6); /* 화살표 색상 */
+    border-width: 0 2px 2px 0; /* 화살표 스타일 */
+    padding: 5px; /* 화살표 크기 */
+    transform: rotate(-45deg);
+    margin-right: 5px;
+}
+
+.carousel-control-next {
+    right: -70px;
+}
+
+.carousel-control-prev {
+    left: -70px;
+}
+
+.carousel-inner {
+  overflow: hidden; /* 숨겨진 요소가 보이지 않도록 설정 */
+}
+
+.carousel-item {
+  display: none; /* 기본적으로 숨김 */
+  transition: transform 0.8s ease-in-out; /* 부드러운 슬라이드 애니메이션 */
+}
+
+.carousel-item.active {
+  display: flex; /* 활성화된 요소만 표시 */
+  justify-content: center;
+}
+
 
 </style>

@@ -33,12 +33,13 @@ const closeModal = () => {
 
 <style scoped>
 .left-sidebar {
-  width: 45px;
-  background: #fffdf1;
+  width: 50px;
+  background: #fffade;
   padding: 10px;
   display: flex;
   flex-flow: column;
   gap: 25px;
+  place-items: center;
 }
 
 .sidebar-icon {

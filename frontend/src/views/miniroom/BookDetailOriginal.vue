@@ -137,16 +137,6 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background: #ffffff;
-    font-family: "Inter", sans-serif;
-}
 
 .book-details {
     display: flex;
@@ -185,7 +175,6 @@ body {
 }
 
 .book-title {
-    font-family: "Inter-Bold", sans-serif;
     font-size: 40px;
     font-weight: 700;
     color: #000000;
@@ -193,7 +182,6 @@ body {
 }
 
 .book-subtitle {
-    font-family: "Inter-Bold", sans-serif;
     font-size: 20px;
     font-weight: 700;
     color: #000000;

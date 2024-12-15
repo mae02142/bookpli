@@ -1,6 +1,6 @@
 <template>
-    <div v-if="book" class="modal-container">
-      <div class="modal-content">
+    <div v-if="book" class="detail-modal-container">
+      <div class="detail-modal-content">
         <div class="bookinfo-grid">
           <img
             class="modal-image"
@@ -11,6 +11,7 @@
             <p class="book-title">{{ book.title }}</p>
             <p class="book-author">{{ book.author }}</p>
             <div class="progress-container" v-if="book.status === 'reading'">
+              <img src="@/assets/icons/read_book.png">
               <span class="progress-text">{{ book.progress }}%</span>
               <span class="remaining-days">{{ book.remainingDays }}일 남음</span>
             </div>
@@ -68,6 +69,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
   // 좋아요 상태 관리
   const changeToLike = async (isbn13) => {
     bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, isbn13);
+    emit('book-like-status', isbn13);
     
   };
 
@@ -75,6 +77,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
     const result = await removeBookLike(apiClient, bookLikeId.value);
     if (result) {
       bookLikeId.value = null;
+      emit('book-like-status', props.book.isbn13);
   }
   }
   
@@ -119,7 +122,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
   
   <style scoped>
   /* 모달 컨테이너 */
-  .modal-container {
+  .detail-modal-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -133,25 +136,29 @@ const isLiked = computed(() => bookLikeId.value !== null);
   }
   
   /* 모달 내용 */
-  .modal-content {
+  .detail-modal-content {
     border-radius: 10px;
     padding: 20px;
-    width: 430px;
+    width: 460px;
     text-align: center;
     position: relative;
     background-color: white;
+    justify-items: center;
   }
 
   .bookinfo-grid {
     display: flex;
     margin: 25px 0px;
     justify-content: center;
+    max-width: 380px;
+    min-width: 380px;
   }
 
   .progress-grid {
     display: flex;
     flex-direction: column;
-    margin-left: 12px;
+    margin-left: 17px;
+    margin-right: 13px;
     align-items: flex-start;
     min-width: 160px;
     max-width: 185px;
@@ -162,7 +169,6 @@ const isLiked = computed(() => bookLikeId.value !== null);
     width: 140px;
     height: 200px;
     margin-bottom: 15px;
-    object-fit: cover;
     border-radius: 3px;
   }
   
@@ -174,7 +180,6 @@ const isLiked = computed(() => bookLikeId.value !== null);
     margin-bottom: 6px;
     font-weight: bold;
     text-align: start;
-    max-width: 155px;
   }
   
   /* 책 저자 */
@@ -189,9 +194,12 @@ const isLiked = computed(() => bookLikeId.value !== null);
   .progress-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
     align-items: center;
     margin-bottom: 20px;
+    border: 1px solid #acacac;
+    padding: 5px;
+    border-radius: 5px;
   }
 
   .complete-container {
@@ -212,6 +220,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
   .progress-text {
     font-size: 15px;
     color: #414141;
+    margin-left: 5px;
   }
   
   .remaining-days {
@@ -229,7 +238,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
   
   /* 버튼 스타일 */
   .btn {
-    width: 340px;
+    width: 363px;
     padding: 15px 10px;
     border: 1px solid #929292;
     border-radius: 5px;
@@ -243,7 +252,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
     gap: 10px;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
   
   .btn.change-status {
@@ -264,6 +273,10 @@ const isLiked = computed(() => bookLikeId.value !== null);
 
   .btn:hover {
     font-weight: bold;
+  }
+
+  .progress-container img{
+    width: 25px;
   }
   </style>
   

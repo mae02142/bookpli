@@ -10,8 +10,12 @@
   },
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@popperjs/core": "^2.11.8",
     "@vuepic/vue-datepicker": "^10.0.0",
     "axios": "^1.7.9",
+    "bootstrap": "^5.3.3",
+    "bootstrap-vue-3": "^0.5.1",
+    "bootstrap-vue-next": "^0.26.15",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.5",
