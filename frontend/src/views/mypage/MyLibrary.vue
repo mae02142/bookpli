@@ -45,6 +45,7 @@
           v-for="(book) in filteredBooks"
           :key="book.libraryId"
         >
+        <div class="bool-like-grid">
           <img
             :src="book.cover"
             alt="Book Cover"
@@ -53,6 +54,8 @@
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
           />
+          <img src="@/assets/icons/like.png" class="book-like-icon" v-if="isBookLiked(book.isbn13)">
+        </div>
           <div class="book-details-block">
             <div class="title-grid">
               <h3 class="book-title">{{ book.title }}</h3>
@@ -82,6 +85,7 @@
       @close="closeModal"
       @openForm="showForm=true"
       @delete-library="deleteLibrary"
+      @book-like-status="toggleBookLike"
     />
   </div>
 </template>
@@ -103,6 +107,7 @@
   // 모달 상태 및 선택된 책 데이터
   const isModalVisible = ref(false);
   const selectedBook = ref({});
+  const likedBooks = ref([]); // 좋아요된 책의 ISBN 목록
 
 
   // 리뷰 작성 모달 상태
@@ -131,7 +136,7 @@ const groupedData = computed(() => {
 const updateMenuItems = () => {
       menuItems.value = [
         { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
-        { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+        { title: '담은 도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
         { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
       ];
     };
@@ -217,9 +222,21 @@ const deleteLibrary = async (libraryId) => {
     }
 }
 
+const getBookLikeStatus = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
+    likedBooks.value = response.data.data.map((like) => like.isbn13);
+    } catch (error) {
+      console.log(error);
+    }
+}
+
+// 좋아요 여부 확인
+const isBookLiked = (isbn13) => likedBooks.value.includes(isbn13);
 
 onMounted(async() => {
   await getMyLibrary();
+  await getBookLikeStatus();
   books.value = prepareBooksData(books.value);
 });
 
@@ -373,5 +390,18 @@ onMounted(async() => {
   font-size: 12px;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.bool-like-grid {
+  position: relative; /* 부모 컨테이너를 기준으로 위치 설정 */
+  display: inline-block;
+}
+
+.book-like-icon {
+  position: absolute; /* 부모 컨테이너를 기준으로 절대 위치 설정 */
+  top: 5px; /* 상단으로부터의 거리 */
+  right: 5px; /* 오른쪽으로부터의 거리 */
+  width: 24px; /* 아이콘 크기 */
+  height: 24px;
 }
 </style>

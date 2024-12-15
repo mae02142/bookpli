@@ -69,7 +69,6 @@
 </div>
 </template>
 <script setup>
-import {defineProps, defineEmits} from "vue";
 import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";

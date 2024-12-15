@@ -233,7 +233,7 @@ body {
 }
 
 .book-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #000000;
 }
@@ -444,5 +444,9 @@ body {
 
 .book-status-wish:hover {
     font-weight: bold;
+}
+
+.title-and-author span {
+    font-size: 14px;
 }
 </style>

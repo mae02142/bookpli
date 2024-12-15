@@ -19,12 +19,10 @@
               독서 완료
             </div>
           </div>
-          <img
-            class="like-icon"
-            src="@/assets/icons/like.png"
-            alt="Like Icon"
-            @click="toggleLike"
-          />
+          <img v-if="isLiked" class="like-icon" src="@/assets/icons/like.png"
+            alt="Like Icon" @click="changeToDislike" />
+          <img v-else class="like-icon" src="@/assets/icons/dislike.png"
+            alt="Like Icon" @click="changeToLike(book.isbn13)" />
         </div>
         <div class="btn-grid">
           <p class="btn change-status" @click="changeStatus">
@@ -42,9 +40,18 @@
   </template>
   
   <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouterUtils } from '@/router/routerUtils';
+import apiClient from '@/api/axiosInstance';
+import { addBookLike, removeBookLike } from '@/utils/likeUtils';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
 const { gotoDetail } = useRouterUtils();
+const bookLikeId = ref(null);
+
+const isLiked = computed(() => bookLikeId.value !== null);
+
 
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
@@ -55,13 +62,21 @@ const { gotoDetail } = useRouterUtils();
   });
   
   // 부모로 이벤트 전달
-  const emit = defineEmits(['close','openForm', 'delete-library']);
+  const emit = defineEmits(['close','openForm', 'delete-library', 'book-like-status']);
   
+
   // 좋아요 상태 관리
-  const isLiked = ref(false);
-  const toggleLike = () => {
-    isLiked.value = !isLiked.value;
+  const changeToLike = async (isbn13) => {
+    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, isbn13);
+    
   };
+
+  const changeToDislike = async () => {
+    const result = await removeBookLike(apiClient, bookLikeId.value);
+    if (result) {
+      bookLikeId.value = null;
+  }
+  }
   
   // 이벤트 핸들러
   const changeStatus = () => {
@@ -84,9 +99,22 @@ const { gotoDetail } = useRouterUtils();
   };
 
   const handleClick = () => {
-    console.log(props.book.isbn13);
     gotoDetail(props.book.isbn13);
   }
+
+  const getBookLikeStatus = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/${authStore.user.userId}/book/${props.book.isbn13}`);
+    bookLikeId.value = response.data.data;
+  } catch (error) {
+    console.error("좋아요 상태를 가져오는 중 오류 발생: ", error);
+  }
+};
+
+
+  onMounted(()=> {
+    getBookLikeStatus();
+  })
   </script>
   
   <style scoped>
@@ -126,12 +154,13 @@ const { gotoDetail } = useRouterUtils();
     margin-left: 12px;
     align-items: flex-start;
     min-width: 160px;
+    max-width: 185px;
   }
   
   /* 이미지 */
   .modal-image {
-    width: 160px;
-    height: 220px;
+    width: 140px;
+    height: 200px;
     margin-bottom: 15px;
     object-fit: cover;
     border-radius: 3px;
@@ -145,7 +174,7 @@ const { gotoDetail } = useRouterUtils();
     margin-bottom: 6px;
     font-weight: bold;
     text-align: start;
-    max-width: 160px;
+    max-width: 155px;
   }
   
   /* 책 저자 */
@@ -153,6 +182,7 @@ const { gotoDetail } = useRouterUtils();
     font-size: 13px;
     color: #3d3d3d;
     margin-bottom: 15px;
+    text-align: start;
   }
   
   /* 진행률 및 남은 일 */
