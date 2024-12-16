@@ -4,6 +4,7 @@ import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.Library;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -15,8 +16,8 @@ public class LibraryDTO {
     private Long user_id;
     private String isbn13;
     private String status;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
 
     // DTO -> Entity

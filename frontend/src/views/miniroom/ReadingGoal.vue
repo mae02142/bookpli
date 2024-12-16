@@ -76,7 +76,7 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
-import axios from "axios";
+import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
 const router= useRouter();
@@ -128,7 +128,7 @@ const changeStatus = async () => {
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
 
     try{
-        const response= await axios.put(`/api/goal/register/${book.value.isbn13}`, null, {
+        const response= await apiClient.put(`/api/goal/register/${book.value.isbn13}`, null, {
             params: {
                 status: book.value.status,
                 startDate: formatStartDate,
@@ -146,7 +146,7 @@ const changeStatus = async () => {
 
 const dropReading = async () => {
     try{
-        const response= await axios.delete(`/api/goal/${book.value.isbn13}`,{
+        const response= await apiClient.delete(`/api/goal/${book.value.isbn13}`,{
             params: { status: "dropped" },
         });
         alert(response.data);
@@ -169,17 +169,6 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-}
-
-body {
-background: #ffffff;
-font-family: "Inter", sans-serif;
-}
-
 .title {
 font-size: 48px;
 font-weight: 700;

@@ -26,8 +26,3 @@ const isAuthLoginPage = computed(() => route.path === "/auth/login");
 const isMainPage = computed(() => route.path === "/main");
 </script>
 
-<style scoped>
-.main-thumbnail {
-  width: 100%;
-}
-</style>

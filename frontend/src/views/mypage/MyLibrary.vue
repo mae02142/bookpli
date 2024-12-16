@@ -15,7 +15,7 @@
             />
             <div class="menuitem-grid">
               <h4>{{ menuItem.title }}</h4>
-              <p class="menuitem-count">{{ menuItem.count }}</p>
+              <p class="menuitem-count">{{ menuItem.count }}권</p>
             </div>
           </li>
         </ul>
@@ -23,11 +23,11 @@
       <!-- review 리스트 페이지 이동 -->
       <router-link to="/review/mylist">
         <div class="sidebar-item">  
-          <img src="@/assets/icons/reviewlist.png" 
+          <img src="@/assets/sidebar/review.png" 
           alt="move to review List"
-          class="sidebar-icon"
+          class="review-icon"
           />
-          <h4>나의 리뷰</h4>
+          <h4 class="review-title">나의 리뷰</h4>
         </div>
       </router-link>  
     </aside>
@@ -45,6 +45,7 @@
           v-for="(book) in filteredBooks"
           :key="book.libraryId"
         >
+        <div class="bool-like-grid">
           <img
             :src="book.cover"
             alt="Book Cover"
@@ -53,6 +54,8 @@
             @mouseover="showTooltip"
             @mouseleave="hideTooltip"
           />
+          <img src="@/assets/icons/heart_circle_noline.png" class="book-like-icon" v-if="isBookLiked(book.isbn13)">
+        </div>
           <div class="book-details-block">
             <div class="title-grid">
               <h3 class="book-title">{{ book.title }}</h3>
@@ -82,6 +85,7 @@
       @close="closeModal"
       @openForm="showForm=true"
       @delete-library="deleteLibrary"
+      @book-like-status="toggleBookLike"
     />
   </div>
 </template>
@@ -103,6 +107,7 @@
   // 모달 상태 및 선택된 책 데이터
   const isModalVisible = ref(false);
   const selectedBook = ref({});
+  const likedBooks = ref([]); // 좋아요된 책의 ISBN 목록
 
 
   // 리뷰 작성 모달 상태
@@ -131,19 +136,24 @@ const groupedData = computed(() => {
 const updateMenuItems = () => {
       menuItems.value = [
         { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
-        { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
+        { title: '담은 도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
         { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
+        { title: '좋아요한 도서', count: likedBooks.value.length, icon: 'book_heart.png', route: 'liked' },
       ];
     };
 
 // 현재 선택된 상태에 따른 책 필터링
 const filteredBooks = computed(() => {
+  if (selectedStatus.value === 'liked') {
+    return books.value.filter((book) => isBookLiked(book.isbn13)); // 좋아요된 책만 필터링
+  }
   return groupedData.value[selectedStatus.value] || [];
 });
 
 // 선택된 상태 변경
 const selectStatus = (status) => {
   selectedStatus.value = status;
+  updateMenuItems();
 };
 
   // 툴팁 상태 관리
@@ -217,19 +227,45 @@ const deleteLibrary = async (libraryId) => {
     }
 }
 
+const getBookLikeStatus = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
+    likedBooks.value = response.data.data.map((like) => like.isbn13);
+    } catch (error) {
+      console.log(error);
+    }
+}
+
+// 좋아요 여부 확인
+const isBookLiked = (isbn13) => likedBooks.value.includes(isbn13);
+
+// 좋아요 상태 업데이트
+const toggleBookLike = (isbn13) => {
+  if (likedBooks.value.includes(isbn13)) {
+    // 이미 좋아요 되어 있는 경우 -> 목록에서 제거
+    likedBooks.value = likedBooks.value.filter((isbn) => isbn !== isbn13);
+  } else {
+    // 좋아요가 안 되어 있는 경우 -> 목록에 추가
+    likedBooks.value.push(isbn13);
+  }
+  updateMenuItems();
+};
 
 onMounted(async() => {
   await getMyLibrary();
+  await getBookLikeStatus();
   books.value = prepareBooksData(books.value);
+  updateMenuItems();
 });
 
 </script>
   
   <style scoped>
   .library-container {
-    display: flex;
-    box-sizing: border-box;
     height: 100vh;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 0fr 0fr 1fr;
   }
   
   .sidebar2 {
@@ -258,8 +294,9 @@ onMounted(async() => {
   }
   
   .main-content {
-    width: 60%;
+    width: 70%;
     padding: 20px 0px;
+    margin-left: 8%;
   }
   
   .header {
@@ -373,5 +410,32 @@ onMounted(async() => {
   font-size: 12px;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.bool-like-grid {
+  position: relative; /* 부모 컨테이너를 기준으로 위치 설정 */
+  display: inline-block;
+}
+
+.book-like-icon {
+  position: absolute; /* 부모 컨테이너를 기준으로 절대 위치 설정 */
+  top: 7px; /* 상단으로부터의 거리 */
+  right: 7px; /* 오른쪽으로부터의 거리 */
+  width: 24px; /* 아이콘 크기 */
+  height: 24px;
+}
+
+.menuitem-grid h4 {
+  font-weight: bold;
+}
+
+.review-icon {
+  margin-left: 4px;
+  margin-right: 8px;
+  width: 28px;
+}
+
+.review-title{
+  font-weight: bold;
 }
 </style>

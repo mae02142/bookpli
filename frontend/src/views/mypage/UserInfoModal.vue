@@ -271,12 +271,11 @@ onMounted(() => {
   }
 
   .confirm-btn {
-    padding: 10px 40px;
+    padding: 12px 20px;
     border-radius: 20px;
     border: 1px solid gray;
     width: 150px;
     background: #fff8bb;
-    height: 40px;
   }
 
   .edit-buttons{
@@ -288,22 +287,20 @@ onMounted(() => {
 
   .save-btn {
     margin-top: 20px;
-    padding: 10px 40px;
-    border-radius: 20px;
+    padding: 12px 20px;
+    border-radius: 30px;
     border: 1px solid gray;
-    width: 150px;
+    width: 120px;
     background: #fff8bb;
-    height: 40px;
   }
   
   .cancel-btn {
     margin-top: 20px;
-    padding: 10px 40px;
-    border-radius: 20px;
+    padding: 12px 20px;
+    border-radius: 30px;
     border: 1px solid gray;
-    width: 150px;
+    width: 120px;
     background: #ffffff;;
-    height: 40px;
   }
 
   .save-btn:hover, .cancel-btn:hover, .confirm-btn:hover {

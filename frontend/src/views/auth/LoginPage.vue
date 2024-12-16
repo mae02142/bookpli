@@ -9,7 +9,7 @@
           <img class="book-image" src="@/assets/logos/mascot.png" />
           <span class="home-text">홈으로</span>
         </div>
-        <div class="main-content">
+        <div class="login-main-content">
           <p class="login-title">플레이리스트와 독서 추천을 한번에</p>
           <p class="subtitle">북플리에서 인생책과 노래를 찾아보세요:)</p>
           <div class="spotify-login-box" @click="handleLogin">
@@ -44,6 +44,7 @@ const handleLogin = async () => {
   <style>
   .login-container {
     display: flex;
+    align-content: stretch;
     height: 100vh;
     width: 100%;
   }
@@ -78,7 +79,7 @@ const handleLogin = async () => {
     font-weight: 400;
   }
 
-  .main-content {
+  .login-main-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;

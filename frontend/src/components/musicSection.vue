@@ -599,7 +599,6 @@ export default {
 <style scoped>
 /* 기존 스타일 유지 */
 body {
-    font-family: Arial, sans-serif;
     background-color: #ffff;
 }
 

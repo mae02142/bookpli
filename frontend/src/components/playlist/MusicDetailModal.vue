@@ -1,11 +1,11 @@
 <template>
-  <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
+  <div v-if="isActive" class="music-modal-overlay" @click.self="closeModal">
+    <div class="music-modal-content">
       <div>
-        <div class="modal-header">
+        <div class="music-modal-header">
           <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal" />
         </div>
-        <div class="modal-content-grid">
+        <div class="music-modal-content-grid">
           <div class="album-grid">
             <img :src="songData.image" class="album-img" alt="Album Cover" />
               <div class="album-grid-right">
@@ -310,7 +310,7 @@ onMounted(() => {
 </script>
 
   <style scoped>
-  .modal-overlay {
+  .music-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -323,7 +323,7 @@ onMounted(() => {
     z-index: 1000;
   }
   
-  .modal-content {
+  .music-modal-content {
     background: white;
     border-radius: 10px;
     width: 450px;
@@ -333,7 +333,7 @@ onMounted(() => {
     position: relative;
   }
   
-  .modal-header {
+  .music-modal-header {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
@@ -491,7 +491,7 @@ onMounted(() => {
     height: 18px;
   }
 
-  .modal-content-grid {
+  .music-modal-content-grid {
     width: 380px;
     display: grid;
     place-self: center;

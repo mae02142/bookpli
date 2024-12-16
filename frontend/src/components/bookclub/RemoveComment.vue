@@ -71,7 +71,6 @@
         }
     
         .modal-content {
-            font-family: "Inter-Regular", sans-serif;
             font-size: 18px;
             position: relative;
             top : 50%;

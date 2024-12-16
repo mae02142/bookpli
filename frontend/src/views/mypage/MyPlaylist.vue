@@ -73,7 +73,7 @@
     <div class="content">
       <!-- 안내 메시지 -->
       <div v-if="!selectedPlaylist" class="playlist-placeholder">
-        <p>플레이리스트를 선택해주세요</p>
+        <p>플레이리스트를 선택 또는 추가해주세요</p>
       </div>
       <div class="song-list" v-if="selectedPlaylist">
         <div>
@@ -181,13 +181,11 @@ import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
-import { useUserStore } from '@/stores/user.js';
 import { useUtilModalStore } from '@/stores/utilModalStore';
 import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
 
 
 // 상태 관리
-const userStore = useUserStore()
 const authStore = useAuthStore();
 const modalStore = useModalStore();
 const hoveredIndex = ref(null);
@@ -396,8 +394,10 @@ onMounted(() => {
 
 <style scoped>
 .playlist-container {
-  display: flex;
   height: 100vh;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: 0fr 0fr 1fr;
 }
 
 .sidebar2 {
@@ -462,8 +462,8 @@ onMounted(() => {
 .content {
   width: 60%;
   margin-top: 10px;
-  margin-right: auto;
-  margin-left: auto;
+  /* margin-right: auto; */
+  margin-left: 10%;
 }
 
 .header {
@@ -575,7 +575,7 @@ text-align: center;
   padding: 5px 15px;
   border-radius: 17px;
   cursor: pointer;
-  min-width: 60px;
+  min-width: 25px;
 }
 
 .delete-button:hover {
@@ -771,9 +771,6 @@ text-align: center;
 .playlist-placeholder {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100%;
-  font-size: 1.5rem;
-  color: #888;
+  margin-top: 50px;
 }
 </style>

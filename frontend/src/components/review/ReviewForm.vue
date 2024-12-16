@@ -1,7 +1,7 @@
 <template>
     <!-- 모달 배경 -->
     <section v-if="isVisible" class="modal-overlay" @click="cancelForm">
-      <div class="modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
+      <div class="review-modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
         <!-- 모달 내용 -->
       <div class="review-form">
         <div class="date-rating">
@@ -153,9 +153,9 @@
   }
   
   /* 모달 콘텐츠 */
-   .modal-content {
+   .review-modal-content {
     background: white;
-    padding: 40px;
+    padding: 25px 30px;
     border-radius: 10px;
     width: 550px;
     max-width: 90%;
@@ -175,10 +175,10 @@
   
   label {
     font-size: 15px;
-    font-weight: 400;
+    font-weight: 600;
     color: #000;
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 7px;
   }
   textarea {
     resize: none;
@@ -186,6 +186,8 @@
     height: auto;
     width: 100%;
     outline: none;
+    width: 527px;
+    padding: 10px;
   }
   
   .star-rating {
@@ -202,30 +204,37 @@
   .char-count {
     font-size: 16px;
     color: #595959;
+    text-align: end;
   }
   
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 20px;
-  }
-  
-  .cancel-btn,
-  .submit-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
+    gap: 7px;
   }
   
   .cancel-btn {
-    background-color:#FFFDF1;
-    border: none;
+    margin-top: 20px;
+    padding: 12px 5px;
+    border-radius: 30px;
+    border: 1px solid gray;
+    width: 120px;
+    background: #ffffff;
+    cursor: pointer;
   }
-  
+
   .submit-btn {
-    background-color: #FFFDF1;
-    border: none;
+    margin-top: 20px;
+    padding: 12px 5px;
+    border-radius: 30px;
+    border: 1px solid gray;
+    width: 120px;
+    background: #fff8bb;
+    cursor: pointer;
+  }
+
+  .cancel-btn:hover, .submit-btn:hover {
+    font-weight: bold;
   }
   
   .calendar-icon {
