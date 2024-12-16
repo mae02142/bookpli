@@ -7,6 +7,7 @@
       <router-view></router-view>
       <ConfirmModal></ConfirmModal>
       <UtilModal></UtilModal>
+      <LoginAlertModal></LoginAlertModal>
     </div>
   </div>
 </template>
@@ -16,6 +17,7 @@ import { useRoute } from "vue-router";
 import { computed } from "vue";
 import ConfirmModal from "./components/modal/ConfirmModal.vue";
 import UtilModal from "./components/modal/UtilModal.vue";
+import LoginAlertModal from "./components/modal/LoginAlertModal.vue";
 
 const route = useRoute();
 
