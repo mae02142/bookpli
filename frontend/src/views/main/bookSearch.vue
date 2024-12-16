@@ -216,7 +216,8 @@ export default {
     display: flex;
     align-items: center;
     padding: 20px;
-    border: 1px solid #eaeaea;
+    border-top: 1px solid #eaeaea;
+    border-bottom: 1px solid #eaeaea;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;

@@ -189,38 +189,6 @@ const getActiveDevices = async () => {
   }
 };
 
-const playSong = async (uri) => {
-  const playUrl = "https://api.spotify.com/v1/me/player/play";
-
-  try {
-      const devices = await getActiveDevices();
-      if (devices.length === 0) {
-      alert(
-          "활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요."
-      );
-      return;
-      }
-
-      await axios.put(
-      playUrl,
-      {
-          uris: [uri],
-      },
-      {
-          headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          },
-      }
-      );
-  } catch (error) {
-      console.error(
-      "Error playing song:",
-      error.response ? error.response.data : error.message
-      );
-  }
-};
-
 const playAlbum = async (albumId) => {
   const playUrl = "https://api.spotify.com/v1/me/player/play";
   const albumDetailsUrl = `https://api.spotify.com/v1/albums/${albumId}`;
@@ -270,8 +238,6 @@ const playAlbum = async (albumId) => {
     }
   }
 };
-
-
 
 // 플레이리스트 가져오기
 const getMyPlaylist = async () => {

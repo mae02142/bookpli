@@ -88,7 +88,7 @@
                             :key="song.uri"
                         >
                             <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
-                            <td>
+                            <td class="song-cover">
                                 <img
                                     :src="song.image"
                                     class="album-cover"
@@ -734,6 +734,7 @@ body {
     vertical-align: middle;
     cursor: pointer;
     transition: transform 0.2s;
+    padding-left:10px;
 }
 
 .song-title:hover {
@@ -758,8 +759,12 @@ body {
     cursor: pointer;
 }
 
+.song-cover {
+    width: 63px;
+}
+
 .album-cover {
-    width: 60px;
+    width: max-content;
     height: 60px;
     cursor: pointer;
     transition: transform 0.2s;

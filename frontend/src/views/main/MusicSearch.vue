@@ -21,14 +21,14 @@
 
                 <section class="search-section" v-if="artists.length">
                     <div class="section-header">
-                        <h2 class="section-title">아티스트</h2>
+                        <h1 class="section-title">아티스트</h1>
                         <button class="view-more-button" @click="goToDetails('artists')">더보기</button>
                     </div>
                     <hr>
                     <div class="results-grid horizontal-scroll">
                         <div v-for="artist in artists" :key="artist.id" class="result-item">
                             <img :src="artist.images[0]?.url || placeholderImage" alt="아티스트 이미지" />
-                            <p>{{ artist.name }}</p>
+                            <p class="track-title">{{ artist.name }}</p>
                         </div>
                     </div>
                 </section>
@@ -42,7 +42,7 @@
                     <div class="results-grid horizontal-scroll">
                         <div v-for="album in albums" :key="album.id" class="result-item">
                             <img :src="album.images[0]?.url || placeholderImage" alt="앨범 커버" />
-                            <p>{{ album.name }}</p>
+                            <p class="track-title">{{ album.name }}</p>
                             <p>{{ album.artists.map(artist => artist.name).join(", ") }}</p>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                             class="result-item"
                         >
                             <img :src="playlist.images[0]?.url || placeholderImage" alt="플레이리스트 이미지" />
-                            <p>{{ playlist.name }}</p>
+                            <p class="track-title">{{ playlist.name }}</p>
                         </div>
                     </div>
                 </section>
@@ -71,14 +71,17 @@
     <MusicPlayer/>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { useUserStore } from "@/stores/user";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 const route = useRoute();
+const router = useRouter(); // useRouter를 사용하여 라우터 조작
+
 const query = route.query.q || "";
 const type = route.query.type || "music";
 
@@ -120,6 +123,7 @@ const searchMusic = async () => {
     }
 };
 
+// goToDetails 함수 수정
 const goToDetails = (category) => {
     router.push({ path: `/details/${category}`, query: { q: query } });
 };
@@ -166,7 +170,7 @@ onMounted(() => {
     overflow-x: auto;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 30px;
+    padding-bottom: 10px;
 }
 
 .horizontal-scroll::-webkit-scrollbar {
@@ -180,12 +184,12 @@ onMounted(() => {
 }
 
 .horizontal-scroll::-webkit-scrollbar-thumb:hover {
-    background: #706f6f;
+    background: #a0a0a0;
 }
 
 .result-item {
     flex: 0 0 auto;
-    width: 200px;
+    width: 18.5%;
     text-align: center;
     padding: 0.3rem;
 }
@@ -213,7 +217,7 @@ onMounted(() => {
 
 .view-more-button {
     border: none;
-    background-color: #ffff;
+    background-color: transparent;
     font-size: 14px;
     cursor: pointer;
     margin-left: auto;
@@ -222,7 +226,6 @@ onMounted(() => {
 }
 
 .view-more-button:hover {
-    background-color: #ffff;
     text-decoration: underline;
 }
 

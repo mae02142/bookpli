@@ -24,18 +24,11 @@
         <div class="ranking" style="padding-top: 30px;">
             <h3 class="ranking-title">베스트셀러</h3>
             <table class="ranking-table">
-                <tr 
-                    class="ranking-tr" 
-                    v-for="(book, index) in bestBooks" 
-                    :key="book.rank"
-                >
+                <tr class="ranking-tr" v-for="(book, index) in bestBooks" :key="book.rank">
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td 
-                        class="book-details"
-                        @click="toggleOptionMenu1(index)"
-                    >
+                    <td class="book-details" @click="toggleOptionMenu1(index)">
                         <span class="toggle-button">⋮</span>
                         <div v-show="showOptionMenu1[index]" class="option-menu">
                             <span>재생하기</span>
@@ -60,10 +53,7 @@
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td 
-                        class="book-details"
-                        @click="toggleOptionMenu2(index)"
-                    >
+                    <td class="book-details"@click="toggleOptionMenu2(index)">
                         <span class="toggle-button">⋮</span>
                         <div v-show="showOptionMenu2[index]" class="option-menu">
                             <span>재생하기</span>
@@ -81,7 +71,7 @@
 </template>
 
 <script>
-import MusicPlayer from "@/components/layouts/musicPlayer.vue"; // Corrected casing
+import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 
