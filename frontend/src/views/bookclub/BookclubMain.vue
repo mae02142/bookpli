@@ -58,7 +58,7 @@
         </p>
         <div class="search-bar">
             <input v-model="searchValue" class="search-guide" @keyup.enter="searchBookClub(searchValue)" placeholder="찾으려는 커뮤니티의 도서명을 입력하세요"></input>
-            <img class="search-community" @click="searchBookClub(searchValue)" src="@/assets/icons/searchW.png" alt="Search Community">
+            <img class="search-community" @click="searchBookClub(searchValue)" src="@/assets/icons/search_square.png" alt="Search Community">
         </div>
       </header>
       <section v-if="searchList" class="search-content">
@@ -69,13 +69,16 @@
         <div class="community-item" v-for="item, index in communities" :key="item.bookClubId">
           <div class="img-btn">
             <img :src="item.cover" :alt="item.title" class="item-image" />
-            <span class="add-community" @click="addBookClub(index)">
-                <img class="add-icon" src="@/assets/icons/plus.png"><p>커뮤니티 추가</p>
-             </span>
           </div>  
           <div class="item-details">
-            <h3 class="item-title">{{ item.title.replace(/\(.*?\)/g, '').trim() }}</h3>
-            <p class="item-author">{{ item.author.replace(/\(.*?\)/g, '').trim() }}</p>
+            <div>
+              <h3 class="item-title">{{ item.title.replace(/\(.*?\)/g, '').trim() }}</h3>
+              <p class="item-author">{{ item.author.replace(/\(.*?\)/g, '').trim() }}</p>
+            </div>
+            <div @click="addBookClub(index)" class="add-community">
+              <img class="add-icon" src="@/assets/icons/add_star.png">
+              <p>커뮤니티 추가</p>
+            </div>
           </div>
         </div>
       </article>
@@ -308,7 +311,6 @@ body {
 .header h1 {
   font-size: 33px;
   font-weight: 400;
-  margin: 20px 0;
 }
 .title-quotes {
     display: flex;
@@ -326,13 +328,14 @@ body {
 .search-bar {
     display: flex;
     align-items: center;
-    background-color: #d9d9d9; /* 배경 색상 */
     border-radius: 50px;
     padding: 10px 20px;
     width: 100%;
     max-width: 600px;
     box-sizing: border-box;
     margin-top: 30px;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 .search-bar input {
     flex: 1;
@@ -359,11 +362,11 @@ body {
 .search-content {
   width: 100%;
   max-width: 900px;
-  margin-top: 90px;
+  margin-top: 30px;
 }
 .community-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 한 줄에 3개 */
+  grid-template-columns: repeat(2, 1fr); /* 한 줄에 2개 어떄?*/
   gap: 20px; /* 아이템 간의 간격 */
 }
 .list-title {
@@ -399,12 +402,17 @@ body {
   flex: 1;
   text-align: left;
   line-height: 1.8;
-  align-self: flex-start;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
 }
 .item-title {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   margin: 0;
+  line-height: 1.1;
 }
 .item-description {
   font-size: 16px;
@@ -438,6 +446,7 @@ body {
 }
 .add-community {
     display: flex;
+    align-items: center;
 }
 
 </style>

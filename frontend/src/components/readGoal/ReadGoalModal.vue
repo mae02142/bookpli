@@ -72,7 +72,6 @@
 </div>
 </template>
 <script setup>
-import {defineProps, defineEmits} from "vue";
 import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
@@ -191,17 +190,6 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-}
-
-body {
-background: #ffffff;
-font-family: "Inter", sans-serif;
-}
-
 .title {
 font-size: 16px;
 font-weight: 700;

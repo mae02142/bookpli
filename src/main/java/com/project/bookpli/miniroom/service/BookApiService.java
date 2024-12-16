@@ -2,16 +2,15 @@ package com.project.bookpli.miniroom.service;
 
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
-import com.project.bookpli.booklike.repository.BookLikeRepository;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookLike;
+import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookLikeDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;

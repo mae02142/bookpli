@@ -1,5 +1,7 @@
 /** <초기화 코드>**/
-html,
+html {
+  height: 100%;
+}
 body,
 div,
 span,
@@ -129,6 +131,12 @@ table {
 a {
   text-decoration: none;
   color: black;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: content-box; /* 기본값으로 되돌림 */
 }
 
 /** <초기화 코드/>   **/

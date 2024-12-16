@@ -256,17 +256,6 @@ onMounted(async() => {
 </script>
 
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background: #ffffff;
-    font-family: "Inter", sans-serif;
-}
-
 .book-details {
     display: flex;
     flex-direction: row;
@@ -304,13 +293,12 @@ body {
 }
 
 .book-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #000000;
 }
 
 .book-subtitle {
-    font-family: "Inter-Bold", sans-serif;
     font-size: 20px;
     font-weight: 700;
     color: #000000;
@@ -379,7 +367,6 @@ body {
 
 .review-button {
     display: inline-block;
-    font-family: "Inter-Regular", sans-serif;
     font-size: 20px;
     font-weight: 400;
     color: #3e322a;
@@ -504,5 +491,9 @@ body {
 
 .book-status-wish:hover {
     font-weight: bold;
+}
+
+.title-and-author span {
+    font-size: 14px;
 }
 </style>

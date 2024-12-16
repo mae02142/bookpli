@@ -100,6 +100,7 @@ const modalImage = computed(() => {
     font-weight: bold;
     color: #555555;
     margin: 10px 0;
+    line-height: 1.2;
   }
   
   /* 버튼 영역 */
