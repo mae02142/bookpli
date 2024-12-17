@@ -2,15 +2,15 @@
 <template>
     <div v-if="visible" class="modal-overlay" @click.self="emitClose">
         <div class="modal-content">
-        <div class="title">{{rbook.title}}</div>
-
-        <div class="book-section">
-        <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
-        <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
-        <div class="reading-status" v-if="rbook.status === 'reading'">
-            <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
-            <span class="reading-status-text">읽고 있는 책</span>
-        </div>
+            
+            <div class="book-section">
+                <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
+                <div class="title">{{rbook.title}}</div>
+                <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
+                <div class="reading-status" v-if="rbook.status === 'reading'">
+                    <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
+                    <span class="reading-status-text">읽고 있는 책</span>
+            </div>
         </div>
 
         <div class="date-section">
@@ -80,6 +80,10 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
+<<<<<<< HEAD
+import axios from "axios";
+=======
+>>>>>>> 1ff0c245c98e8be61712501632d3a033923a9e23
 import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
@@ -89,7 +93,6 @@ const progressStore= useProgressStore();
 defineProps({
     visible: Boolean,
     rbook: Object,
-
 });
 
 const emit= defineEmits(["close"]);
@@ -105,6 +108,25 @@ const confirmAction= () => {
 
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
+
+const changeDate= async (rbook) => {
+
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+    
+    try{
+        const response= await apiClient.put(`/api/goal/reset/${book.isbn13}`, null, {
+            params: {
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
+        alert("독서기간이 수정되었습니다.");
+        
+    }catch(error){
+        console.log("독서기간 수정중 에러",error);
+    }
+}
 
 
 const book =ref(
@@ -130,13 +152,35 @@ const showEndPicker = ref(false);
 const radioSelect= ref("");
 
 const handleAction= async () => {
-    if(radioSelect.value === "reading"){
-        await changeStatus();
-    }else if(radioSelect.value === "dropped"){
-        await dropReading();
-    }else{
-        alert("독서상태를 선택해주세요");
+    if (!rbook) {
+        console.error("rbook이 정의되지 않았습니다.");
+        alert("선택된 책이 없습니다. 다시 시도해주세요.");
+        return;
     }
+
+    console.log("rbook값있는지 확인확인",rbook);
+    console.log("라디오 기본새팅값도 있는지 확인확인",radioSelect.value);
+    try{
+        if(rbook.status === "reading"){
+            await changeDate(rbook);
+
+            if(radioSelect.value === "dropped"){
+                await dropReading();
+            }
+        }else if(rbook.status === "wished"){
+
+        if(radioSelect.value === "reading"){
+            await changeStatus();
+            await changeDate(rbook);
+        }else if(radioSelect.value === "dropped"){
+            await dropReading();
+        }else{
+            alert("독서상태를 선택해주세요");
+        }
+        }
+    }catch(error){
+        console.log("기간변경하면서 에러",error);
+    }; 
 }
 
 const changeStatus = async () => {
@@ -205,7 +249,7 @@ align-items: center;
 margin-top: 10px;
 }
 
-.book-cover {
+.bookgoal-cover {
 width: 150px;
 height: 200px;
 object-fit: cover;
@@ -214,7 +258,7 @@ object-fit: cover;
 .book-info {
 font-size: 13px;
 color: #757575;
-margin-top: 20px;
+margin-top: 7px;
 }
 
 .reading-status {
@@ -223,8 +267,8 @@ align-items: center;
 justify-content: center;
 background: #fffdf1;
 border-radius: 25px;
-width: 281px;
-height: 56px;
+width: 190px;
+height: 40px;
 margin-top: 15px;
 }
 
@@ -234,13 +278,13 @@ color: #000000;
 }
 
 .bookmark {
-    width: 40px;
-    height: 35px;
+    width: 23px;
+    height: 25px;
     margin-right: 10px;
 }
 
 .date-section {
-margin: 20px auto;
+margin: 15px auto;
 width: 80%;
 max-width: 800px;
 }
@@ -411,7 +455,6 @@ font-size: 14px;
     justify-content: center;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
 </style>
 

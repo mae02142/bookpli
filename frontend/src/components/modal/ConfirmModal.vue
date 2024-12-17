@@ -24,7 +24,7 @@ import { computed } from 'vue';
 const modalStore = useConfirmModalStore();
 
 // 확인 버튼에 따른 동작 처리 함수
-const handleConfirmAction = () => {
+const handleConfirmAction = ()  => {
   if (modalStore.confirmCallback) {
     modalStore.confirmCallback(); // 콜백 함수 실행
   }
