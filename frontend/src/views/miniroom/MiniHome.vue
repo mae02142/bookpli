@@ -107,7 +107,7 @@
         
 
         <h3 class="title-header">내가 담아놓은 책</h3>
-        <p class="more-wrapper book-more" @click="loadWishList">
+        <p class="more-wrapper book-more" @click="gotoLibrary">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
         </p>
         <div class="book-section">
@@ -200,6 +200,12 @@ const loadWishList = () =>{
     }
 };
 
+const gotoLibrary= () =>{
+    router.push({
+            path: `/mypage/mylibrary`,
+            
+        });
+}
 
 
 //목표기간 변경
