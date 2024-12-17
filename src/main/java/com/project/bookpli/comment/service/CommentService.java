@@ -101,6 +101,8 @@ public class CommentService {
             log.info("댓글을 삭제하겠습니다.");
             boolean removeLike = commentLikeRepository.deleteByCommentId(commentId);
             if(removeLike) {
+
+
                 commentRepository.delete(existing);
             }
         }

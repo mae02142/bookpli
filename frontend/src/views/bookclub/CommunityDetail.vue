@@ -1,5 +1,5 @@
 <template>
-    <div class="community-post">
+    <div class="community-post" >
       <div class="community-header">
         <h2>커뮤니티</h2>
       </div>  
@@ -64,34 +64,65 @@
   
       <!-- 내용 -->
      <section class="post-section">
-        <div class="post-container">
+        <div class="post-content">
         <article class="post" v-for="post,index in posts" :key="post.postId">
             <div class="post-items">
-                <div class="post-header">
+                    <!-- 게시글 내용 -->
+              <div class="post-container"> 
+                <div class="post-article">
+                      <!-- 이미지 슬라이드 컨테이너 -->
+                  <div class="post-nav">    
+                    <div v-if="post.imageUrl.length >1" class="image-circle"> 
+                      <button class="slide-prev" @click="prevSlide(post)"><</button>
+                    </div>  
+                      <div class="post-images-wrapper" >
+                        <div
+                          class="post-images"
+                          :style="{ transform: `translateX(-${post.curpos * 100}%)` }"
+                          >
+                        <!-- 각 이미지 하나씩 슬라이드 -->
+                          <div
+                            class="post-image"
+                            v-for="(img, index) in post.imageUrl"
+                            :key="index"
+                          >
+                            <img :src="img" class="post-image-img" />
+                          </div>
+                        </div>
+                           <!-- 슬라이드 네비게이션 -->
+                      </div>
+                    <div v-if="post.imageUrl.length >1" class="image-circle">
+                        <button class="slide-next" @click="nextSlide(post)">></button>
+                    </div>
+                </div>
+                <!--  유저 정보와 텍스트 -->
+                <div class="text-box-bookclub">
+                  <div class="post-header">
                     <img class="post-profile" :src="post.profilePath || profile" alt="커뮤니티 이미지" />
                     <p class="username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
                 </div>
-                <div style="width: 100%;">
-                    <p class="post-cnt">
-                    {{ post.postContent }}
-                    </p>
+                <!-- 본문 글 -->
+                <p class="post-cnt">{{ post.postContent }} </p>                        
+                </div>
+                 
                       <!-- 아이콘 섹션 -->
                     <div class="post-footer">
                       <div class="footer-icon">
-                        <img class="icon" 
-                        @click="openComment(index)" 
+                        <img class="icon"  
+                         @click="openComment(index)" 
                         src="@/assets/icons/chat.png"
                         alt="댓글 아이콘" />
 
                         <img class="like-icon" 
-                        :src="post.likes.changeLike"
-                        @click="checkLike(post.postId,index)" 
+                        :src="post.likes.changeLike" 
+                         @click="checkLike(post.postId,index)" 
                         alt="좋아요 아이콘" />
                         <p v-show="post.likeCount > 0" class="like-count">{{post.likeCount }}</p>
                       </div>
                       <p class="date">{{post.postDate.split('T')[0]}}</p>
                     </div> 
                 </div>
+              </div>
             </div>   
             <Comment v-if:showComments="post.showComment" :postId="post.postId" />
         <hr class="divider" />
@@ -110,6 +141,7 @@
   import { useRoute } from "vue-router";
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
+  
 
   export default {
     components : {
@@ -158,14 +190,35 @@
               likeCount: likeCount || 0,
               likes: { changeLike: heartCheck },
               showComment: false,
+              curpos : 0,
             };
           })
         );
+        console.log(posts.value);
         };
       }
     }catch(error){
       console.error(error, '에러 발생!');
     }};
+
+        /* 이미지 슬라이더 처리 */
+
+        const nextSlide = (post) => {
+          if (post.curpos < post.imageUrl.length - 1) {
+            post.curpos++;
+          } else {
+            post.curpos = 0; // 마지막 슬라이드 이후 첫 번째 슬라이드로
+          }
+        };
+
+        const prevSlide = (post) => {
+          if (post.curpos > 0) {
+            post.curpos--;
+          } else {
+            post.curpos = post.imageUrl.length - 1; // 첫 번째 슬라이드 이전 마지막 슬라이드로
+          }
+        };
+
             /* 좋아요 수 조회 */
     const getLikes = async(postId)=> {
       try{
@@ -218,7 +271,7 @@
       };
        
               /* 댓글 오픈 */
-        const openComment = (index) => {
+    const openComment = (index) => {
       if(!posts.value[index].showComment){
         posts.value[index].showComment = true;
       }else{
@@ -226,6 +279,7 @@
       }
     };
 
+  
       return { 
         authStore,
         profile,
@@ -237,6 +291,8 @@
         posts,
         addPost,
         openComment,
+        nextSlide,
+        prevSlide,
        };
     },
   };
@@ -287,13 +343,14 @@
   }
     
   .post-container {
-    margin-top: 20px;
+    width: 100%;
   }
   
   .post-header {
     display: flex;
     align-items: center;
     flex-direction: column;
+    margin-right: 10px;
 
   }
   /* archive   */
@@ -388,7 +445,7 @@
 
     /* 게시글 부분 */
   .post-section {
-    width: 70%;
+    width: 80%;
     border : 1px solid #ccc;
     border-bottom: none;
     border-radius: 20px 20px 0 0;
@@ -399,6 +456,7 @@
     display: flex;
     flex-direction: row;
     gap: 40px;
+    width: 100%;
   }
 
   .post{
@@ -419,9 +477,19 @@
     margin-top: 10px;
   }
   .post-cnt {
-    margin: 10px 0;
     line-height: 1.6;
-    border: none;
+      border: none;
+      white-space: pre-wrap;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+
+  .text-box-bookclub{
+    display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      margin-top: 10px;
   }
   
   .post-footer {
@@ -463,6 +531,64 @@
   .date {
       color: #909090;
       font-size: 14px;
+    }
+
+      /* post-image 부분 */
+
+      .post-images-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      margin : 0 auto;
+      overflow: hidden;
+    }
+
+    .post-article{
+      width: 100%;
+    }
+
+    .post-nav {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+    }
+    .post-images{
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+      width: 100%;
+    }
+
+    .post-image{
+      flex : 0 0 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .post-image-img{
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+
+    }    
+    .image-circle {
+    display: flex;
+    justify-content: space-between;
+
+    }   
+    .slide-prev{
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 40px;
+      color: #ccc
+    }
+    .slide-next {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 40px;
+      color: #ccc
     }
 
   </style>

@@ -8,13 +8,8 @@ const router = createRouter({
       redirect: "/main", // 기본 경로에서 /main으로 리다이렉트
     },
     {
-      path: "/auth",
-      children: [
-        {
-          path: "login",
-          component: () => import("@/views/auth/LoginPage.vue"),
-        },
-      ],
+      path: "/login",
+      component: () => import("@/views/auth/LoginPage.vue"),
     },
     {
       path: "/mypage",
@@ -97,8 +92,19 @@ const router = createRouter({
     },
 
     {
-      path: "/search",
+      path: "/search-book",
       component: () => import("@/views/main/bookSearch.vue"),
+    },
+
+    {
+      path: "/search-music",
+      component: () => import("@/views/main/MusicSearch.vue"),
+      props: (route) => ({ query: route.query.q }),
+    },
+
+    {
+      path: "/details/:category",
+      component: () => import("@/views/main/DetailsPage.vue"),
     },
 
     {

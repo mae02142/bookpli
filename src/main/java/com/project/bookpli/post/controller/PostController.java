@@ -1,10 +1,10 @@
 package com.project.bookpli.post.controller;
 
-import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponse;
-import com.project.bookpli.common.response.BaseResponseStatus;
-import com.project.bookpli.entity.Post;
+
 import com.project.bookpli.post.dto.PostDTO;
+import com.project.bookpli.post.dto.PostRequestDTO;
+import com.project.bookpli.post.dto.PostResponseDTO;
 import com.project.bookpli.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +21,12 @@ public class PostController {
 
     private final PostService postService;
 
+
         // 해당 북클럽 전체 게시글 조회
     @GetMapping("/bookclubs")
-    public BaseResponse<List<PostDTO>> readPosts(@RequestParam  Long bookclubId){
+    public BaseResponse<List<PostResponseDTO>> readPosts(@RequestParam  Long bookclubId){
        try {
-         List<PostDTO>list = postService.readClubPosts(bookclubId);
+         List<PostResponseDTO>list = postService.readClubPosts(bookclubId);
            System.out.println(list);
          return new BaseResponse<>(list);
        }catch (Exception e){
@@ -37,9 +38,9 @@ public class PostController {
 
             // 유저가 등록한 게시글 조회
     @GetMapping("/bookclub/mypost")
-    public BaseResponse<List<PostDTO>> readMyPost(@RequestParam Long userId, @RequestParam Long bookClubId){
+    public BaseResponse<List<PostResponseDTO>> readMyPost(@RequestParam Long userId, @RequestParam Long bookClubId){
      try{
-         List<PostDTO> myPost = postService.readUserPosts(userId,bookClubId);
+         List<PostResponseDTO> myPost = postService.readUserPosts(userId,bookClubId);
          System.out.println(myPost);
          return new BaseResponse<>(myPost);
      }catch (Exception e){
@@ -77,14 +78,11 @@ public class PostController {
 
         //게시글 등록
     @PostMapping("/insert")
-    public BaseResponse<Boolean> postInsert(@RequestBody PostDTO postDTO){
+    public BaseResponse<Boolean> postInsert(@RequestBody PostRequestDTO requestDTO){
         try {
-            System.out.println(postDTO.getBookClubId());
-             boolean result = postService.save(postDTO);
-             if(!result){
-                return new BaseResponse<>(false);
-             }
-            return new BaseResponse<>(result);
+            // 게시글 저장 후 id 반환
+             boolean result = postService.createPost(requestDTO);
+             return new BaseResponse<>(result);
         }catch (Exception e){
             log.error("컨트롤러 : 등록 중 오류 발생 ");
             e.printStackTrace();

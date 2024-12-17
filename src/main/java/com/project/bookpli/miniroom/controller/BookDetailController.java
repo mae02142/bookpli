@@ -1,16 +1,12 @@
 package com.project.bookpli.miniroom.controller;
 
-import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
-import com.project.bookpli.booklike.repository.BookLikeRepository;
 import com.project.bookpli.entity.BookLike;
-import com.project.bookpli.miniroom.dto.BookLikeDTO;
+import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/book")

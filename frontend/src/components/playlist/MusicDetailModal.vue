@@ -1,11 +1,11 @@
 <template>
-  <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
+  <div v-if="isActive" class="music-modal-overlay" @click.self="closeModal">
+    <div class="music-modal-content">
       <div>
-        <div class="modal-header">
+        <div class="music-modal-header">
           <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal" />
         </div>
-        <div class="modal-content-grid">
+        <div class="music-modal-content-grid">
           <div class="album-grid">
             <img :src="songData.image" class="album-img" alt="Album Cover" />
               <div class="album-grid-right">
@@ -37,7 +37,7 @@
               <p>{{ songData.album }}</p>
             </div>
             <img
-              @click="playAlbum(songData.album.uri)"
+              @click="playAlbum(songData.albumId)"
               src="@/assets/icons/music/album_play.png"
               alt="Play"
               class="play-button"
@@ -126,12 +126,12 @@ const showNotification = ref(false); // 알림 표시 여부
 
 const selectSong = (track) => {
   songData.value = {
+    ...songData.value, // 기존 데이터 유지
     id: track.id,
     name: track.name,
     album: songData.value.album, // 기존 앨범명 유지
     albumId: songData.value.albumId, // 기존 앨범 ID 유지
     artists: track.artists, // 트랙의 아티스트 정보
-    cover: songData.value.image,
   };
 };
 
@@ -166,7 +166,6 @@ const getAlbumTracks = async () => {
       name: track.name,
       artists: track.artists.map((artist) => artist.name).join(", "),
       duration: formatDuration(track.duration_ms),
-      cover : track.image,
     }));
   } catch (error) {
     console.log(error);
@@ -222,20 +221,34 @@ const playSong = async (uri) => {
   }
 };
 
-const playAlbum = async (albumUri) => {
+const playAlbum = async (albumId) => {
   const playUrl = "https://api.spotify.com/v1/me/player/play";
+  const albumDetailsUrl = `https://api.spotify.com/v1/albums/${albumId}`;
 
   try {
+    // Fetch the album details to get the URI
+    const albumResponse = await axios.get(albumDetailsUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const albumUri = albumResponse.data.uri; // Album URI
+    console.log(`Album URI fetched: ${albumUri}`);
+
+    // Get active devices
     const devices = await getActiveDevices();
     if (devices.length === 0) {
       alert("활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요.");
       return;
     }
     console.log(devices);
+
+    // Play the album using its URI
     await axios.put(
       playUrl,
       {
-        context_uri: albumUri,
+        context_uri: albumUri, // Use the fetched album URI
       },
       {
         headers: {
@@ -257,6 +270,7 @@ const playAlbum = async (albumUri) => {
     }
   }
 };
+
 
 
 // 플레이리스트 가져오기
@@ -318,6 +332,7 @@ const addMusicToPlaylist = async(playlistId) => {
     emit('update-playlist');
     emit('update-tracks');
   } catch (error) {
+    window.alert("노래를 선택해주세요.");
     console.log(error);
   }
 }
@@ -329,7 +344,7 @@ onMounted(() => {
 </script>
 
   <style scoped>
-  .modal-overlay {
+  .music-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -342,7 +357,7 @@ onMounted(() => {
     z-index: 1000;
   }
   
-  .modal-content {
+  .music-modal-content {
     background: white;
     border-radius: 10px;
     width: 450px;
@@ -352,7 +367,7 @@ onMounted(() => {
     position: relative;
   }
   
-  .modal-header {
+  .music-modal-header {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
@@ -510,7 +525,7 @@ onMounted(() => {
     height: 18px;
   }
 
-  .modal-content-grid {
+  .music-modal-content-grid {
     width: 380px;
     display: grid;
     place-self: center;

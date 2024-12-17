@@ -164,7 +164,6 @@ import { ref, onMounted, toRaw } from 'vue';
         z-index: 1000;
     }
     .modal-content {
-        font-family: "Inter-Regular", sans-serif;
         font-size: 18px;
         position: relative;
         top : 50%;

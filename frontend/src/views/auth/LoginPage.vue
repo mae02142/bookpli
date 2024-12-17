@@ -9,7 +9,7 @@
           <img class="book-image" src="@/assets/logos/mascot.png" />
           <span class="home-text">홈으로</span>
         </div>
-        <div class="main-content">
+        <div class="login-main-content">
           <p class="login-title">플레이리스트와 독서 추천을 한번에</p>
           <p class="subtitle">북플리에서 인생책과 노래를 찾아보세요:)</p>
           <div class="spotify-login-box" @click="handleLogin">
@@ -25,7 +25,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import apiClient from 'axios';
 
 const router = useRouter();
 const spotifyLoginUrl = ref('');
@@ -35,7 +35,8 @@ function goHome() {
 }
 
 const handleLogin = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/login`);
+  console.log("click!!!");
+  const response = await apiClient.get('/api/auth/login');
   spotifyLoginUrl.value = response.data;
   window.location.href = spotifyLoginUrl.value;
 };
@@ -44,6 +45,7 @@ const handleLogin = async () => {
   <style>
   .login-container {
     display: flex;
+    align-content: stretch;
     height: 100vh;
     width: 100%;
   }
@@ -78,7 +80,7 @@ const handleLogin = async () => {
     font-weight: 400;
   }
 
-  .main-content {
+  .login-main-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;

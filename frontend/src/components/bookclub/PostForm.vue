@@ -47,7 +47,7 @@
                 @change="onFileChange" 
                 multiple accept="image/*"
                 >
-                <button @click="putUpPost" class="modal-btn">게시</button>
+                <button @click="submitPost" class="modal-btn">게시</button>
             </div>
         </article>
         </div>
@@ -56,8 +56,10 @@
 </template>
 <script>
 import apiClient from '@/api/axiosInstance';
-import {onMounted, ref, toRaw} from "vue";
-import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "firebase/storage";
+import {onMounted, ref} from "vue";
+import {ref as firebaseRef, uploadBytes, getDownloadURL} from "firebase/storage";
+import { firebaseStorage } from "@/firebase/firebaseConfig";
+
     export default {
         props: {
             modelValue : {
@@ -81,10 +83,13 @@ import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "fireba
                 console.log('userId : '+props.userId);
 
             })
-            const storage = getStorage();  // firebase storage 초기화
+           
          
             const fileInput = ref(null); //input file 참조
-            const imageSrc = ref([]);   //선택된 이미지의 경로
+            const imageSrc = ref([]);   //미리보기 이미지 데이터 
+            const selectedFiles = ref([]); // 실제 파일 데이터
+
+                // 파일 선택 후 처리 
             const onFileChange = (event) =>{
                 const files = event.target.files;
 
@@ -103,40 +108,78 @@ import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "fireba
                         imageSrc.value.push({file,url:e.target.result}); // 선택된 파일의 url 
                     };
                     reader.readAsDataURL(file);
-                    uploadImg.value= true;
+                    selectedFiles.value.push(file);
                 }
             };
+
+            //  파일 선택 트리거 
             const triggerFileInput = () => {
                 fileInput.value.click();  // input file 태그를 클릭하게끔 함
             };
+
+            // 이미지 삭제 
             const removeImg = (index) => {
                 imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
+                selectedFiles.value.splice(index, 1);
             };
 
-                        /* 게시글 등록 */
+                 /* 게시글 등록 */
 
             const form = ref({
                 userId : props.userId,
                 bookClubId : props.bookclubId,
-                postContent : "",
-
+                postContent : "",    
+                uploadedImages : [], // 업로드 된 이미지 url
             });
-            const putUpPost = async() => {
-                console.log('게시 전 내용'+JSON.stringify(form.value));
-                const rawForm = toRaw(form.value);
-                console.log('게시 내용'+JSON.stringify(rawForm));
 
-                const response = await apiClient.post("/api/post/insert", rawForm);
+            const uploadImagesToFirebase = async (files, path) => {
+            const urls = [];
+            for (const file of files) {
+                const uniqueName = `${Date.now()}-${file.name}`; // 중복 이름 없게
+                const storageRef = firebaseRef(firebaseStorage, `${path}/${uniqueName}`);
+                try {
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                urls.push(url);
+                } catch (error) {
+                console.error(`Error uploading image ${file.name}:`, error);
+                }
+            }
+            console.log("Uploaded URLs:", urls); // 업로드된 URL 확인
+            return urls;
+            };
+
+        const submitPost = async() => {
+            try{
+                    // 이미지 업로드
+                const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
+                console.log('업로드 이미지: '+ uploadedUrls);
+
+                const data= {
+                    userId : props.userId,
+                    bookClubId : props.bookclubId,
+                    postContent: form.value.postContent,
+                    imageUrl : uploadedUrls,
+                };
+                console.log('%%%%%%%%%%%%%%%%%%');
+                 console.log(JSON.stringify(data.value));
+                const response = await apiClient.post("/api/post/insert", data);
                 if(response.data.data == true){
                     alert("게시글이 등록되었습니다");
-                }else{
-                    alert("게시글 등록에 실패하였습니다");
-                }
-                imageSrc.value = "";
-                emit('close');
-                closeModal();
+                    // 초기화
+                    form.value.postContent = "";
+                    imageSrc.value = [];
+                    selectedFiles.value= [];
+                    emit('close');
+                    closeModal();
                 //mypost 다시 리로딩
-            };
+                }
+            }
+            catch(error){
+                console.error(error, '업로드 실패')
+                alert("게시글 등록에 실패하였습니다");
+            }
+        };
 
                     //모달 닫기
             const closeModal = () =>{ 
@@ -146,10 +189,12 @@ import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "fireba
                 emit("reload");
             }
             return{
-                storage,
+                submitPost,
+                uploadImagesToFirebase,
+                selectedFiles,
+
                 closeModal,
                 form,
-                putUpPost,
                 triggerFileInput,
                 onFileChange,
                 fileInput,
@@ -171,7 +216,6 @@ import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "fireba
         z-index: 1000;
     }
     .modal-content {
-        font-family: "Inter-Regular", sans-serif;
         font-size: 18px;
         position: relative;
         top : 50%;

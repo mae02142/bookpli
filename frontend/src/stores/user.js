@@ -8,5 +8,8 @@ export const useUserStore = defineStore("user", {
     setAccessToken(token) {
       this.accessToken = token;
     },
+    clearAccessToken() {
+      this.accessToken = null;
+    },
   },
 });
