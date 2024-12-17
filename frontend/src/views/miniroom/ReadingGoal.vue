@@ -61,7 +61,7 @@
         <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
     </div>
     <span class="button-container">
-        <button class="confirm-button" @click="handleAction()">확인</button>
+        <button class="confirm-button" @click="handleAction">확인</button>
         <button class="confirm-button" >닫기</button>
     </span>    
 </div>
@@ -108,9 +108,12 @@ const showEndPicker = ref(false);
 
 const radioSelect= ref("");
 
+
+
+
 const handleAction= async () => {
     if(radioSelect.value === "reading"){
-        await changeStatus();
+        await setGoal();
     }else if(radioSelect.value === "dropped"){
         await dropReading();
     }else{
@@ -118,7 +121,8 @@ const handleAction= async () => {
     }
 }
 
-const changeStatus = async () => {
+//도서 목표설정
+const setGoal = async () => {
     if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
         alert("독서상태와 독서기간을 모두 선택해주세요");
         return;
@@ -143,7 +147,7 @@ const changeStatus = async () => {
     }
 }
 
-
+//독서중 해제
 const dropReading = async () => {
     try{
         const response= await apiClient.delete(`/api/goal/${book.value.isbn13}`,{
@@ -280,7 +284,7 @@ max-width: 800px;
 .progress-bar {
     position: relative;
     height: 37px;
-    background: #f0f0f0;
+    background: rgb(171, 235, 171);
     border-radius: 15px;
     margin-top: 10px;
     overflow: hidden;
@@ -288,7 +292,7 @@ max-width: 800px;
 
 .progress-bar-fill {
     height: 100%;
-    background: #fffdf1;
+    background:rgb(171, 235, 171);
     width: 25%; 
 }
 
