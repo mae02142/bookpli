@@ -1,42 +1,7 @@
 <template>        
- <div class="container">
-        <!-- 사이드 바 -->
-        <LeftSidebar />
-<aside class="sidebar2">
-  <nav>
-    <ul>
-      <li class="sidebar-item" v-for="menuItem in menuItems" :key="menuItem.title"
-      :class="{ active: selectedStatus === menuItem.route }"
-        @click="selectStatus(menuItem.route)">
-        <img
-          :src="`/src/assets/sidebar/${menuItem.icon}`"
-          :alt="menuItem.title"
-          class="sidebar-icon"
-        />
-        <div class="menuitem-grid">
-          <h4>{{ menuItem.title }}</h4>
-          <p class="menuitem-count">{{ menuItem.count }}</p>
-        </div>
-      </li>
-    </ul>
-  </nav>
-  <!-- review 리스트 페이지 이동 -->
-  <router-link to="/review/mylist">
-    <div class="sidebar-item">  
-      <img src="@/assets/icons/reviewlist.png" 
-      alt="move to review List"
-      class="sidebar-icon"
-      />
-      <h4>나의 리뷰</h4>
-    </div>
-  </router-link>  
-</aside>
+
 <!--     리뷰 리스트     -->
-<div class="review-container">
-    <div class="review-header">
-      <h2>나의 리뷰</h2>
-      <hr style="color: #909090; opacity: 0.7;">
-    </div>
+<div class="review-container" >
                 <!-- 리뷰 없을 때 -->
     <section v-if="serverReview.value">
       <h1 class="none-review">등록된 리뷰가 없습니다.</h1>
@@ -50,15 +15,7 @@
       <img class="review-image" :src="review.cover" :alt="review.title" />
       <div class="review-content">
         <div class="remove-review">
-          <img src="@/assets/icons/close.png" @click="review.showModal = true" class="removeIcon">
-          <!-- 모달 표시 -->
-          <RemoveReview 
-          v-model:isVisible="review.showModal" 
-          :deleteId="review.reviewId"
-           @delete-review="deleteReview" 
-           @closeModal="close"
-           />
-
+          <img src="@/assets/icons/close.png" @click="confirmRemove(review.reviewId)" class="removeIcon">
         </div>
         <div class="title-icon">
           <h3 class="title">{{ review.title }}</h3>
@@ -106,7 +63,7 @@
       </div>
     </section>
     </div>
-  </div> 
+   
 </template>
 
 <script>
@@ -117,11 +74,12 @@ import RemoveReview from "@/components/review/RemoveReview.vue";
 import { onMounted, ref, computed} from "vue";
 import apiClient from '@/api/axiosInstance';
 import { useAuthStore } from '@/stores/auth';
+import { useConfirmModalStore } from '@/stores/utilModalStore';
+
 
 export default {
   components : {
     RemoveReview,
-    LeftSidebar,
   },
   setup() {
   /* user info */
@@ -130,42 +88,6 @@ export default {
   onMounted(() => {
     getMyList();
   });
-  
-  /* 사이드 바 */
-  const menuItems = ref([]);
-  const selectedStatus = ref('reading');
-
-
-  const getMyLibrary = async () => {
-  try {
-    const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
-    books.value = response.data.data;
-    updateMenuItems();
-  } catch (error) {
-    console.error('Error loading inquiries:', error);
-  }
-  };
-
-  //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
-  const groupedData = computed(() => {
-        return books.value.reduce((acc, item) => {
-          (acc[item.status] || (acc[item.status] = [])).push(item);
-          return acc;
-        }, {});
-      });
-
-  const updateMenuItems = () => {
-      menuItems.value = [
-        { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
-        { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
-        { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
-      ];
-    };  
-
-    // 선택된 상태 변경
-const selectStatus = (status) => {
-  selectedStatus.value = status;
-};
 
           /* 리뷰 조회 페이지 */ 
 
@@ -240,7 +162,22 @@ const selectStatus = (status) => {
       }
     };
 
+     
            /*  리뷰  삭제  */ 
+
+           // 삭제 모달
+    const confirmRemove = (reviewId) => {
+    const confirmModalStore = useConfirmModalStore();
+    confirmModalStore.showModal(
+    '리뷰 삭제',
+    '선택하신 리뷰를 삭제하겠습니까?',
+    '삭제 후 복원할 수 없습니다.',
+    '삭제하기',
+    '',
+    () => deleteReview(reviewId)
+    )
+  };
+          // 서버 삭제 요청
     const deleteReview = async(reviewId) => {
       console.log("삭제하려는 값 : "+ reviewId);
       try{
@@ -257,20 +194,7 @@ const selectStatus = (status) => {
       }
     };
 
-    const close = () => {
-      reviews.value.forEach(review => {
-      review.showModal = false;
-      });
-    } 
     return {
-      /* 사이드바 */
-      LeftSidebar,
-      menuItems,
-      selectedStatus,
-      updateMenuItems,
-      selectStatus,
-      getMyLibrary,
-
       serverReview,
       reviews,
       getMyList,
@@ -282,7 +206,7 @@ const selectStatus = (status) => {
       editingReview,
       ratingStar,
       deleteReview,
-      close,
+      confirmRemove,
     };
   },
 };
@@ -343,9 +267,7 @@ const selectStatus = (status) => {
 
   /* 공통 스타일 */
   .review-container {
-    width: 60%;
     max-width: 800px;
-    margin-top: 80px;
     padding: 20px;
     box-sizing: border-box;
     background-color: #ffffff;

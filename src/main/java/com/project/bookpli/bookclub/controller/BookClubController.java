@@ -25,19 +25,6 @@ public class BookClubController {
     private final String BASE_URL = "http://www.aladin.co.kr/ttb/api/ItemSearch.aspx";
 
 
-
-//    //북적북적 검색바
-//    @GetMapping("/search/{key}")
-//    public BaseResponse<List<BookClubDTO>> searchList(@PathVariable String key){
-//        try {
-//            List<BookClubDTO>bookClubDTOList = bookClubService.findBookClubList(key);
-//            return new BaseResponse<>(bookClubDTOList);
-//        }catch (Exception e){
-//            log.error("컨트롤러: 도서리스트를 가져오는데 오류가 발생하였습니다."+ e.getMessage());
-//            return new BaseResponse<>(new ArrayList<>());
-//        }
-//    }
-
             //북클럽 생성
     @PostMapping("/create")
     public BaseResponse<Void> createBookClub(@RequestParam String isbn){
@@ -73,7 +60,8 @@ public class BookClubController {
                         "isbn13",items.get("isbn13"),
                         "title",items.get("title"),
                         "author",items.get("author"),
-                        "cover" ,items.get("cover")
+                        "cover" ,items.get("cover"),
+                        "description" ,items.get("description")
                         )).collect(Collectors.toList());
             }
         }catch (Exception e){

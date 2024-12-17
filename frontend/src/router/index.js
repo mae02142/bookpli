@@ -106,24 +106,6 @@ const router = createRouter({
       path: "/details/:category",
       component: () => import("@/views/main/DetailsPage.vue"),
     },
-
-    {
-      path: "/bookclub",
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/bookclub/BookclubMain.vue"),
-        },
-        {
-          path: "community",
-          component: () => import("@/views/bookclub/CommunityDetail.vue"),
-        },
-        {
-          path: "mybookclub",
-          component: () => import("@/views/bookclub/MyBookclub.vue"),
-        },
-      ],
-    },
   ],
 });
 

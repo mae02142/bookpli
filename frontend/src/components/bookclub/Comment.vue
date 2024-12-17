@@ -43,7 +43,7 @@ import { onMounted, ref } from "vue";
 import dislike from "@/assets/icons/dislike.png";
 import like from "@/assets/icons/like.png";
 import { useAuthStore } from "@/stores/auth";
-import { useModalStore } from "@/stores/modalState";
+import { useUtilModalStore } from "@/stores/utilModalStore";
   
   export default {
  
@@ -61,7 +61,6 @@ import { useModalStore } from "@/stores/modalState";
     setup(props, { emit }) {
 
       const authStore = useAuthStore();
-      const modalStore = useModalStore();
 
       onMounted(()=>{
         if(props.postId){
@@ -102,8 +101,6 @@ import { useModalStore } from "@/stores/modalState";
         } else {
             console.error('serverComments는 배열이 아닙니다.');
         }
-        console.log(comments.value);
-        console.log("댓글 목록 "+isExisting.value);
       };  
       
           // 좋아요 default 값 설정
@@ -136,11 +133,11 @@ import { useModalStore } from "@/stores/modalState";
           console.error('에러 발생 : '+error);
         }
       }
-
           /*  댓글 등록  */
       const userComment = ref([]);
       const userName = authStore.user.userNickname || 'USER'; // 댓글 작성 시 작성자명
-            
+      const utilModalStore = useUtilModalStore();
+
       const postComment =async() => {
           console.log('댓글 등록 postID : '+ props.postId );
           const newComment = {
@@ -150,13 +147,17 @@ import { useModalStore } from "@/stores/modalState";
           };
         try{
           const response = await apiClient.post(`/api/comment/insert`,newComment);
-            console.log(response.status);
-            alert("등록되었습니다");
+          if(response.status ==200){
+            utilModalStore.showModal(
+              '댓글 등록',
+              '댓글이 등록되었습니다.',
+              'alert'
+            );
             userComment.value = "";
-          
+            return;
+          }
         }catch(error){
-          console.error('오류 발생', error);
-          alert('댓글 등록 실패');
+          console.error('오류 발생', error)
         }
         getComments();
 

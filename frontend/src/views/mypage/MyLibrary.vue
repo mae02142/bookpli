@@ -23,7 +23,7 @@
       <!-- review 리스트 페이지 이동 -->
       <router-link to="/review/mylist">
         <div class="sidebar-item">  
-          <img src="@/assets/sidebar/review.png" 
+          <img src="@/assets/sidebar/review.png"
           alt="move to review List"
           class="review-icon"
           />
@@ -85,7 +85,6 @@
       @close="closeModal"
       @openForm="showForm=true"
       @delete-library="deleteLibrary"
-      @book-like-status="toggleBookLike"
     />
   </div>
 </template>
@@ -107,7 +106,6 @@
   // 모달 상태 및 선택된 책 데이터
   const isModalVisible = ref(false);
   const selectedBook = ref({});
-  const likedBooks = ref([]); // 좋아요된 책의 ISBN 목록
 
 
   // 리뷰 작성 모달 상태

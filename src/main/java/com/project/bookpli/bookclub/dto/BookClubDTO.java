@@ -16,6 +16,7 @@ public class BookClubDTO {
     private String title;
     private String author;
     private String cover;
+    private String description;
 
 
         // DTO -> Entity 변환
@@ -34,6 +35,7 @@ public class BookClubDTO {
                 .title(bookClub.getBook().getTitle())
                 .author(bookClub.getBook().getAuthor())
                 .cover(bookClub.getBook().getCover())
+                .description(bookClub.getBook().getDescription())
                 .build();
     }
 }

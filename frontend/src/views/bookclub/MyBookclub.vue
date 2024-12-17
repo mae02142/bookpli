@@ -15,7 +15,8 @@
                        <!-- 첫 번째 항목은 라우터 링크로 이동 -->
                       <RouterLink v-if="index === 0" :to="{path : item.link, 
                         query : {title: bookInfo.title, author : bookInfo.author,
-                          cover : bookInfo.cover, bookClubId : bookInfo.bookclubId
+                          cover : bookInfo.cover, bookClubId : bookInfo.bookclubId,
+                          description : bookInfo.description
                         }
                       }"> 
                         <svg
@@ -56,7 +57,7 @@
              <!-- 게시글 리스트 -->
     <MyPost 
       v-if="selected === 1" 
-      :userId="userInfo.userId" 
+      :userId="authStore.user.userId" 
       :bookclubId="bookInfo.bookclubId" 
       :nickname="userInfo.userNickname" 
       :profile="userInfo.profilePath" 
@@ -113,7 +114,7 @@ import apiClient from "@/api/axiosInstance";
         `,
       },
     ]);
-    const selected = ref(0);
+    const selected = ref(1);
  // 클릭한 항목에 대해 동작을 처리하는 메서드
      const handleItemClick = (index) => {
       selected.value = index;  // 클릭된 항목을 선택으로 표시
@@ -124,6 +125,7 @@ import apiClient from "@/api/axiosInstance";
           bookclubId: Number(route.query.bookClubId),
           author : route.query.author,
           cover : route.query.cover,
+          description : route.query.description,
           });  
        
         const addPost = ref(false);
@@ -147,6 +149,7 @@ import apiClient from "@/api/axiosInstance";
           }
         }
       return {
+        authStore,
         Profile,
         handleItemClick,
         selected,
