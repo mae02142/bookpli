@@ -98,6 +98,14 @@
                           >
                             <img :src="img.imageUrl" class="post-image-img" />
                           </div>
+                          <div class="image-indicator" v-if="post.imageUrl.length >1">
+                            <div
+                              class="image-circle"
+                              v-for="img , index in post.imageUrl"
+                              :key="img.imageUrl.index"
+                              :class="{activeImg: index === curpos}"
+                            ></div>
+                          </div>
                         </div>
                            <!-- 슬라이드 네비게이션 -->
                       </div>
