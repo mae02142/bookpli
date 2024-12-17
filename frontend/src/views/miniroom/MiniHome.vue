@@ -140,8 +140,8 @@ import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
-import UtilModal from "@/components/modal/UtilModal.vue";
 import ConfirmModal from "@/components/modal/ConfirmModal.vue";
+import { useUtilModalStore } from "@/stores/utilModalStore";
 import { useConfirmModalStore } from "@/stores/utilModalStore";
 
 const router = useRouter();
@@ -182,23 +182,22 @@ const pageinationWish = computed (() => {
     return addList.value.slice(startIndex, endIndex);
 });
 
-const loadReadList = () =>{
-    if(currentReading.value * itemsPerPage.value < readList.value.length){
-        currentReading.value+=1;
-    }else{
-        alert("마지막 페이지 입니다.");
-        currentReading.value=1;
+
+const loadReadList = () => {
+    const utilModalStore = useUtilModalStore(); 
+
+    if (currentReading.value * itemsPerPage.value < readList.value.length) {
+    currentReading.value += 1;
+    } else {
+    utilModalStore.showModal(
+        "알림",             
+        "마지막 페이지입니다.", 
+        "warning"           
+    );
+    currentReading.value = 1;
     }
 };
 
-const loadWishList = () =>{
-    if(currentWished.value * itemsPerPage.value < addList.value.length){
-        currentWished.value+=1;
-    }else{
-        alert("마지막 페이지 입니다.");
-        currentWished.value=1;
-    }
-};
 
 const gotoLibrary= () =>{
     router.push({
@@ -322,22 +321,56 @@ const calculateMonthStats = () => {
 };
 
 
-const changeToFail = async (book, index)=>{
-    const today= new Date();
-    const endDate= new Date(book.endDate);
+// const changeToFail = async (book, index)=>{
+//     const today= new Date();
+//     const endDate= new Date(book.endDate);
 
 
-    if(today > endDate){
-        try{
-            const response= await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
-            alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
+//     if(today > endDate){
+//         try{
+//             const response= await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
+//             alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
 
-            updateFailedBooks(index);
-        }catch(error){
-            console.log("실패처리실패",error);
-        }
+//             updateFailedBooks(index);
+//         }catch(error){
+//             console.log("실패처리실패",error);
+//         }
+//     }
+// };
+
+
+const changeToFail = async (book, index) => {
+  const utilModalStore = useUtilModalStore(); // 스토어 인스턴스 가져오기
+
+    const today = new Date();
+    const endDate = new Date(book.endDate);
+
+    if (today > endDate) {
+    try {
+        const response = await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
+        
+        // 통일된 Alert 모달 호출
+        utilModalStore.showModal(
+        "완독 실패 처리", 
+        `"${book.title}" 도서 완독이 실패 처리 되었습니다.`, 
+        "warning" 
+        );
+
+        updateFailedBooks(index);
+    } catch (error) {
+        console.log("실패 처리 실패", error);
+
+        // 에러 발생 시 Alert 모달 호출
+        utilModalStore.showModal(
+        "오류 발생", 
+        "도서 실패 처리 중 오류가 발생했습니다.", 
+        "error" 
+        );
+    }
     }
 };
+
+
 
 const updateFailedBooks = (index) => {
     if(index >= 0 && index < readList.value.length){
@@ -378,24 +411,31 @@ const stopEdit = (index) => {
 };
 
 
-// 도서 완독 처리
-const clearReading = async (book) => {
-  try {
-    const confirmClear = confirm("도서를 완독 처리하시겠습니까?");
-    if (!confirmClear) return;
-
-    const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
-    if (status === 200) {
-      alert("완독 처리되었습니다.");
-      await loadBooks("reading", readList);
-      await loadBooks("completed", completedBooks);
-      calculateCompletedStats(); // 통계 재계산
-      calculateMonthStats(); // 이번달 통계 재계산
+const clearReading = (book) => {
+const confirmModalStore = useConfirmModalStore();
+confirmModalStore.showModal(
+    "도서 완독 처리",                
+    "도서를 완독 처리하시겠습니까?",   
+    "완독 처리 후 되돌릴 수 없습니다.", 
+    "완독 처리",                     
+    "warning",                        
+    async () => {                     
+        try {
+        const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
+        if (status === 200) {
+            alert("완독 처리되었습니다.");
+            await loadBooks("reading", readList);
+            await loadBooks("completed", completedBooks);
+            calculateCompletedStats(); 
+            calculateMonthStats(); 
+        }
+        } catch (error) {
+        console.error("완독 처리 실패:", error);
+        }
     }
-  } catch (error) {
-    console.error("완독 처리 실패:", error);
-  }
+    );
 };
+
 
 const likeordislike = async () => {
     try{
@@ -633,12 +673,7 @@ margin: 5px 0;
     gap: 20px; 
 }
 
-.book-covers2 {
-    display: flex; 
-    gap: 20px; 
-    justify-content: space-between;
 
-}
 
 .book-item {
     text-align: center;
@@ -654,12 +689,7 @@ margin: 5px 0;
     margin-left: 19px;
 }
 
-.book-cover2 {
-    width: 150px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-}
+
 
 .book-info {
     margin-top: 10px;

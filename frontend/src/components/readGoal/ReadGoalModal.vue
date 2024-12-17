@@ -91,8 +91,6 @@ const props = defineProps({
     rbook: Object,
 });
 
-const localBook = ref(props.rbook); 
-
 const emit= defineEmits(["close"]);
 
 const emitClose= () => {
@@ -115,6 +113,9 @@ const changeDate= async (rbook) => {
     
     try{
         const response= await apiClient.put(`/api/goal/reset/${rbook.isbn13}`, {
+            headers: {
+                Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
+            },
             params: {
                 startDate: formatStartDate,
                 endDate: formatEndDate,
@@ -202,8 +203,10 @@ const handleAction = async () => {
             } else {
             alert("독서 상태를 선택해주세요.");
             }
-        } else {
-            alert("책 상태를 확인할 수 없습니다.");
+        } else if(!props.rbook.status || props.rbook.status === null){
+            await setGoal(props.rbook);
+        }else{
+            alert("다시시도");
         }
 
     } catch (error) {
@@ -214,11 +217,7 @@ const handleAction = async () => {
 
 
 const setGoal = async (rbook) => {
-    if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
-        alert("독서상태와 독서기간을 모두 선택해주세요");
-        return;
-    }
-
+    
     const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
 
@@ -252,16 +251,23 @@ const dropReading = async (rbook) => {
     }
 }
 
+// Pinia에서 가져온 진행률을 `computed`로 반영
+const progressPercentage = computed(() => {
+const progress = progressStore.getProgress(props.rbook.isbn13);
+  return progress?.progressPercentage || 0; // 진행률이 없으면 0
+});
+
+
 //pinia에서 저장된 진행상황
 // Pinia 상태 감지 및 업데이트
 watch(
-    () => progressStore.progressData,
-    (newProgressData) => {
-    if (props.rbook && newProgressData[props.rbook.isbn13]) {
-        const updatedProgress = newProgressData[props.rbook.isbn13];
-        props.rbook.currentPage = updatedProgress.currentPage;
-        props.rbook.progressPercentage = updatedProgress.progressPercentage;
-    }
+    () => progressStore.progressData[props.rbook.isbn13],
+    (newProgress) => {
+        if (newProgress) {
+            // const updatedProgress = newProgressData[props.rbook.isbn13];
+            props.rbook.currentPage = newProgress.currentPage;
+            props.rbook.progressPercentage = newProgress.progressPercentage;
+        }
     },
     { deep: true, immediate: true }
 );
@@ -279,7 +285,7 @@ onMounted(() => {
     const savedProgress= progressStore.getProgress(props.rbook.isbn13);
     if(savedProgress){
         props.rbook.currentPage=savedProgress.currentPage || 0;
-        props.rbook.startIndex=savedProgress.startIndex || 0;
+        // props.rbook.startIndex=savedProgress.startIndex || 0;
         props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
 });

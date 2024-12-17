@@ -96,6 +96,7 @@
             </div>
           </div>
         </div>
+        </div>
       </article>
       </section>
     </div>
@@ -465,5 +466,3 @@ body {
 }
 
 </style>
-  
-  
