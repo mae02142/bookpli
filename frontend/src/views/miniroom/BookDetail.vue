@@ -14,7 +14,7 @@
 
             <div class="book-intro-grid">
                 <p class="book-intro-header">책소개</p>
-                <p class="book-intro">{{ book.description }}</p>
+                <p class="book-intro" v-html="book.description"></p>
             </div>
             <div class="book-detail-grid">
                 <div class="book-detail-grid-first">
@@ -110,8 +110,6 @@ const toggleLike = () => {
 const likeBook = async ()  =>{
     try{
         const response= await apiClient.post(`/api/book/like/${authStore.user.userId}/${isbn13}`);
-        alert("찜하기가 완료 되었습니다.");
-
     }catch(error){
         console.log(error);
     }
@@ -121,8 +119,6 @@ const likeBook = async ()  =>{
 const dislike = async ()  =>{
     try{
         const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
-        alert("찜해제가 완료 되었습니다.");
-
     }catch(error){
         console.log(error);
     }

@@ -4,7 +4,7 @@
         <div class="modal-content">
             
             <div class="book-section">
-                <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
+                <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
                 <div class="title">{{rbook.title}}</div>
                 <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
                 <div class="reading-status" v-if="rbook.status === 'reading'">
@@ -91,7 +91,6 @@ const progressStore= useProgressStore();
 defineProps({
     visible: Boolean,
     rbook: Object,
-
 });
 
 const emit= defineEmits(["close"]);
@@ -151,18 +150,34 @@ const showEndPicker = ref(false);
 const radioSelect= ref("");
 
 const handleAction= async () => {
+    if (!rbook) {
+        console.error("rbook이 정의되지 않았습니다.");
+        alert("선택된 책이 없습니다. 다시 시도해주세요.");
+        return;
+    }
+
+    console.log("rbook값있는지 확인확인",rbook);
+    console.log("라디오 기본새팅값도 있는지 확인확인",radioSelect.value);
     try{
-        await changeDate(rbook);
+        if(rbook.status === "reading"){
+            await changeDate(rbook);
+
+            if(radioSelect.value === "dropped"){
+                await dropReading();
+            }
+        }else if(rbook.status === "wished"){
 
         if(radioSelect.value === "reading"){
             await changeStatus();
+            await changeDate(rbook);
         }else if(radioSelect.value === "dropped"){
             await dropReading();
         }else{
             alert("독서상태를 선택해주세요");
         }
+        }
     }catch(error){
-        console.log("ㅇㄹㅇㄹㅇ",error);
+        console.log("기간변경하면서 에러",error);
     }; 
 }
 
@@ -243,7 +258,7 @@ align-items: center;
 margin-top: 10px;
 }
 
-.book-cover {
+.bookgoal-cover {
 width: 150px;
 height: 200px;
 object-fit: cover;

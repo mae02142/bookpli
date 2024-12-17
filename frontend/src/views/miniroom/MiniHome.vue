@@ -29,8 +29,8 @@
     <!-- 음악 플레이어 -->
     <div class="music-section">
         <h3 class="music-title">play music</h3>
-        <p class="more-wrapper music-more">
-            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+        <p class="more-wrapper music-more" @click="gotoPlaylist">
+            <img src="../../assets/icons/add.png" class="sm-images" />더보기
         </p>
         <div class="music-player"> 
             <MusicPlayer/>
@@ -79,23 +79,32 @@
             <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
         </div>
 
-        <h3 class="title-header">내가 읽고 있는 책</h3>    
-        <p class="more-wrapper book-more" @click="loadReadList">
+        <h3 class="title-header">내가 읽고 있는 책</h3>  
+        <div>
+            <p class="more-wrapper book-more" @click="loadReadList">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
-        </p>
-        <div class="book-section">
-            <div v-if="readList.length > 0" class="book-covers">
-                <div class="book-item" v-for="rbook in pageinationRead.slice(0,4)" :key="rbook.isbn13">
-                    <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
-                    <p class="book-info">
-                        <span class="book-icon" @click="openModal(rbook)">📖</span>&nbsp;&nbsp;
-                        <span>{{ rbook.title.split('-')[0] }}</span>&nbsp;&nbsp;
-                        <span>{{ rbook.author }}</span>
-                    </p>
+            </p>
+            <div class="book-section">
+                <div v-if="readList.length > 0" class="book-covers">
+                    <div class="book-item" v-for="rbook in pageinationRead.slice(0,4)" :key="rbook.isbn13">
+                        <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
+                        <div class="book-info">
+                            <div>
+                                <span class="book-icon" @click="openModal(rbook)">📖</span>
+                            </div>
+                            <div class="reading-book-grid">
+                                <span>{{ rbook.title.split('-')[0] }}</span>
+                                <span>{{ rbook.author }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
             </div>
-            <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
         </div>
+
+
+        
 
         <h3 class="title-header">내가 담아놓은 책</h3>
         <p class="more-wrapper book-more" @click="loadWishList">
@@ -112,13 +121,15 @@
     </div>
 
     <ReadGoalModal 
-        :visible="showModal"
-        :rbook="selectBook"
-        @close="closeModal"
+    :visible="showModal"
+    :rbook="selectBook"
+    @close="closeModal"
     />
+    
 </div>
 
 </template>
+console.log("selectBook 값 확인:", selectBook.value);
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
@@ -129,6 +140,9 @@ import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
+import UtilModal from "@/components/modal/UtilModal.vue";
+import ConfirmModal from "@/components/modal/ConfirmModal.vue";
+import { useConfirmModalStore } from "@/stores/utilModalStore";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -151,6 +165,8 @@ const liked= ref("");
 const currentReading=ref(1);
 const currentWished=ref(1);
 const itemsPerPage= ref(4);
+
+const modalStore= useConfirmModalStore();
 
 const pageinationRead = computed (() => {
     const startIndex= (currentReading.value -1) * itemsPerPage.value;
@@ -183,6 +199,8 @@ const loadWishList = () =>{
         currentWished.value=1;
     }
 };
+
+
 
 //목표기간 변경
 const updateStartDate= (value)=> {
@@ -399,6 +417,12 @@ const gotoDetail = async(book) => {
     }
 };
 
+const gotoPlaylist= () => {
+    router.push({
+        path: `/mypage/mypli`,
+    });
+}
+
 // 로그인 직후 회원 정보 저장
 const getUserInfo = async() => {
   try {
@@ -583,6 +607,7 @@ width: 100%;
 margin: 5px 0;
 }
 
+
 .vertical-line {
     background-color: #ccc;
     grid-column: 2 / 3;
@@ -590,18 +615,40 @@ margin: 5px 0;
     width: 2px;
 }
 
+.book-section2{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 200px;
+}
 
 .book-covers {
     display: flex; 
     gap: 20px; 
 }
 
+.book-covers2 {
+    display: flex; 
+    gap: 20px; 
+    justify-content: space-between;
+
+}
+
 .book-item {
     text-align: center;
-    margin-right: 55px;
+    display: flex;
+    flex-flow: column;
 }
 
 .book-cover {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-left: 19px;
+}
+
+.book-cover2 {
     width: 150px;
     height: 200px;
     object-fit: cover;
@@ -611,6 +658,10 @@ margin: 5px 0;
 .book-info {
     margin-top: 10px;
     font-size: 14px;
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    gap: 7px;
 }
 
 .track-info {
@@ -845,5 +896,17 @@ position: relative;
 
 .book-icon {
     cursor: pointer;
+}
+
+.reading-book-grid {
+    display: grid;
+    justify-items: flex-start;
+    gap: 4px;
+}
+
+.reading-book-grid span:first-child {
+    font-weight: bold;
+    color: black;
+    font-size: 15px;
 }
 </style>
