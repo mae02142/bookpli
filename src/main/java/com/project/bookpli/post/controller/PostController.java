@@ -52,27 +52,28 @@ public class PostController {
 
         // 수정을 위한 데이터 조회
     @GetMapping("/getOne")
-    public BaseResponse<PostDTO> readOne (@RequestParam Long postId) {
+    public BaseResponse<PostResponseDTO> readOne (@RequestParam Long postId) {
         try{
-          PostDTO post = postService.readOne(postId);
+            PostResponseDTO post = postService.readOne(postId);
           log.info("게시글을 불러옵니다");
           return new BaseResponse<>(post);
         }catch (Exception e){
             log.error("컨트롤 : 에러 발생");
-            return new BaseResponse<>(null);
+            return new BaseResponse<>();
         }
     }
 
     @GetMapping("/comment/readOne")
-    public BaseResponse<List<PostDTO>>postForComment (@RequestParam Long postId){
+    public BaseResponse<PostResponseDTO>postForComment (@RequestParam Long postId){
         try {
-            List<PostDTO> post = postService.readForComment(postId);
+            PostResponseDTO post = postService.readForComment(postId);
             log.info("게시글을 불러옵니다");
             System.out.println(post);
             return new BaseResponse<>(post);
         }catch (Exception e){
             log.error("컨트롤: 에러발생");
-            return new BaseResponse<>(null);
+            e.printStackTrace();
+            return new BaseResponse<>();
         }
     }
 
@@ -92,10 +93,10 @@ public class PostController {
 
             // 게시글 수정
     @PutMapping("/edit")
-    public BaseResponse<Boolean> postEdit(@RequestBody PostDTO postDTO){
+    public BaseResponse<Boolean> postEdit(@RequestBody PostRequestDTO postRequestDTO){
         try {
-            System.out.println("수정하려는 게시글 : " + postDTO.getPostId());
-            boolean result = postService.update(postDTO);
+            System.out.println("수정하려는 게시글 : " + postRequestDTO.getPostId());
+            boolean result = postService.update(postRequestDTO);
             if (!result) {
                 throw new IllegalArgumentException("수정하는데 실패하였습니다");
             }

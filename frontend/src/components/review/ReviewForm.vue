@@ -202,6 +202,8 @@
   .char-count {
     font-size: 16px;
     color: #595959;
+    text-align: right;
+    margin: 5px;
   }
   
   .form-actions {

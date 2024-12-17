@@ -93,8 +93,8 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
             const onFileChange = (event) =>{
                 const files = event.target.files;
 
-                if(files.length + imageSrc.value.length >3){
-                    alert("이미지는 최대 2장까지 업로드 가능합니다.");
+                if(files.length + imageSrc.value.length >4){
+                    alert("이미지는 최대 4장까지 업로드 가능합니다.");
                     return ;
                 }
                 for(let i=0; i<files.length ; i++){

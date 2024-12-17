@@ -23,6 +23,7 @@ public class PostDTO {
     private String profilePath;
 
 
+
           // DTO -> Entity
     public Post toEntity() {
 
@@ -48,7 +49,7 @@ public class PostDTO {
                 .build();
     }
 
-    public static PostDTO fromEntityForOne(Post post) {
+    public static PostDTO fromEntityForOne(Post post){
         return PostDTO.builder()
                 .postId(post.getPostId())
                 .userId(post.getUserId())
@@ -57,6 +58,5 @@ public class PostDTO {
                 .postDate(post.getPostDate())
                 .build();
     }
-
 
 }

@@ -18,10 +18,10 @@
                   <!-- 각 이미지 하나씩 슬라이드 -->
                   <div
                     class="post-image"
-                    v-for="(img, index) in item.imageUrl"
-                    :key="index"
+                    v-for="img in item.imageUrl"
+                    :key="img.imageId"
                   >
-                    <img :src="img" class="post-image-img" />
+                    <img :src="img.imageUrl" class="post-image-img" />
                   </div>
                 </div>
                      <!-- 슬라이드 네비게이션 -->
@@ -65,10 +65,7 @@
                   :editId="item.postId" @edit-post="EditPost"
                    @close="getMyposts" />
                   <hr class="btn-line">
-                  <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
-                  <!-- 삭제 컴포넌트 -->
-                  <RemovePost v-if:isVisible="item.deleteCheck" 
-                  :deleteId="item.postId" @delete-post="filterPost" />
+                  <button class="show-btn" @click="confirmRemove(item.postId)">삭제</button>
               </div>
             </div> 
           </div>   
@@ -82,12 +79,12 @@
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
   import profile from "@/assets/icons/profile.png";
-  import RemovePost from "@/components/bookclub/RemovePost.vue";
   import PostForm from "@/components/bookclub/PostForm.vue";
   import EditPost from "@/components/bookclub/EditPost.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import { useAuthStore } from "@/stores/auth";
   import apiClient from '@/api/axiosInstance';
+  import { useConfirmModalStore } from "@/stores/utilModalStore";
 
   export default {
     props: {
@@ -109,7 +106,6 @@
   },
      },
     components: {
-        RemovePost,
         PostForm,
         EditPost,
         Comment,
@@ -182,7 +178,6 @@
       const getLikes = async(postId)=>{
         try{
         const response = await apiClient.get(`/api/postlike/${postId}`);
-        console.log('getlikes : '+ response.data)
         return response.data.data;
         }catch(error){
           console.error(error, "에러발생");
@@ -201,13 +196,12 @@
       });
       console.log(response.data.data);
       if(response.data.data){
-        console.log('좋아요 처리');
         return like;
       }else{
-        console.log('체킹되지 않았습니다.');
         return dislike;
       }
     };
+    
       
              /* 좋아요 처리 기능 */
       const checkLike = async(postId,index) => { 
@@ -244,13 +238,33 @@
         const showBtn = ref([]);
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
-        }
+          };
 
-        const filterPost = (postId) =>{
-          console.log('현재 posts:', posts.value); 
-          posts.value = posts.value.filter(post => post.postId !== postId); 
-          console.log('삭제 후 posts:', posts.value);
+        const confirmRemove = (postId) => {
+            const confirmModalStore = useConfirmModalStore();
+            confirmModalStore.showModal(
+              '게시글 삭제',
+              '게시글을 삭제하겠습니까?',
+              '삭제 후 복원은 어렵습니다.',
+              '삭제하기',
+              '',
+              ()=> deleteList(postId)
+            )
         };
+        // 서버로 삭제 요청
+        const deleteList = async(postId) => {
+            try{
+                const response = await apiClient.delete("/api/post/delete", {
+                    params : {postId :postId },
+                });
+                if(response.data.data == true){
+                  posts.value = posts.value.filter(post => post.postId !== postId); 
+                  closeModal();
+                } 
+            }catch(error){
+                console.error(error +'에러발생 !');
+            }};
+            
       return {
         dislike,
         like,
@@ -264,8 +278,8 @@
         openComment,
         showBtn,
         dropdown,
-        filterPost,
         getLikes,
+        confirmRemove,
       };
     },
   };
@@ -296,10 +310,7 @@
     
     .author-info {
       font-size: 14px;
-    margin-right: 20px;
-    gap: 5px;
-    display: flex;
-    align-items: center;
+      margin-right: 20px;
     }
 
     .mypost-cnt {
@@ -320,6 +331,7 @@
       flex-direction: row;
       justify-content: flex-start;
       margin-top: 10px;
+      gap:30px;
     }
     
     /* 아이콘 섹션 */
@@ -414,6 +426,10 @@
     .post-nav {
       display: flex;
       flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      width: 80%;
+      margin: auto;
     }
     .post-images{
       display: flex;
@@ -442,16 +458,24 @@
       background-color: transparent;
       border: none;
       cursor: pointer;
-      font-size: 40px;
+      font-size: 30px;
       color: #ccc
     }
     .slide-next {
       background-color: transparent;
       border: none;
       cursor: pointer;
-      font-size: 40px;
+      font-size: 30px;
       color: #ccc
     }
+
+    .slide-prev:hover {
+      color : black;
+    }
+    .slide-next:hover {
+      color: black;
+    }
+
 
     
   </style>

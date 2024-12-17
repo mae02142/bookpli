@@ -20,16 +20,6 @@
           </li>
         </ul>
       </nav>
-      <!-- review 리스트 페이지 이동 -->
-      <router-link to="/review/mylist">
-        <div class="sidebar-item">  
-          <img src="@/assets/icons/reviewlist.png" 
-          alt="move to review List"
-          class="sidebar-icon"
-          />
-          <h4>나의 리뷰</h4>
-        </div>
-      </router-link>  
     </aside>
 
     <div class="main-content">
@@ -68,6 +58,12 @@
           </div>
         </article>
       </section>
+              
+      <!-- 리뷰 조회 -->
+    <MyReviewList 
+    v-if="selectedStatus === 'myreview'"
+    />  
+
        <!-- 리뷰 모달  -->
     <ReviewForm :isVisible="showForm"
      :userId = authStore.user.userId
@@ -94,6 +90,7 @@
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
   import { useProgressStore } from '@/stores/readingProgressbar';
+  import MyReviewList from '../review/MyReviewList.vue';
 
   const authStore = useAuthStore();
   const menuItems = ref([]);
@@ -107,7 +104,6 @@
 
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
- 
 
 
 const getMyLibrary = async () => {
@@ -133,6 +129,7 @@ const updateMenuItems = () => {
         { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
         { title: '찜한도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
         { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
+        { title: '나의 리뷰', icon:'reviewlist.png', route: 'myreview'},
       ];
     };
 

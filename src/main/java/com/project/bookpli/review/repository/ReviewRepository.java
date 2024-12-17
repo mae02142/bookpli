@@ -17,9 +17,6 @@ public interface ReviewRepository extends JpaRepository< Review, Long > {
             "WHERE r.userId = :userId")
     List<Object[]> findByUserId(@Param("userId") long userId);
 
-//    @Query("SELECT r FROM Review r JOIN Book b ON r.isbn13 = b.isbn13 WHERE b.isbn13 = :isbn13")
-//    List<Review> findByIsbn(@Param("isbn13") String isbn13);
-
 
     @Query("SELECT r, u,userNickname , u.profilePath FROM Review r " +
             "JOIN User u ON r.userId = u.userId " +
