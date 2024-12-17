@@ -52,7 +52,7 @@
 
           
           <!-- 조회 및 수정 -->
-          <div class ="comment-article ">
+          <div class ="cmt-article ">
            <div class="comment-box"> 
             <div class="author-info">
               <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
@@ -91,14 +91,15 @@
                 <p class="comment-date">{{ item.commentDate }}</p>
               </div>
             </div>
-  
-            <button
+            <div>
+              <button
               v-if="editingId === item.commentId"
               class="comment-btn"
               @click="saveComment">
               수정
             </button>
-  
+            </div>
+         
             <!-- 수정, 삭제 토글 버튼 -->
             <div style="position: relative;">
               <img
@@ -386,11 +387,14 @@
     
     .comment-article{
       margin-top: 10px;
+      display: flex;
+      flex-direction: column;
     }
 
     .comment-box{
       display: flex;
       flex-direction: row;
+      gap:15px;
     }
 
     .author-image {
@@ -401,9 +405,9 @@
     
     .author-info {
       font-size: 15px;
-      margin-right: 20px;
       display: flex;
       flex-direction: column;
+      text-align: center;
     }
     .comment-text {
       font-size: 16px;
@@ -416,7 +420,7 @@
         outline: none;
         border-radius: 5px;
         height: auto;
-        width: 100%;
+        width: 95%;
         padding: 10px;
         overflow: hidden;
         transition: height 0.2s ease;
@@ -441,7 +445,7 @@
     .icon {
       width: 18px;
       height: 18px;
-      margin : 0 10px;
+      margin-right : 10px;
     }
     .icon:hover {
       cursor: pointer;
@@ -548,7 +552,6 @@
 /* 수정 버튼 */
 
 .comment-btn {
-    margin : 0 10px;
     border: none;
     background: #FFFDF1;
     width: 40px;

@@ -154,7 +154,6 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
               'alert'
             );
             userComment.value = "";
-            return;
           }
         }catch(error){
           console.error('오류 발생', error)
