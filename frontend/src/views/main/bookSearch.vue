@@ -2,13 +2,8 @@
     <div class="search-container">
     <!-- Search Results -->
     <div class="search-results" v-if="searchBooks.length > 0">
-        <div
-        v-for="book in searchBooks"
-        :key="book.isbn"
-        class="book-item"
-        @click="openModal(book)"
-        >
-        <img :src="book.thumbnail" alt="Book Cover" class="book-cover" />
+        <div v-for="book in searchBooks" :key="book.isbn" class="book-item" @click="gotoDetail(book.isbn)">
+        <img :src="book.thumbnail" alt="Book Cover" class="book-cover"/>
         <div>
             <p class="book-title">{{ book.title }}</p>
             <p class="book-author">{{ book.authors.join(', ') }}</p>
@@ -29,22 +24,6 @@
         다음
         </button>
     </div>
-
-    <!-- Modal for Book Details -->
-    <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
-        <div class="modal-content">
-        <span class="close-button" @click="closeModal">&times;</span>
-        <img :src="selectedBook.thumbnail" alt="Book Cover" class="modal-cover" />
-        <h2>{{ selectedBook.title }}</h2>
-        <p><strong>저자:</strong> {{ selectedBook.authors.join(', ') }}</p>
-        <p><strong>ISBN:</strong> {{ selectedBook.isbn }}</p>
-        <p><strong>출판사:</strong> {{ selectedBook.publisher }}</p>
-        <p><strong>출판일:</strong> {{ selectedBook.datetime }}</p>
-        <p><strong>가격:</strong> {{ selectedBook.sale_price }}원</p>
-        <p><strong>줄거리:</strong> {{ selectedBook.contents }}</p>
-        <a :href="selectedBook.url" target="_blank" style="color: blue;">자세히 보기</a>
-        </div>
-    </div>
     </div>
     <MusicPlayer/>
 </template>
@@ -52,15 +31,15 @@
 <script>
 import { ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 export default {
     setup() {
-    // 라우트에서 쿼리 파라미터 가져오기
     const route = useRoute();
     const query = ref(route.query.q || "");
+    const router = useRouter();
 
-    // 상태 관리
     const searchBooks = ref([]);
     const searchPerformed = ref(false);
     const loading = ref(false);
@@ -73,13 +52,11 @@ export default {
     const totalCount = ref(0);
     const totalPages = ref(0);
 
-    // Kakao REST API 키 (보안 상 노출에 유의하세요)
-    const REST_API_KEY = "22cf152145b49b1dc175b440509f3e1a"; // 실제 REST API 키로 교체하세요.
+    const REST_API_KEY = "22cf152145b49b1dc175b440509f3e1a";
 
     // Kakao Search API 설정
     const apiUrl = "https://dapi.kakao.com/v3/search/book";
 
-    // 데이터 처리 함수
     const fetchSearchBooks = async (searchQuery, page = 1) => {
         if (!searchQuery.trim()) {
         alert("검색어를 입력하세요.");
@@ -111,17 +88,20 @@ export default {
         searchPerformed.value = true;
 
         if (data && data.documents) {
-            searchBooks.value = data.documents.map((book) => ({
-            title: book.title || "제목 없음",
-            authors: book.authors || ["저자 없음"],
-            thumbnail: book.thumbnail || "https://via.placeholder.com/50x75?text=No+Cover",
-            isbn: book.isbn || "정보 없음",
-            publisher: book.publisher || "정보 없음",
-            datetime: book.datetime || "정보 없음",
-            sale_price: book.sale_price || "정보 없음",
-            contents: book.contents || "설명이 없습니다.",
-            url: book.url || "#",
-            }));
+            searchBooks.value = data.documents.map((book) => {
+                const isbn = book.isbn?.split(" ")[1] || "정보 없음"; // 공백 기준으로 나누고 첫 번째 값 사용
+                return {
+                    title: book.title || "제목 없음",
+                    authors: book.authors || ["저자 없음"],
+                    thumbnail: book.thumbnail || "https://via.placeholder.com/50x75?text=No+Cover",
+                    isbn: isbn, // 10자리 ISBN
+                    publisher: book.publisher || "정보 없음",
+                    datetime: book.datetime || "정보 없음",
+                    sale_price: book.sale_price || "정보 없음",
+                    contents: book.contents || "설명이 없습니다.",
+                    url: book.url || "#",
+                };
+            });
 
             // 페이징 정보 업데이트
             totalCount.value = data.meta.total_count;
@@ -149,6 +129,16 @@ export default {
         fetchSearchBooks(query.value, page);
     };
 
+    const gotoDetail = (isbn) => {
+    console.log("Navigating to detail page with ISBN:", isbn); // 디버깅 로그 추가
+    router.push({
+        path: `/main/book/${isbn}`,
+    }).catch((err) => {
+        console.error("Navigation Error:", err);
+    });
+};
+
+
     // Watcher 설정: 라우트 쿼리 변경 시 검색 실행
     watch(
         () => route.query.q,
@@ -174,16 +164,6 @@ export default {
         }
     });
 
-    // Modal 제어 함수
-    const openModal = (book) => {
-        selectedBook.value = book;
-        showModal.value = true;
-    };
-
-    const closeModal = () => {
-        showModal.value = false;
-    };
-
     return {
         searchBooks,
         loading,
@@ -191,11 +171,11 @@ export default {
         searchPerformed,
         showModal,
         selectedBook,
-        openModal,
-        closeModal,
         currentPage,
         totalPages,
         goToPage,
+        gotoDetail,
+        MusicPlayer,
     };
     },
 };
@@ -216,7 +196,8 @@ export default {
     display: flex;
     align-items: center;
     padding: 20px;
-    border: 1px solid #eaeaea;
+    border-top: 1px solid #eaeaea;
+    border-bottom: 1px solid #eaeaea;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;

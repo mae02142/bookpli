@@ -1,11 +1,11 @@
 <template>
-  <div v-if="isActive" class="music-modal-overlay" @click.self="closeModal">
-    <div class="music-modal-content">
+  <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content">
       <div>
-        <div class="music-modal-header">
+        <div class="modal-header">
           <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal" />
         </div>
-        <div class="music-modal-content-grid">
+        <div class="modal-content-grid">
           <div class="album-grid">
             <img :src="songData.image" class="album-img" alt="Album Cover" />
               <div class="album-grid-right">
@@ -189,38 +189,6 @@ const getActiveDevices = async () => {
   }
 };
 
-const playSong = async (uri) => {
-  const playUrl = "https://api.spotify.com/v1/me/player/play";
-
-  try {
-      const devices = await getActiveDevices();
-      if (devices.length === 0) {
-      alert(
-          "활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요."
-      );
-      return;
-      }
-
-      await axios.put(
-      playUrl,
-      {
-          uris: [uri],
-      },
-      {
-          headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          },
-      }
-      );
-  } catch (error) {
-      console.error(
-      "Error playing song:",
-      error.response ? error.response.data : error.message
-      );
-  }
-};
-
 const playAlbum = async (albumId) => {
   const playUrl = "https://api.spotify.com/v1/me/player/play";
   const albumDetailsUrl = `https://api.spotify.com/v1/albums/${albumId}`;
@@ -270,8 +238,6 @@ const playAlbum = async (albumId) => {
     }
   }
 };
-
-
 
 // 플레이리스트 가져오기
 const getMyPlaylist = async () => {
@@ -344,7 +310,7 @@ onMounted(() => {
 </script>
 
   <style scoped>
-  .music-modal-overlay {
+  .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -357,7 +323,7 @@ onMounted(() => {
     z-index: 1000;
   }
   
-  .music-modal-content {
+  .modal-content {
     background: white;
     border-radius: 10px;
     width: 450px;
@@ -367,7 +333,7 @@ onMounted(() => {
     position: relative;
   }
   
-  .music-modal-header {
+  .modal-header {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
@@ -525,7 +491,7 @@ onMounted(() => {
     height: 18px;
   }
 
-  .music-modal-content-grid {
+  .modal-content-grid {
     width: 380px;
     display: grid;
     place-self: center;

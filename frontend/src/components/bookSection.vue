@@ -6,16 +6,16 @@
             <hr>
             <div id="carouselExampleControlsNoTouching" class="carousel slide" data-bs-touch="true" data-bs-interval="false">
                 <div class="carousel-inner">
-                    <div 
-                        v-for="(group, groupIndex) in groupedBooks" 
-                        :key="groupIndex" 
+                    <div
+                        v-for="(group, groupIndex) in groupedBooks"
+                        :key="groupIndex"
                         class="carousel-item"
                         :class="{ active: groupIndex === 0 }"
                     >
                         <div class="book-group">
-                            <div 
-                                v-for="book in group" 
-                                :key="book.id" 
+                            <div
+                                v-for="book in group"
+                                :key="book.id"
                                 class="book-item"
                             >
                                 <div class="image-container">
@@ -30,26 +30,26 @@
                                     {{ book.title.length > 20 ? book.title.slice(0, 20) + '...' : book.title }}
                                 </p>
                                 <p class="book-author" style="font-size: 14px;">
-                                    {{ book.author.replace(/\(.*\)/, '').length > 15 
-                                        ? book.author.replace(/\(.*\)/, '').slice(0, 15) + '...' 
+                                    {{ book.author.replace(/\(.*\)/, '').length > 15
+                                        ? book.author.replace(/\(.*\)/, '').slice(0, 15) + '...'
                                         : book.author.replace(/\(.*\)/, '') }}
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button 
-                    class="carousel-control-prev" 
-                    type="button" 
+                <button
+                    class="carousel-control-prev"
+                    type="button"
                     data-bs-target="#carouselExampleControlsNoTouching"
                     data-bs-slide="prev"
                 >
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
-                <button 
-                    class="carousel-control-next" 
-                    type="button" 
+                <button
+                    class="carousel-control-next"
+                    type="button"
                     data-bs-target="#carouselExampleControlsNoTouching"
                     data-bs-slide="next"
                 >
@@ -72,21 +72,11 @@
                     class="ranking-tr" 
                     v-for="(book, index) in bestBooks" 
                     :key="book.rank"
+                    @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td><span class="ranking-book-title" @click="gotoDetail(book.isbn13)">{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</span></td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td 
-                        class="book-details"
-                        @click="toggleOptionMenu1(index)"
-                    >
-                        <span class="toggle-button">⋮</span>
-                        <div v-show="showOptionMenu1[index]" class="option-menu">
-                            <span>재생하기</span>
-                            <span>내 플리에 추가하기</span>
-                            <span>앨범 정보 보기</span>
-                        </div>
-                    </td>
                 </tr>
             </table>
         </div>
@@ -100,23 +90,13 @@
                     v-for="(book, index) in blogBooks" 
                     :key="book.rank" 
                     style="vertical-align: middle;"
+                    @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>
                         <span class="ranking-book-title" @click="gotoDetail(book.isbn13)">{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</span>
                     </td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td 
-                        class="book-details"
-                        @click="toggleOptionMenu2(index)"
-                    >
-                        <span class="toggle-button">⋮</span>
-                        <div v-show="showOptionMenu2[index]" class="option-menu">
-                            <span>재생하기</span>
-                            <span>내 플리에 추가하기</span>
-                            <span>앨범 정보 보기</span>
-                        </div>
-                    </td>
                 </tr>
             </table>
         </div>
@@ -143,28 +123,6 @@ export default {
 
     const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
     const ttbKey = "ttbyoungjae.bae1809001";
-
-    const showOptionMenu1 = ref([]);
-
-    const toggleOptionMenu1 = (index) => {
-        showOptionMenu1.value[index] = !showOptionMenu1.value[index];
-    };
-
-    const closeAllMenus1 = () => {
-        // Close all menus
-        showOptionMenu1.value = [];
-    };
-
-    const showOptionMenu2 = ref([]);
-
-    const toggleOptionMenu2 = (index) => {
-        showOptionMenu2.value[index] = !showOptionMenu2.value[index];
-    };
-
-    const closeAllMenus2 = () => {
-        // Close all menus
-        showOptionMenu2.value = [];
-    };
 
     // New Books
     const fetchNewBooksJSONP = () => {
@@ -303,9 +261,7 @@ export default {
     });
 
 
-    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2, gotoDetail,
-        groupedBooks
-     };
+    return { newBooks, bestBooks, blogBooks, gotoDetail, groupedBooks };
     },
 };
 </script>
@@ -333,10 +289,10 @@ export default {
 .book-title {
     max-width: 170px;
     white-space: nowrap;
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: block;
-    font-size: 16px; 
+    font-size: 16px;
     margin-bottom: 0px;
     font-weight: bold;
     margin-top: 5px;
@@ -349,7 +305,7 @@ export default {
     overflow: hidden; 
     text-overflow: ellipsis; 
     display: block;
-    font-size: 16px; 
+    font-size: 16px;
     margin-bottom: 0px;
 }
 
@@ -415,6 +371,10 @@ export default {
     overflow: visible;
 }
 
+.ranking-table:hover {
+    cursor : pointer;
+}
+
 .ranking-tr {
     border-bottom: 1px solid #ccc;
     height: 50px;
@@ -458,9 +418,6 @@ export default {
     cursor: pointer;
 }
 
-
-/* 신간 도서 캐러셀 */
-
 .book-group {
     display: flex;
     justify-content: center;
@@ -496,7 +453,7 @@ export default {
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease-in-out; /* 부드러운 애니메이션 */
     opacity: 1; /* hover 시 투명도 제거 */
     display: grid;
@@ -541,17 +498,17 @@ export default {
 }
 
 .carousel-inner {
-  overflow: hidden; /* 숨겨진 요소가 보이지 않도록 설정 */
+    overflow: hidden; /* 숨겨진 요소가 보이지 않도록 설정 */
 }
 
 .carousel-item {
-  display: none; /* 기본적으로 숨김 */
-  transition: transform 0.8s ease-in-out; /* 부드러운 슬라이드 애니메이션 */
+    display: none; /* 기본적으로 숨김 */
+    transition: transform 0.8s ease-in-out; /* 부드러운 슬라이드 애니메이션 */
 }
 
 .carousel-item.active {
-  display: flex; /* 활성화된 요소만 표시 */
-  justify-content: center;
+    display: flex; /* 활성화된 요소만 표시 */
+    justify-content: center;
 }
 
 .ranking-book-title:hover {
