@@ -1,3 +1,25 @@
+<template>
+    <div class="details-page">
+        <h1>{{ categoryTitle }}</h1>
+        <div v-if="loading" class="loading">로딩 중...</div>
+        <div v-else-if="error" class="error">{{ error }}</div>
+        <div v-else-if="filteredItems.length === 0" class="no-results">검색 결과가 없습니다.</div>
+        <div v-else class="results-grid">
+            <div
+                v-for="item in filteredItems"
+                :key="item.id"
+                class="result-item"
+                @click="handleItemClick(item)"
+            >
+                <img :src="getImage(item)" alt="이미지" />
+                <p>{{ item.name }}</p>
+                <p v-if="item.artists">{{ getArtists(item.artists) }}</p>
+            </div>
+        </div>
+    </div>
+    <MusicPlayer />
+</template>
+
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute } from "vue-router";
@@ -5,7 +27,6 @@ import axios from "axios";
 import { useUserStore } from "@/stores/user";
 import { usePlayerStore } from "@/stores/playerStore";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
-import MusicDetailModal from "@/components/playlist/MusicDetailModal.vue";
 
 const route = useRoute();
 const userStore = useUserStore();
@@ -18,10 +39,6 @@ const loading = ref(false);
 const error = ref(null);
 
 const placeholderImage = "https://via.placeholder.com/150";
-
-// Modal states
-const showAlbumModal = ref(false);
-const selectedAlbum = ref(null);
 
 const spotifyTypeMap = {
     songs: "track",
@@ -65,17 +82,68 @@ const fetchDetails = async () => {
     }
 };
 
-// Handle album click to play
-const handleAlbumClick = async (album) => {
-    const albumId = album.id;
-    const playUrl = "https://api.spotify.com/v1/me/player/play";
+// Handle item click for tracks, albums, playlists, and artists
+const handleItemClick = async (item) => {
+    if (spotifyType === "track") {
+        // Play the selected track
+        const trackUri = item.uri;
+        if (trackUri) {
+            await playTrack(trackUri);
+        }
+    } else if (spotifyType === "album") {
+        // Play the selected album
+        const albumId = item.id;
+        if (albumId) {
+            await playAlbum(albumId);
+        }
+    } else if (spotifyType === "artist") {
+        // Fetch and display artist's albums
+        const artistId = item.id;
+        if (artistId) {
+            await fetchArtistAlbums(artistId);
+        }
+    } else {
+        // Play content for playlists
+        const uri = item.uri;
+        if (uri) {
+            playerStore.playContent(uri);
+        }
+    }
+};
 
+// Play the selected track
+const playTrack = async (trackUri) => {
+    const playUrl = "https://api.spotify.com/v1/me/player/play";
     try {
-        // Play the album using Spotify API
         await axios.put(
             playUrl,
             {
-                context_uri: `spotify:album:${albumId}`, // Spotify album URI
+                uris: [trackUri],
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${userStore.accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+        console.log("트랙 재생 시작:", trackUri);
+        alert("트랙이 재생됩니다.");
+    } catch (error) {
+        console.error("트랙 재생 중 오류:", error.response?.data || error.message);
+        alert("트랙 재생 중 문제가 발생했습니다.");
+    }
+};
+
+// Play the selected album
+const playAlbum = async (albumId) => {
+    const playUrl = "https://api.spotify.com/v1/me/player/play";
+
+    try {
+        await axios.put(
+            playUrl,
+            {
+                context_uri: `spotify:album:${albumId}`,
             },
             {
                 headers: {
@@ -85,18 +153,48 @@ const handleAlbumClick = async (album) => {
             }
         );
         console.log("앨범 재생 시작:", albumId);
-        alert(`앨범 "${album.name}"가 재생됩니다.`);
+        alert(`앨범 "${albumId}"가 재생됩니다.`);
     } catch (error) {
         if (error.response?.status === 403) {
             if (error.response.data.error.reason === "PREMIUM_REQUIRED") {
                 alert("Spotify Premium 계정이 필요합니다.");
             } else {
-                alert("Spotify에서 요청을 실행할 수 없습니다. 활성 기기 또는 계정을 확인하세요.");
+                alert("Spotify에서 이 요청을 실행할 수 없습니다. 활성 기기 또는 계정을 확인하세요.");
             }
         } else {
             console.error("앨범 재생 중 오류:", error.response?.data || error.message);
             alert("앨범 재생 중 문제가 발생했습니다.");
         }
+    }
+};
+
+// Fetch the artist's albums
+const fetchArtistAlbums = async (artistId) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+        const response = await axios.get(
+            `https://api.spotify.com/v1/artists/${artistId}/albums`,
+            {
+                headers: {
+                    Authorization: `Bearer ${userStore.accessToken}`,
+                },
+                params: {
+                    include_groups: "album",
+                    market: "US",
+                    limit: 50,
+                },
+            }
+        );
+
+        items.value = response.data.items || [];
+        console.log("Fetched albums:", items.value);
+    } catch (error) {
+        console.error("Error fetching artist's albums:", error.response?.data || error.message);
+        error.value = "아티스트의 앨범을 불러오는 중 오류가 발생했습니다.";
+    } finally {
+        loading.value = false;
     }
 };
 
@@ -110,28 +208,6 @@ const getImage = (item) => {
 
 onMounted(fetchDetails);
 </script>
-
-<template>
-    <div class="details-page">
-        <h1>{{ categoryTitle }}</h1>
-        <div v-if="loading" class="loading">로딩 중...</div>
-        <div v-else-if="error" class="error">{{ error }}</div>
-        <div v-else-if="filteredItems.length === 0" class="no-results">검색 결과가 없습니다.</div>
-        <div v-else class="results-grid">
-            <div
-                v-for="item in filteredItems"
-                :key="item.id"
-                class="result-item"
-                @click="handleAlbumClick(item)"
-            >
-                <img :src="getImage(item)" alt="이미지" />
-                <p>{{ item.name }}</p>
-                <p v-if="item.artists">{{ getArtists(item.artists) }}</p>
-            </div>
-        </div>
-    </div>
-    <MusicPlayer />
-</template>
 
 <style scoped>
 .details-page {
@@ -164,6 +240,7 @@ onMounted(fetchDetails);
     width: 100%;
     height: 200px;
     object-fit: cover;
+    border-radius: 5px;
 }
 
 .result-item p {

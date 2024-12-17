@@ -72,21 +72,11 @@
                     class="ranking-tr" 
                     v-for="(book, index) in bestBooks" 
                     :key="book.rank"
+                    @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td
-                        class="book-details"
-                        @click="toggleOptionMenu1(index)"
-                    >
-                        <span class="toggle-button">⋮</span>
-                        <div v-show="showOptionMenu1[index]" class="option-menu">
-                            <span>재생하기</span>
-                            <span>내 플리에 추가하기</span>
-                            <span>앨범 정보 보기</span>
-                        </div>
-                    </td>
                 </tr>
             </table>
         </div>
@@ -100,21 +90,11 @@
                     v-for="(book, index) in blogBooks" 
                     :key="book.rank" 
                     style="vertical-align: middle;"
+                    @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
                     <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
-                    <td 
-                        class="book-details"
-                        @click="toggleOptionMenu2(index)"
-                    >
-                        <span class="toggle-button">⋮</span>
-                        <div v-show="showOptionMenu2[index]" class="option-menu">
-                            <span>재생하기</span>
-                            <span>내 플리에 추가하기</span>
-                            <span>앨범 정보 보기</span>
-                        </div>
-                    </td>
                 </tr>
             </table>
         </div>
@@ -141,28 +121,6 @@ export default {
 
     const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
     const ttbKey = "ttbyoungjae.bae1809001";
-
-    const showOptionMenu1 = ref([]);
-
-    const toggleOptionMenu1 = (index) => {
-        showOptionMenu1.value[index] = !showOptionMenu1.value[index];
-    };
-
-    const closeAllMenus1 = () => {
-        // Close all menus
-        showOptionMenu1.value = [];
-    };
-
-    const showOptionMenu2 = ref([]);
-
-    const toggleOptionMenu2 = (index) => {
-        showOptionMenu2.value[index] = !showOptionMenu2.value[index];
-    };
-
-    const closeAllMenus2 = () => {
-        // Close all menus
-        showOptionMenu2.value = [];
-    };
 
     // New Books
     const fetchNewBooksJSONP = () => {
@@ -301,9 +259,7 @@ export default {
     });
 
 
-    return { newBooks, bestBooks, blogBooks, showOptionMenu1, toggleOptionMenu1, closeAllMenus1, showOptionMenu2, toggleOptionMenu2, closeAllMenus2, gotoDetail,
-        groupedBooks
-     };
+    return { newBooks, bestBooks, blogBooks, gotoDetail, groupedBooks };
     },
 };
 </script>
@@ -413,6 +369,10 @@ export default {
     overflow: visible;
 }
 
+.ranking-table:hover {
+    cursor : pointer;
+}
+
 .ranking-tr {
     border-bottom: 1px solid #ccc;
     height: 50px;
@@ -455,9 +415,6 @@ export default {
 .toggle-button {
     cursor: pointer;
 }
-
-
-/* 신간 도서 캐러셀 */
 
 .book-group {
     display: flex;
@@ -539,17 +496,17 @@ export default {
 }
 
 .carousel-inner {
-  overflow: hidden; /* 숨겨진 요소가 보이지 않도록 설정 */
+    overflow: hidden; /* 숨겨진 요소가 보이지 않도록 설정 */
 }
 
 .carousel-item {
-  display: none; /* 기본적으로 숨김 */
-  transition: transform 0.8s ease-in-out; /* 부드러운 슬라이드 애니메이션 */
+    display: none; /* 기본적으로 숨김 */
+    transition: transform 0.8s ease-in-out; /* 부드러운 슬라이드 애니메이션 */
 }
 
 .carousel-item.active {
-  display: flex; /* 활성화된 요소만 표시 */
-  justify-content: center;
+    display: flex; /* 활성화된 요소만 표시 */
+    justify-content: center;
 }
 
 

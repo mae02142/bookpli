@@ -112,6 +112,9 @@ const router = createRouter({
       component: () => import("@/views/main/DetailsPage.vue") 
     },
 
+    { path: "/artist/:id", 
+      component: () => import("@/views/main/DetailsPage.vue") },
+
     {
       path: "/bookclub",
       children: [

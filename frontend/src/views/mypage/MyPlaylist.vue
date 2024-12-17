@@ -171,6 +171,7 @@
       @update-tracks="refreshPlaylistTracks"
     />
   </div>
+  <MusicPlayer/>
 </template>
 
 <script setup>
@@ -183,7 +184,7 @@ import apiClient from '@/api/axiosInstance';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUtilModalStore } from '@/stores/utilModalStore';
 import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
-
+import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 // 상태 관리
 const authStore = useAuthStore();
