@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 @Slf4j
 public class AuthController {
 
@@ -39,7 +39,7 @@ public class AuthController {
     }
 
     // 1. 스포티파이 로그인 URL 반환
-    @GetMapping("/login")
+    @GetMapping("/auth/login")
     public ResponseEntity<String> login() {
         String spotifyAuthUrl = "https://accounts.spotify.com/authorize" +
                 "?client_id=" + clientId +
@@ -51,7 +51,7 @@ public class AuthController {
     }
 
     // 2. 로그인 성공 후 콜백 처리
-    @GetMapping("/callback")
+    @GetMapping("/auth/callback")
     public void handleCallback(@RequestParam String code, HttpServletResponse response) {
         try {
             // Access Token 발급 및 사용자 정보 처리

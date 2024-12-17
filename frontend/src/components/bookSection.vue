@@ -75,7 +75,7 @@
                     @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
-                    <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
+                    <td><span class="ranking-book-title" @click="gotoDetail(book.isbn13)">{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</span></td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                 </tr>
             </table>
@@ -93,7 +93,9 @@
                     @click="gotoDetail(book.isbn13)"
                 >
                     <td style="width: 30px;">{{ index + 1 }}</td>
-                    <td>{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</td>
+                    <td>
+                        <span class="ranking-book-title" @click="gotoDetail(book.isbn13)">{{ book.title.replace(/\(.*\)|\s*[-–].*/g, '') }}</span>
+                    </td>
                     <td>{{ book.author.replace(/\(.*\)|\s*[-–].*|,.*$/g, '').replace(/,/g, '...') }}</td>
                 </tr>
             </table>
@@ -509,5 +511,8 @@ export default {
     justify-content: center;
 }
 
-
+.ranking-book-title:hover {
+    cursor: pointer;
+    color: #1db954;
+}
 </style>

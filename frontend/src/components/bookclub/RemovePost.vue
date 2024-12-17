@@ -39,7 +39,6 @@ import { onMounted } from 'vue';
             })
     
             const closeModal = () =>{
-                emit("delete-post", props.deleteId); //해당 게시글 제거
                 emit("update:isVisible",false);
                 // 부모 컴포넌트에 상태 변경 요청하는 거
             };
@@ -52,11 +51,12 @@ import { onMounted } from 'vue';
                     params : {postId :props.deleteId },
                 });
                 if(response.data.data == true){
+                    emit("delete-post", props.deleteId); //해당 게시글 제거
                     closeModal();
                 } 
             }catch(error){
                 console.error(error +'에러발생 !');
-            }}
+            }};
             
             return {
                 closeModal,

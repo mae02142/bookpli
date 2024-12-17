@@ -99,12 +99,11 @@ public class CommentService {
 
         if(existing != null){
             log.info("댓글을 삭제하겠습니다.");
-            boolean removeLike = commentLikeRepository.deleteByCommentId(commentId);
-            if(removeLike) {
 
+            commentLikeRepository.deleteByCommentId(commentId);
 
-                commentRepository.delete(existing);
-            }
+            commentRepository.delete(existing);
+
         }
         return true;
     }

@@ -5,16 +5,26 @@
       </div>  
     <div class="community-items">
         <!-- 책 이미지 -->
-        <img class="book-cover" :src="community.image" :alt="community.title" />
+         <div class="cover-one">
+          <div class="cover-two">
+            <div class="cover-three">
+              <div class="cover-four">
+                <img class="book-cover" :src="community.image" :alt="community.title" />
+              </div>
+            </div>
+          </div>
+         </div>
+       
         <!-- 제목과 저자 -->
         <div class="content">
             <h1 class="title">{{ community.title.replace(/\(.*?\)/g, '').trim() }}</h1>
             <p class="author">{{ community.author.replace(/\(.*?\)/g, '').trim() }}</p>
+            <p class="description">{{ community.description }}</p>
         </div>
       </div>
       <RouterLink :to="{path :'/bookclub/mybookclub' , 
         query : { title : community.title, bookClubId : community.bookClubId, 
-        author : community.author, cover: community.image}}"
+        author : community.author, cover: community.image, description: community.description}}"
         class="link"
         >
           <button class="Btn">
@@ -83,10 +93,10 @@
                         <!-- 각 이미지 하나씩 슬라이드 -->
                           <div
                             class="post-image"
-                            v-for="(img, index) in post.imageUrl"
-                            :key="index"
+                            v-for="img in post.imageUrl"
+                            :key="img.imageId"
                           >
-                            <img :src="img" class="post-image-img" />
+                            <img :src="img.imageUrl" class="post-image-img" />
                           </div>
                         </div>
                            <!-- 슬라이드 네비게이션 -->
@@ -162,6 +172,7 @@
         author: route.query.author,
         image: route.query.cover,
         bookClubId : Number(route.query.bookClubId),
+        description : route.query.description,
       },
     );
     const serverPosts = ref([]); // 서버
@@ -318,8 +329,48 @@
   .book-cover {
     width: 180px;
     height: 200px;
-    border: 1px solid #909090;
+    border: 1px double #c0c0c0;
+    margin-right: 1px;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+    transform-style: preserve-3d; /* 3D 변환 활성화 */
+    transition: transform 0.5s ease;
   }
+
+  .cover-one{
+  border: 1px double gainsboro;
+  border-left: none;
+  border-top: none;
+  border-radius: 4px;
+  margin: 10px;
+}
+.cover-two{
+  border: 1px double gainsboro;
+  border-left: none;
+  border-top: none;
+  border-radius: 4px;
+  margin-right: 1px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+.cover-three{
+  border: 1px double gainsboro;
+  border-left: none;
+  border-top: none;
+  border-radius: 4px;
+  margin-right: 1px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+.cover-four{
+  border: 1px double gainsboro;
+  border-left: none;
+  border-top: none;
+  border-radius: 4px;
+  margin-right: 1px;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+
   
   .content {
     margin-top: 10px;
@@ -335,7 +386,7 @@
     font-size: 18px;
     color: #666;
   }
-  
+
   .divider {
     margin: 20px 0;
     border: none;
@@ -439,8 +490,9 @@
   }
   
   .description {
-    font-size: 15px;
+    font-size: 14px;
     color : #909090;
+    margin-top: 10px;
   }
 
     /* 게시글 부분 */
@@ -490,6 +542,7 @@
       flex-direction: row;
       justify-content: flex-start;
       margin-top: 10px;
+      gap:30px;
   }
   
   .post-footer {
@@ -552,6 +605,8 @@
       flex-direction: row;
       justify-content: center;
       align-items: center;
+      width: 80%;
+      margin: auto;
     }
     .post-images{
       display: flex;
@@ -580,15 +635,21 @@
       background-color: transparent;
       border: none;
       cursor: pointer;
-      font-size: 40px;
+      font-size: 30px;
       color: #ccc
     }
     .slide-next {
       background-color: transparent;
       border: none;
       cursor: pointer;
-      font-size: 40px;
+      font-size: 30px;
       color: #ccc
+    }
+    .slide-prev:hover {
+      color : black;
+    }
+    .slide-next:hover {
+      color: black;
     }
 
   </style>

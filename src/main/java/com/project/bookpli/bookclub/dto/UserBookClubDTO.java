@@ -17,6 +17,7 @@ public class UserBookClubDTO {
     private String cover;
 
     private String author;
+    private String description;
 
         // dto -> entity
     public UserBookClub toEntity (){
@@ -36,6 +37,7 @@ public class UserBookClubDTO {
                 .title(userBookClub.getBookClub().getBook().getTitle())
                 .cover(userBookClub.getBookClub().getBook().getCover())
                 .author(userBookClub.getBookClub().getBook().getAuthor())
+                .description(userBookClub.getBookClub().getBook().getDescription())
                 .build();
     }
 

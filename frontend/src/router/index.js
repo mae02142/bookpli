@@ -8,13 +8,8 @@ const router = createRouter({
       redirect: "/main", // 기본 경로에서 /main으로 리다이렉트
     },
     {
-      path: "/auth",
-      children: [
-        {
-          path: "login",
-          component: () => import("@/views/auth/LoginPage.vue"),
-        },
-      ],
+      path: "/login",
+      component: () => import("@/views/auth/LoginPage.vue"),
     },
     {
       path: "/mypage",
@@ -102,35 +97,17 @@ const router = createRouter({
     },
 
     {
-    path: "/search-music",
+      path: "/search-music",
       component: () => import("@/views/main/MusicSearch.vue"),
-      props: route => ({ query: route.query.q }),
-    },
-
-    { 
-      path: "/details/:category", 
-      component: () => import("@/views/main/DetailsPage.vue") 
+      props: (route) => ({ query: route.query.q }),
     },
 
     { path: "/artist/:id", 
       component: () => import("@/views/main/DetailsPage.vue") },
 
     {
-      path: "/bookclub",
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/bookclub/BookclubMain.vue"),
-        },
-        {
-          path: "community",
-          component: () => import("@/views/bookclub/CommunityDetail.vue"),
-        },
-        {
-          path: "mybookclub",
-          component: () => import("@/views/bookclub/MyBookclub.vue"),
-        },
-      ],
+      path: "/details/:category",
+      component: () => import("@/views/main/DetailsPage.vue"),
     },
   ],
 });

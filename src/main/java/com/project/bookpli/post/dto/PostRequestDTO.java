@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 @Getter
 public class PostRequestDTO {
 
-    private Long imageId;
+
     private Long postId;
-    private List<String> imageUrl; // 이미지 URL 리스트
+    private List<PostImageDTO> imageUrl; // 이미지 URL 리스트
 
     private Long userId;
     private Long bookClubId;
@@ -27,10 +27,24 @@ public class PostRequestDTO {
 
 
     // dto -> entity
-    public List <PostImage> toEntity(){
-        return imageUrl.stream()
-                .map(url -> new PostImage(postId,url))
-                .collect(Collectors.toList());
+    public List<PostImage> toEntity() {
+        List<PostImage> entity = new ArrayList<>();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            for (PostImageDTO postImageDTO : imageUrl) {
+                // imageId가 null이 아니면 기존 이미지 ID 사용, 없으면 null
+                Long imgId = postImageDTO.getImageId() != null ? postImageDTO.getImageId() : null;
+                // imageUrl 가져오기
+                String url = postImageDTO.getImageUrl();
+                // PostImage entity 생성
+                entity.add(PostImage.builder()
+                        .imageId(imgId)
+                        .postId(postId)
+                        .imageUrl(url)
+                        .build());
+            }
+        }
+        return entity;
     }
-
 }
+
+

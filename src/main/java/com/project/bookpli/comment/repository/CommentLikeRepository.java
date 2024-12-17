@@ -23,7 +23,7 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     //checking user
     boolean existsByCommentIdAndUserId(Long commentId, Long userId);
 
-    boolean deleteByCommentId(Long commentId);  // 댓글 삭제 시 함께 삭제
+    void deleteByCommentId(Long commentId);
 
     void deleteAllByCommentIdIn(List<Long> commentIds);  // 게시글 삭제 시 함께 삭제
 }
