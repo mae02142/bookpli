@@ -80,10 +80,6 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
-<<<<<<< HEAD
-import axios from "axios";
-=======
->>>>>>> 1ff0c245c98e8be61712501632d3a033923a9e23
 import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();

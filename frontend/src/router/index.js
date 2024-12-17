@@ -102,8 +102,10 @@ const router = createRouter({
       props: (route) => ({ query: route.query.q }),
     },
 
-    { path: "/artist/:id", 
-      component: () => import("@/views/main/DetailsPage.vue") },
+    {
+      path: "/artist/:id",
+      component: () => import("@/views/main/DetailsPage.vue"),
+    },
 
     {
       path: "/details/:category",
