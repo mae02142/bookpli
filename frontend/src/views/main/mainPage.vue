@@ -65,7 +65,7 @@ const handleToggle = () => {
       '로그인 후 이용해주세요.',
       {
         onConfirm: () => {
-          window.location.href = "/auth/login";
+          window.location.href = "/login";
         },
         onCancel: () => {
           isMusicSection.value = false;

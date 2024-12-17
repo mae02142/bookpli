@@ -25,7 +25,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import apiClient from 'axios';
 
 const router = useRouter();
 const spotifyLoginUrl = ref('');
@@ -35,7 +35,8 @@ function goHome() {
 }
 
 const handleLogin = async () => {
-  const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/login`);
+  console.log("click!!!");
+  const response = await apiClient.get('/api/auth/login');
   spotifyLoginUrl.value = response.data;
   window.location.href = spotifyLoginUrl.value;
 };

@@ -32,7 +32,7 @@
         />
       </div>
     </div>
-    <router-link v-if="!isAuthenticated" to="/auth/login">
+    <router-link v-if="!isAuthenticated" to="/login">
       <div class="log-button">
         <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
         <span>LOGIN</span>

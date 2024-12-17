@@ -30,24 +30,40 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String jwt = extractJwtFromCookies(request); // JWT 추출
+        String requestURI = request.getRequestURI();
+        log.debug("JwtFilter 시작: 요청 URI = {}", requestURI);
 
-        if (jwt != null) {
-            try {
-                // JWT 검증 및 클레임 추출
-                Claims claims = jwtService.verifyToken(jwt);
-
-                // SecurityContext에 인증 정보 설정
-                setAuthentication(claims);
-            } catch (Exception e) {
-                log.warn("JWT 검증 실패: {}", e.getMessage());
-            }
-        } else {
-            log.debug("JWT 토큰이 존재하지 않습니다.");
+        // 필터 제외 경로 명확히 설정
+        if (requestURI.startsWith("/api/auth/")) {
+            log.debug("필터 제외 경로: {}", requestURI);
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // 다음 필터로 요청 전달
+        String jwt = extractJwtFromCookies(request);
+        log.debug("필터 추출 jwt: {}", jwt);
+
+        if (jwt == null) {
+            log.debug("JWT 토큰이 존재하지 않습니다. 401 Unauthorized 반환");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"로그인이 필요합니다.\"}");
+            return;
+        }
+
+        try {
+            Claims claims = jwtService.verifyToken(jwt);
+            setAuthentication(claims);
+        } catch (Exception e) {
+            log.warn("JWT 검증 실패: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"유효하지 않은 토큰입니다.\"}");
+            return;
+        }
+
         filterChain.doFilter(request, response);
+        log.debug("JwtFilter 종료: 요청 처리 완료");
     }
 
     /**
