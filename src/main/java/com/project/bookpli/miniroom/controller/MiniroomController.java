@@ -22,7 +22,7 @@ public class MiniroomController {
     private MypageService mypService;
 
     //도서 저장
-    @PostMapping("/search/{itemId}")
+ /*   @PostMapping("/search/{itemId}")
     public ResponseEntity<String> searchBook(@PathVariable String itemId){
         try {
              bookApiService.searchBook(itemId);
@@ -32,7 +32,7 @@ public class MiniroomController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류: " + e.getMessage());
         }
-    }
+    }*/
 
 
     //담은 도서 리스트
@@ -50,11 +50,18 @@ public class MiniroomController {
         return ResponseEntity.ok(userInfo);
     }
 
-
     //완독도서 처리
     @PutMapping("/clear/{isbn13}")
     public ResponseEntity<Integer> compReading(@PathVariable String isbn13, @RequestParam("status") String status){
         int updateStatus= bookApiService.clearRead(isbn13,status);
         return ResponseEntity.ok(updateStatus);
     }
+
+    //도서 실패처리
+    @PutMapping("/fail/{isbn13}")
+    public ResponseEntity<Integer> changeToFail(@PathVariable String isbn13){
+        int failRead= bookApiService.failReading(isbn13);
+        return ResponseEntity.ok(failRead);
+    }
+
 }

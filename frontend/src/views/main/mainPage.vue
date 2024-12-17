@@ -3,7 +3,7 @@
   <div class="toggle-container">
     <!-- Toggle Switch -->
     <label class="switch">
-      <input type="checkbox" v-model="isMusicSection" />
+      <input type="checkbox" v-model="isMusicSection" @change="handleToggle"/>
       <span class="slider">
                 <span class="slider-label left-label" v-show="isMusicSection">Music</span>
                 <span class="slider-label right-label" v-show="!isMusicSection">Book</span>
@@ -15,7 +15,7 @@
   <div v-if="!isMusicSection" style="padding-bottom: 100px;">
     <bookSection />
   </div>
-  <div v-else style="padding-bottom: 100px;">
+  <div v-else-if="authStore.isAuthenticated" style="padding-bottom: 100px;">
     <musicSection />
   </div>
 </template>
@@ -26,30 +26,52 @@
   import { useAuthStore } from '@/stores/auth.js';
   import bookSection from "@/components/bookSection.vue";
   import musicSection from "@/components/musicSection.vue";
-  import apiClient from "@/api/axiosInstance";
+  import { useLoginAlertModalStore } from "@/stores/utilModalStore";
 
   const isMusicSection = ref(false);
   const authStore = useAuthStore();
+  const modalStore = useLoginAlertModalStore();
 
   // Access Token을 가져오는 함수
 const getToken = async () => {
-  if (authStore.isAuthenticated) {
-    const spotifyId = authStore.user.spotifyId;
+  try {
+      if (authStore.isAuthenticated) {
+      const spotifyId = authStore.user.spotifyId;
+      const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+        credentials: "include",
+      });
 
-    const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
-      credentials: "include",
-    });
+      if (!response.ok) {
+        throw new Error("Failed to fetch access token");
+      }
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch access token");
+      const data = await response.json();
+      const accessToken = data.access_token;
+      const userStore = useUserStore(); 
+      userStore.setAccessToken(accessToken);
+    }else {
+      console.log("확인할 수 없는 회원입니다."); 
     }
+  } catch (error) {
+    console.error(error.message);
+  }
+};
 
-    const data = await response.json();
-    const accessToken = data.access_token;
-    const userStore = useUserStore(); 
-    userStore.setAccessToken(accessToken);
-  }else {
-
+// MusicSection 접근 시 권한 확인
+const handleToggle = () => {
+  if (isMusicSection.value && !authStore.isAuthenticated) {
+    modalStore.showModal(
+      '로그인 페이지로 이동',
+      '로그인 후 이용해주세요.',
+      {
+        onConfirm: () => {
+          window.location.href = "/login";
+        },
+        onCancel: () => {
+          isMusicSection.value = false;
+        },
+      }
+    );
   }
 };
 
@@ -136,4 +158,9 @@ input:checked + .slider:before {
 .right-label {
   right: 23px; /* Align to the right */
 }
+
+.main-thumbnail {
+  width: 100%;
+}
+
 </style>

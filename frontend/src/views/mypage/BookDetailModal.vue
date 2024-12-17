@@ -1,6 +1,6 @@
 <template>
-    <div v-if="book" class="modal-container">
-      <div class="modal-content">
+    <div v-if="book" class="detail-modal-container">
+      <div class="detail-modal-content">
         <div class="bookinfo-grid">
           <img
             class="modal-image"
@@ -11,6 +11,7 @@
             <p class="book-title">{{ book.title }}</p>
             <p class="book-author">{{ book.author }}</p>
             <div class="progress-container" v-if="book.status === 'reading'">
+              <img src="@/assets/icons/read_book.png">
               <span class="progress-text">{{ book.progress }}%</span>
               <span class="remaining-days">{{ book.remainingDays }}일 남음</span>
             </div>
@@ -19,12 +20,10 @@
               독서 완료
             </div>
           </div>
-          <img
-            class="like-icon"
-            src="@/assets/icons/like.png"
-            alt="Like Icon"
-            @click="toggleLike"
-          />
+          <img v-if="isLiked" class="like-icon" src="@/assets/icons/like.png"
+            alt="Like Icon" @click="changeToDislike" />
+          <img v-else class="like-icon" src="@/assets/icons/dislike.png"
+            alt="Like Icon" @click="changeToLike(book.isbn13)" />
         </div>
         <div class="btn-grid">
           <p class="btn change-status" @click="changeStatus">
@@ -42,9 +41,18 @@
   </template>
   
   <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouterUtils } from '@/router/routerUtils';
+import apiClient from '@/api/axiosInstance';
+import { addBookLike, removeBookLike } from '@/utils/likeUtils';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
 const { gotoDetail } = useRouterUtils();
+const bookLikeId = ref(null);
+
+const isLiked = computed(() => bookLikeId.value !== null);
+
 
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
@@ -55,13 +63,23 @@ const { gotoDetail } = useRouterUtils();
   });
   
   // 부모로 이벤트 전달
-  const emit = defineEmits(['close','openForm', 'delete-library']);
+  const emit = defineEmits(['close','openForm', 'delete-library', 'book-like-status']);
   
+
   // 좋아요 상태 관리
-  const isLiked = ref(false);
-  const toggleLike = () => {
-    isLiked.value = !isLiked.value;
+  const changeToLike = async (isbn13) => {
+    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, isbn13);
+    emit('book-like-status', isbn13);
+    
   };
+
+  const changeToDislike = async () => {
+    const result = await removeBookLike(apiClient, bookLikeId.value);
+    if (result) {
+      bookLikeId.value = null;
+      emit('book-like-status', props.book.isbn13);
+  }
+  }
   
   // 이벤트 핸들러
   const changeStatus = () => {
@@ -84,14 +102,27 @@ const { gotoDetail } = useRouterUtils();
   };
 
   const handleClick = () => {
-    console.log(props.book.isbn13);
     gotoDetail(props.book.isbn13);
   }
+
+  const getBookLikeStatus = async () => {
+  try {
+    const response = await apiClient.get(`/api/library/${authStore.user.userId}/book/${props.book.isbn13}`);
+    bookLikeId.value = response.data.data;
+  } catch (error) {
+    console.error("좋아요 상태를 가져오는 중 오류 발생: ", error);
+  }
+};
+
+
+  onMounted(()=> {
+    getBookLikeStatus();
+  })
   </script>
   
   <style scoped>
   /* 모달 컨테이너 */
-  .modal-container {
+  .detail-modal-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -105,35 +136,39 @@ const { gotoDetail } = useRouterUtils();
   }
   
   /* 모달 내용 */
-  .modal-content {
+  .detail-modal-content {
     border-radius: 10px;
     padding: 20px;
-    width: 430px;
+    width: 460px;
     text-align: center;
     position: relative;
     background-color: white;
+    justify-items: center;
   }
 
   .bookinfo-grid {
     display: flex;
     margin: 25px 0px;
     justify-content: center;
+    max-width: 380px;
+    min-width: 380px;
   }
 
   .progress-grid {
     display: flex;
     flex-direction: column;
-    margin-left: 12px;
+    margin-left: 17px;
+    margin-right: 13px;
     align-items: flex-start;
     min-width: 160px;
+    max-width: 185px;
   }
   
   /* 이미지 */
   .modal-image {
-    width: 160px;
-    height: 220px;
+    width: 140px;
+    height: 200px;
     margin-bottom: 15px;
-    object-fit: cover;
     border-radius: 3px;
   }
   
@@ -145,7 +180,6 @@ const { gotoDetail } = useRouterUtils();
     margin-bottom: 6px;
     font-weight: bold;
     text-align: start;
-    max-width: 160px;
   }
   
   /* 책 저자 */
@@ -153,15 +187,19 @@ const { gotoDetail } = useRouterUtils();
     font-size: 13px;
     color: #3d3d3d;
     margin-bottom: 15px;
+    text-align: start;
   }
   
   /* 진행률 및 남은 일 */
   .progress-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 5px;
     align-items: center;
     margin-bottom: 20px;
+    border: 1px solid #acacac;
+    padding: 5px;
+    border-radius: 5px;
   }
 
   .complete-container {
@@ -182,6 +220,7 @@ const { gotoDetail } = useRouterUtils();
   .progress-text {
     font-size: 15px;
     color: #414141;
+    margin-left: 5px;
   }
   
   .remaining-days {
@@ -199,7 +238,7 @@ const { gotoDetail } = useRouterUtils();
   
   /* 버튼 스타일 */
   .btn {
-    width: 340px;
+    width: 363px;
     padding: 15px 10px;
     border: 1px solid #929292;
     border-radius: 5px;
@@ -213,7 +252,7 @@ const { gotoDetail } = useRouterUtils();
     gap: 10px;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
   
   .btn.change-status {
@@ -234,6 +273,10 @@ const { gotoDetail } = useRouterUtils();
 
   .btn:hover {
     font-weight: bold;
+  }
+
+  .progress-container img{
+    width: 25px;
   }
   </style>
   

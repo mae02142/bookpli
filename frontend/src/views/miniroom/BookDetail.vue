@@ -11,10 +11,10 @@
                 <span>지은이: {{ book.author }}</span>
             </div>
             <!--책 상세 부분 -->
-            
+
             <div class="book-intro-grid">
                 <p class="book-intro-header">책소개</p>
-                <p class="book-intro">{{ book.description }}</p> 
+                <p class="book-intro" v-html="book.description"></p>
             </div>
             <div class="book-detail-grid">
                 <div class="book-detail-grid-first">
@@ -26,12 +26,13 @@
                     <span class="book-meta">출판사: {{ book.publisher }}</span>
                 </div>
             </div>
-                
+
         </div>
         <div class="book-status-grid">
-            <div class="book-status-goal" @click="openModal(book)" v-if="book.status !== 'reading'">
+            <div class="book-status-goal" @click="openModal(book)">
                 <img src="@/assets/icons/book_option.png" class="register-status-icon">
-                <span>바로 독서 설정</span>
+                <span v-if="book.status === 'reading'">독서 설정 변경</span>
+                <span v-else>바로 독서 설정</span>
             </div>
             <div class="book-status-wish" @click="toggleWishList">
                 <img src="@/assets/icons/add_book_shelf.png">
@@ -39,7 +40,7 @@
                 <span v-else>내 서재에 담기</span>
             </div>
             <div class="book-status-like">
-                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="toggleLike"/>
+                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="likeAndToggle()"/>
             </div>
         </div>
         <ReadGoalModal 
@@ -60,8 +61,9 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
+        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
     </div>
-    <ReviewForm v-if="activeTab==='review'" :bookId="book.isbn13" :userId="userId"/>
+    <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
 </div>
 </template>
@@ -69,11 +71,12 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import ReviewForm from "@/components/review/ReviewForm.vue";
+import BookReview from "@/components/review/BookReview.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import { useAuthStore } from "@/stores/auth";
 import { useUtilModalStore } from "@/stores/utilModalStore";
+import Recommend from "@/components/recommBooks/Recommend.vue";
 
 const route= useRoute();
 const authStore = useAuthStore();
@@ -83,9 +86,13 @@ const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
 
+const activeTab= ref("");
 
+const recomBook= ref(null);
 
-const activeTab= ref('recommend');
+const recomBookClick= (recomBook) => {
+    book.value=recomBook;
+}
 
 import dislikeImage from '@/assets/icons/dislike_lightgray.png';
 import likeImage from '@/assets/icons/like.png';
@@ -97,7 +104,49 @@ const isLiked = ref(false);
 // 좋아요 상태 토글 함수
 const toggleLike = () => {
     isLiked.value = !isLiked.value;
-    // console.log("Like 상태:", isLiked.value);
+}
+
+//찜하기
+const likeBook = async ()  =>{
+    try{
+        const response= await apiClient.post(`/api/book/like/${authStore.user.userId}/${isbn13}`);
+    }catch(error){
+        console.log(error);
+    }
+}
+
+//찜하기 해제
+const dislike = async ()  =>{
+    try{
+        const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
+    }catch(error){
+        console.log(error);
+    }
+}
+
+const liked= ref("");
+
+//찜한 도서인지
+const likeordislike = async () => {
+    try{
+        const response= await apiClient.get(`/api/book/${authStore.user.userId}/${isbn13}`);
+        isLiked.value=response.data;
+        console.log(liked.data);
+    }catch(error){
+        console.log(error);
+    }
+}
+
+
+const likeAndToggle= async () => {
+    if(isLiked.value){
+        await dislike();
+    }else{
+        await likeBook();
+    }
+    
+    //상태 반대 토글
+    isLiked.value= !isLiked.value;
 }
 
 const setActiveTab= (tab) => {
@@ -178,24 +227,31 @@ const toggleWishList = async () => {
     }
 };
 
-onMounted(() => {
-    loadBookDetail();
+onMounted(async() => {
+    await loadBookDetail();
+
+    if(route.query.data){
+        try{
+            const queryData= JSON.parse(route.query.data);
+            
+            //쿼리로 전달한 데이터를 book.value에 병합
+            Object.assign(book.value, queryData);
+
+            if(queryData.status){
+                book.value.status = queryData.status;
+                
+            };
+        }catch(error){
+            console.log(error);
+        }
+    }
+
+    await likeordislike();
 });
 
 </script>
 
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background: #ffffff;
-    font-family: "Inter", sans-serif;
-}
-
 .book-details {
     display: flex;
     flex-direction: row;
@@ -233,13 +289,12 @@ body {
 }
 
 .book-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #000000;
 }
 
 .book-subtitle {
-    font-family: "Inter-Bold", sans-serif;
     font-size: 20px;
     font-weight: 700;
     color: #000000;
@@ -287,18 +342,6 @@ body {
 .recommendation-covers {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-}
-
-.recommendation-covers img {
-    width: 281px;
-    height: 383px;
-}
-
-.recommendation-cover {
-    width: 182px;
-    height: 280px;
-    object-fit: cover;
 }
 
 .line-separator {
@@ -320,7 +363,6 @@ body {
 
 .review-button {
     display: inline-block;
-    font-family: "Inter-Regular", sans-serif;
     font-size: 20px;
     font-weight: 400;
     color: #3e322a;
@@ -337,6 +379,7 @@ body {
     justify-content: flex-start;
     margin: 20px auto;
     gap: 20px;
+    margin-left: 100px;
 }
 
 .tab {
@@ -367,7 +410,7 @@ body {
 
 .title-and-author {
     display: grid;
-    gap: 8px; 
+    gap: 8px;
 }
 
 .icons-container {
@@ -444,5 +487,9 @@ body {
 
 .book-status-wish:hover {
     font-weight: bold;
+}
+
+.title-and-author span {
+    font-size: 14px;
 }
 </style>

@@ -13,7 +13,7 @@
     </div>
     <div class="search-bar">
         <select v-model="searchType" class="search-type-selector">
-          <option value="book">책</option>
+          <option value="book">도서</option>
           <option value="music">음악</option>
         </select>
         <input
@@ -32,7 +32,7 @@
         />
       </div>
     </div>
-    <router-link v-if="!isAuthenticated" to="/auth/login">
+    <router-link v-if="!isAuthenticated" to="/login">
       <div class="log-button">
         <img src="@/assets/icons/logout.png" alt="로그인 아이콘" />
         <span>LOGIN</span>
@@ -81,10 +81,6 @@ const submitSearch = () => {
 </script>
 
 <style scoped>
-.spotify-search {
-  font-family: Arial, sans-serif;
-}
-
 .header {
   display: flex;
   align-items: center;
@@ -117,22 +113,18 @@ const submitSearch = () => {
 }
 
 .nav-item {
-  font-size: 18px;
+  font-size: 16px;
   color: #000000;
-  font-weight: bold;
+}
+
+.nav-item:hover {
+  border-bottom: 2px solid black;
 }
 
 .search-bar {
-  /* position: absolute; */
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  /* width: 400px; */
-  /* height: 40px; */
-  /* display: flex; */
-  /* align-items: center; */
-  /* border-radius: 50px; */
-
-
   display: flex; /* 검색창과 돋보기를 나란히 배치 */
   align-items: center;
   gap: 10px; /* 검색창과 돋보기 사이 간격 */

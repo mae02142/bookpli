@@ -15,8 +15,8 @@ public class BookResponseDTO {
     private Long libraryId;
     private Long userId;
     private String status;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     private String isbn13;
     private String title;

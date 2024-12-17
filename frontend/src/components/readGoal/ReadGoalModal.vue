@@ -2,22 +2,23 @@
 <template>
     <div v-if="visible" class="modal-overlay" @click.self="emitClose">
         <div class="modal-content">
-        <div class="title">{{rbook.title}}</div>
-
-        <div class="book-section">
-        <img class="book-cover" :src="rbook.cover" alt="Book Cover" />
-        <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
-        <div class="reading-status" v-if="rbook.status === 'reading'">
-            <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
-            <span class="reading-status-text">읽고 있는 책</span>
-        </div>
+            
+            <div class="book-section">
+                <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
+                <div class="title">{{rbook.title}}</div>
+                <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
+                <div class="reading-status" v-if="rbook.status === 'reading'">
+                    <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
+                    <span class="reading-status-text">읽고 있는 책</span>
+            </div>
         </div>
 
         <div class="date-section">
         <div class="date-status">독서상태</div>
         <div class="date-row">
             <span class="date-label">
-                <input type="radio" :checked="book.status === 'reading'" value="reading" v-model="radioSelect">독서중
+                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
+                독서중
             </span>
             <span class="date-label">
                 <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
@@ -37,6 +38,7 @@
                 :format="dateFormat"
                 @update:modelValue="updateStartDate"
             />
+            <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
             </span>
             <span class="date-label">
             종료일
@@ -50,6 +52,7 @@
                 :format="dateFormat"
                 @update:modelValue="updateEndDate"
             />
+            <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
             </span>
                 </div>
         </div>
@@ -57,9 +60,9 @@
         <div class="progress-section" v-if="rbook.status === 'reading'">
             <div class="progress-header">독서량</div>
             <div class="progress-bar">
-                <div class="progress-bar-fill" :style="{width: `${book.progressPercentage || 0}%`}"></div>
+                <div class="progress-bar-fill" :style="{width: `${rbook.progressPercentage || 0}%`}"></div>
             </div>
-            <p class="progress-percentage">{{ book.progressPercentage || 0 }}%</p>
+            <p class="progress-percentage">{{ rbook.progressPercentage || 0 }}%</p>
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
@@ -69,7 +72,6 @@
 </div>
 </template>
 <script setup>
-import {defineProps, defineEmits} from "vue";
 import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
@@ -78,7 +80,11 @@ import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
+<<<<<<< HEAD
 import axios from "axios";
+=======
+>>>>>>> 1ff0c245c98e8be61712501632d3a033923a9e23
+import apiClient from "@/api/axiosInstance";
 
 const route= useRoute();
 const router= useRouter();
@@ -102,6 +108,25 @@ const confirmAction= () => {
 
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
+
+const changeDate= async (rbook) => {
+
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+    
+    try{
+        const response= await apiClient.put(`/api/goal/reset/${book.isbn13}`, null, {
+            params: {
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
+        alert("독서기간이 수정되었습니다.");
+        
+    }catch(error){
+        console.log("독서기간 수정중 에러",error);
+    }
+}
 
 
 const book =ref(
@@ -127,13 +152,35 @@ const showEndPicker = ref(false);
 const radioSelect= ref("");
 
 const handleAction= async () => {
-    if(radioSelect.value === "reading"){
-        await changeStatus();
-    }else if(radioSelect.value === "dropped"){
-        await dropReading();
-    }else{
-        alert("독서상태를 선택해주세요");
+    if (!rbook) {
+        console.error("rbook이 정의되지 않았습니다.");
+        alert("선택된 책이 없습니다. 다시 시도해주세요.");
+        return;
     }
+
+    console.log("rbook값있는지 확인확인",rbook);
+    console.log("라디오 기본새팅값도 있는지 확인확인",radioSelect.value);
+    try{
+        if(rbook.status === "reading"){
+            await changeDate(rbook);
+
+            if(radioSelect.value === "dropped"){
+                await dropReading();
+            }
+        }else if(rbook.status === "wished"){
+
+        if(radioSelect.value === "reading"){
+            await changeStatus();
+            await changeDate(rbook);
+        }else if(radioSelect.value === "dropped"){
+            await dropReading();
+        }else{
+            alert("독서상태를 선택해주세요");
+        }
+        }
+    }catch(error){
+        console.log("기간변경하면서 에러",error);
+    }; 
 }
 
 const changeStatus = async () => {
@@ -146,7 +193,7 @@ const changeStatus = async () => {
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
 
     try{
-        const response= await axios.put(`/api/goal/register/${book.value.isbn13}`, null, {
+        const response= await apiClient.put(`/api/goal/register/${book.value.isbn13}`, null, {
             params: {
                 status: book.value.status,
                 startDate: formatStartDate,
@@ -164,7 +211,7 @@ const changeStatus = async () => {
 
 const dropReading = async () => {
     try{
-        const response= await axios.delete(`/api/goal/${book.value.isbn13}`,{
+        const response= await apiClient.delete(`/api/goal/${book.value.isbn13}`,{
             params: { status: "dropped" },
         });
         alert(response.data);
@@ -187,42 +234,31 @@ onMounted(() => {
 </script>
 
 <style>
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-}
-
-body {
-background: #ffffff;
-font-family: "Inter", sans-serif;
-}
-
 .title {
-font-size: 48px;
+font-size: 16px;
 font-weight: 700;
 color: #000000;
 text-align: center;
-margin: 20px 0;
+margin-top: 10px;
 }
 
 .book-section {
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 40px;
+margin-top: 10px;
 }
 
-.book-cover {
-width: 200px;
-height: 260px;
+.bookgoal-cover {
+width: 150px;
+height: 200px;
 object-fit: cover;
 }
 
 .book-info {
-font-size: 28px;
+font-size: 13px;
 color: #757575;
-margin-top: 20px;
+margin-top: 7px;
 }
 
 .reading-status {
@@ -231,31 +267,31 @@ align-items: center;
 justify-content: center;
 background: #fffdf1;
 border-radius: 25px;
-width: 281px;
-height: 56px;
+width: 190px;
+height: 40px;
 margin-top: 15px;
 }
 
 .reading-status-text {
-font-size: 28px;
+font-size: 16px;
 color: #000000;
 }
 
 .bookmark {
-    width: 40px;
-    height: 35px;
+    width: 23px;
+    height: 25px;
     margin-right: 10px;
 }
 
 .date-section {
-margin: 40px auto;
+margin: 15px auto;
 width: 80%;
 max-width: 800px;
 }
 
 .date-status{
     text-align: left;
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
     margin-bottom: 10px;
     
@@ -263,15 +299,15 @@ max-width: 800px;
 
 .date-header {
     text-align: left; 
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
-    margin: 20px 0 10px 0; 
+    margin: 10px; 
 }
 
 
 .date-label input[type="radio"] {
-    width: 24px; 
-    height: 24px; 
+    width: 20px; 
+    height: 20px; 
     margin-right: 10px; 
 }
 
@@ -281,18 +317,21 @@ max-width: 800px;
     align-items: center;
     background: #f0f0f0;
     border-radius: 15px;
-    padding: 15px 20px;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    padding: 10px 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .date-label {
-font-size: 28px;
+font-size: 14px;
 color: #000000;
+display: flex;
+align-items: center;
+gap: 5px;
 }
 
 .date-value {
-font-size: 28px;
+font-size: 14px;
 color: #000000;
 }
 
@@ -304,7 +343,7 @@ max-width: 800px;
 
 .progress-header {
     text-align: left;
-    font-size: 30px;
+    font-size: 16px;
     color: #000000;
 }
 
@@ -325,7 +364,7 @@ max-width: 800px;
 
 .progress-percentage {
     text-align: left;
-    font-size: 25px;
+    font-size: 16px;
 }
 
 .confirm-button {
@@ -333,7 +372,7 @@ max-width: 800px;
     border: none;
     border-radius: 15px;
     padding: 10px 15px;
-    font-size: 30px;
+    font-size: 15px;
     color: #000000;
     cursor: pointer;
 }
@@ -341,7 +380,7 @@ max-width: 800px;
 .date-label {
     display: inline-flex;
     align-items: center; 
-    font-size: 28px;
+    font-size: 15px;
     color: #000000;
     gap: 8px; 
 }
@@ -369,6 +408,15 @@ align-items: center;
 gap: 5px;
 }
 
+.date-status,
+.date-header {
+    text-align: left; /* 좌측 정렬 통일 */
+    font-size: 16px;
+    color: #000000;
+    margin: 0; /* 여백 초기화 */
+    padding-left: 5px; /* 동일한 패딩 적용 */
+}
+
 .date-value {
 margin-left: 10px;
 color: #555;
@@ -379,7 +427,6 @@ font-size: 14px;
     display: flex;
     justify-content: center;
     gap: 100px;
-    margin-top: 40px;
     margin-bottom: 10px;
 }
 
@@ -400,13 +447,14 @@ font-size: 14px;
     background: #fff;
     padding: 20px;
     border-radius: 10px;
-    width: 800px;
-    max-width: 90%;
+    width: 60%;
+    height: 80%;
+    max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
+    justify-content: center;
     display: flex;
     flex-direction: column;
-    gap: 20px;
 }
 </style>
 

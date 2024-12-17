@@ -61,3 +61,41 @@ export const useConfirmModalStore = defineStore("confirmModal", {
     },
   },
 });
+
+export const useLoginAlertModalStore = defineStore("loginAlertModal", {
+  state: () => ({
+    isModalVisible: false,
+    modalActionMessage: "",
+    message: "",
+    confirmCallback: null, // 명칭 수정
+    cancelCallback: null, // 명칭 수정
+  }),
+  actions: {
+    showModal(
+      modalActionMessage,
+      message,
+      { onConfirm = null, onCancel = null } = {}
+    ) {
+      this.isModalVisible = true;
+      this.modalActionMessage = modalActionMessage;
+      this.message = message;
+      this.confirmCallback = onConfirm; // 명칭 수정
+      this.cancelCallback = onCancel; // 명칭 수정
+    },
+    confirm() {
+      if (this.confirmCallback) this.confirmCallback();
+      this.reset();
+    },
+    cancel() {
+      if (this.cancelCallback) this.cancelCallback();
+      this.reset();
+    },
+    reset() {
+      this.isModalVisible = false;
+      this.modalActionMessage = "";
+      this.message = "";
+      this.confirmCallback = null;
+      this.cancelCallback = null;
+    },
+  },
+});

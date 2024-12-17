@@ -1,51 +1,53 @@
 <template>
-    <div v-if="modalStore.isModalVisible" class="modal-overlay">
-      <div class="modal-container">
-        <div class="modal-header">
-          <span>{{ modalStore.modalActionMessage }}</span>
-          <img src="@/assets/icons/close.png" @click="modalStore.closeModal" class="close-icon"/>
-        </div>
-        <div class="modal-body">
-          <img class="warning-icon" :src="modalImage" alt="Modal Image" />
-          <p class="modal-title" v-html="modalStore.questionMessage"></p>
-          <p class="modal-subtitle">{{ modalStore.warningMessage }}</p>
-        </div>
-        <div class="modal-footer">
-          <button class="delete-button" @click="handleConfirmAction">{{ modalStore.cofirmButton }}</button>
-          <button class="cancel-button" @click="modalStore.closeModal">취소</button>
-        </div>
+  <div v-if="modalStore.isModalVisible" class="login-modal-overlay">
+    <div class="login-modal-container">
+      <div class="login-modal-header">
+        <span>{{ modalStore.modalActionMessage }}</span>
+        <img src="@/assets/icons/close.png" @click="modalStore.cancel" class="close-icon" />
+      </div>
+      <div class="login-modal-body">
+        <img class="warning-icon" src="@/assets/modal/need_login.gif" alt="Modal Image" />
+        <p class="login-modal-title">{{ modalStore.message }}</p>
+      </div>
+      <div class="login-modal-footer">
+        <button @click="modalStore.confirm" class="login-button">로그인 하기</button>
+        <button @click="modalStore.cancel" class="reset-button">
+          돌아가기
+        </button>
       </div>
     </div>
-  </template>
-  
+  </div>
+</template>
+
 <script setup>
-import { useConfirmModalStore } from '@/stores/utilModalStore';
-import { computed } from 'vue';
-const modalStore = useConfirmModalStore();
+import { useLoginAlertModalStore } from "@/stores/utilModalStore";
+const modalStore = useLoginAlertModalStore();
 
 // 확인 버튼에 따른 동작 처리 함수
-const handleConfirmAction = ()  => {
+const handleConfirmAction = () => {
   if (modalStore.confirmCallback) {
-    modalStore.confirmCallback(); // 콜백 함수 실행
+    modalStore.confirmCallback(); // 확인 콜백 함수 실행
   }
   modalStore.closeModal(); // 모달 닫기
 };
 
-// 상태에 따라 이미지 경로를 동적으로 설정
-const modalImage = computed(() => {
-  switch (modalStore.type) {
-    case "already-exist":
-      return new URL('@/assets/modal/already-exist.gif', import.meta.url).href;
-    default:
-      return new URL('@/assets/modal/warning.gif', import.meta.url).href;
+// 취소 버튼에 따른 동작 처리 함수
+const handleCancelAction = () => {
+  if (modalStore.cancelCallback) {
+    modalStore.cancelCallback(); // 취소 콜백 함수 실행
   }
-});
+  modalStore.closeModal(); // 모달 닫기
+};
 
+// 모달 닫기 동작
+const handleCloseModal = () => {
+  modalStore.closeModal();
+};
 </script>
   
   <style scoped>
   /* 모달 전체 영역 */
-  .modal-overlay {
+  .login-modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
@@ -56,7 +58,7 @@ const modalImage = computed(() => {
   }
   
   /* 모달 컨테이너 */
-  .modal-container {
+  .login-modal-container {
     background: #ffffff;
     border-radius: 10px 10px 0px 0px;
     width: 400px;
@@ -67,17 +69,17 @@ const modalImage = computed(() => {
   }
   
   /* 모달 헤더 */
-  .modal-header {
+  .login-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
     background-color: #FFFDF1;
     border-radius: 10px;
-    padding: 10px 12px;
+    padding: 15px 12px;
   }
   
-  .modal-header span {
+  .login-modal-header span {
     font-size: 13px;
     color: black;
   }
@@ -99,23 +101,16 @@ const modalImage = computed(() => {
   }
   
   /* 모달 제목 및 부제목 */
-  .modal-title {
+  .login-modal-title {
     text-align: center;
     font-size: 17px;
     font-weight: bold;
     color: #555555;
     margin: 10px 0;
   }
-  
-  .modal-subtitle {
-    text-align: center;
-    font-size: 14px;
-    color: #f55858;
-    margin: 10px 0;
-  }
-  
+ 
   /* 버튼 영역 */
-  .modal-footer {
+  .login-modal-footer {
     display: flex;
     justify-content: center;
     gap: 10px;
@@ -147,6 +142,28 @@ const modalImage = computed(() => {
   .close-icon {
     width: 9px;
     height: 9px;
+    cursor: pointer;
+  }
+
+  .login-button {
+    background: #222521;
+    color: #ffffff;
+    border: none;
+    border-radius: 20px;
+    height: 35px;
+    padding: 0px 20px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .reset-button {
+    background: #ffffff;
+    color: #555353;
+    border: 1px solid #555353;
+    border-radius: 20px;
+    height: 35px;
+    padding: 0px 20px;
+    font-size: 12px;
     cursor: pointer;
   }
   </style>
