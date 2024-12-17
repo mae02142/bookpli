@@ -1,7 +1,7 @@
 <template>
     <!-- 모달 배경 -->
     <section v-if="isVisible" class="modal-overlay" @click="cancelForm">
-      <div class="review-modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
+      <div class="modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
         <!-- 모달 내용 -->
       <div class="review-form">
         <div class="date-rating">
@@ -46,6 +46,8 @@
   import emptyStarImage from "@/assets/icons/empty_star.png"
   import { onMounted, ref } from "vue";
   import apiClient from "@/api/axiosInstance";
+  import { useUtilModalStore } from "@/stores/utilModalStore";
+
 
   export default {
     props: {
@@ -64,6 +66,7 @@
     },
     emits: ['update:isVisible'],
     setup(props, { emit }) {
+    
       onMounted(() => {
         console.log(JSON.stringify(props.bookId.isbn13));
         console.log(props.userId);
@@ -101,9 +104,14 @@
       };
   
       // 폼 제출
+      const utilModalStore = useUtilModalStore();
       const submitForm = async() => {
         if ( !reviewContent.value || rating.value === 0) {
-          alert("모든 항목을 작성해주세요!");
+          utilModalStore.showModal(
+        '경고',
+        '모든 항목을 작성해주세요.',
+        'alert'
+       )
           return undefined;
         }else{
           try{
@@ -114,6 +122,12 @@
         rating: rating.value
       };
         await apiClient.post("/api/review/post",review);
+       
+       utilModalStore.showModal(
+        '리뷰 등록',
+        '리뷰가 등록되었습니다.',
+        'alert'
+       )
       } catch(error){
         console.log(error,"등록 중 에러 발생");
       };
@@ -153,12 +167,13 @@
   }
   
   /* 모달 콘텐츠 */
-   .review-modal-content {
+   .modal-content {
     background: white;
-    padding: 25px 30px;
+    padding: 40px;
     border-radius: 10px;
     width: 550px;
     max-width: 90%;
+    height: 300px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
@@ -175,10 +190,11 @@
   
   label {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 400;
     color: #000;
     display: block;
-    margin-bottom: 7px;
+    text-align: left;
+    margin-bottom: 20px;
   }
   textarea {
     resize: none;
@@ -186,7 +202,6 @@
     height: auto;
     width: 100%;
     outline: none;
-    width: 527px;
     padding: 10px;
   }
   
@@ -204,37 +219,32 @@
   .char-count {
     font-size: 16px;
     color: #595959;
-    text-align: end;
+    text-align: right;
+    margin: 5px;
   }
   
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 7px;
+    gap: 20px;
+  }
+  
+  .cancel-btn,
+  .submit-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
   }
   
   .cancel-btn {
-    margin-top: 20px;
-    padding: 12px 5px;
-    border-radius: 30px;
-    border: 1px solid gray;
-    width: 120px;
-    background: #ffffff;
-    cursor: pointer;
+    background-color:#FFFDF1;
+    border: none;
   }
-
+  
   .submit-btn {
-    margin-top: 20px;
-    padding: 12px 5px;
-    border-radius: 30px;
-    border: 1px solid gray;
-    width: 120px;
-    background: #fff8bb;
-    cursor: pointer;
-  }
-
-  .cancel-btn:hover, .submit-btn:hover {
-    font-weight: bold;
+    background-color: #FFFDF1;
+    border: none;
   }
   
   .calendar-icon {

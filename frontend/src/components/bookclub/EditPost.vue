@@ -1,156 +1,245 @@
 <template>
-<div class="modal-wrap">
+  <div class="modal-wrap">
     <div class="modal-content" @click.stop>
-        <div class="modal-items">
-            <header class="header">
-                <h3>게시글 수정</h3>
-                <hr>
-            </header>
-            <article class="post-form">
-                <div :v-show="uploadImg" v-for="img,index in imageSrc" :key="index" class="preview">
-                    <div class="preImg-box">
-                      <img @click="removeImg(index)" src="@/assets/icons/close.png" alt="delete image" class="del-img">
-                      <img :src="img.url" class="preview-img">
-                    </div>
-                </div>
-                <textarea v-model="post.postContent" class="post-text" placeholder="책에 대한 이야기를 자유롭게 즐겨보세요.">{{ postContent }}</textarea>
-
-                <div class="icon-btn">
-                <button class="open-file" @click="triggerFileInput">
-                <span class="file-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 71 67">
-                    <path
-                        stroke-width="5"
-                        stroke="black"
-                        d="M41.7322 11.7678L42.4645 12.5H43.5H68.5V64.5H2.5V2.5H32.4645L41.7322 11.7678Z"
-                    ></path>
-                    </svg>
-                    <span class="file-front"></span>
-                </span>
-                Open file
-                </button>
-                <input type="file" ref="fileInput" style="display: none;" @change="onFileChange" multiple accept="image/*">    
-                <div>
-                    <button @click="updatePost" class="modal-btn">수정</button>        
-                    <button @click="closeModal" class="modal-btn">취소</button>
-                </div> 
-               </div>
-            </article>
-        </div>
+      <div class="modal-items">
+        <header class="header">
+          <h3>게시글 수정</h3>
+          <hr />
+        </header>
+        <article class="post-form">
+          <div :v-if="post.imageUrl " 
+               class="preview-section">
+            <div class="preImg-box"
+            v-for="img, index in imageSrc" 
+            :key="index">
+              <img
+                @click="removeImg(index)"
+                src="@/assets/icons/close.png"
+                alt="delete image"
+                class="del-img"
+              />
+              <img :src="img" class="preview-img" />
+            </div>
+          </div>
+          <textarea
+            v-model="post.postContent"
+            class="post-text"
+            placeholder="책에 대한 이야기를 자유롭게 즐겨보세요."
+          />
+          <div class="icon-btn">
+            <button class="open-file" @click="triggerFileInput">
+              <span class="file-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 71 67">
+                  <path
+                    stroke-width="5"
+                    stroke="black"
+                    d="M41.7322 11.7678L42.4645 12.5H43.5H68.5V64.5H2.5V2.5H32.4645L41.7322 11.7678Z"
+                  />
+                </svg>
+                <span class="file-front"></span>
+              </span>
+              Open file
+            </button>
+            <input
+              type="file"
+              ref="fileInput"
+              style="display: none"
+              @change="onFileChange"
+              multiple
+              accept="image/*"
+            />
+            <div>
+              <button @click="confirmUpdate" class="modal-btn">수정</button>
+              <button @click="closeModal" class="modal-btn">취소</button>
+            </div>
+          </div>
+        </article>
+      </div>
     </div>
-</div>
-  </template>
-  
-  <script>
+  </div>
+</template>
+
+<script>
 import apiClient from '@/api/axiosInstance';
-import { ref, onMounted, toRaw } from 'vue';
-  
-  export default {
-    props:  {
-        modelValue: {
-            type : Boolean,
-            default : false,
-        },
-        editId : {
-            type : Number,
-            required : true,
-        }
+import { ref, onMounted, } from 'vue';
+import {ref as firebaseRef, uploadBytes, getDownloadURL} from "firebase/storage";
+import { firebaseStorage } from "@/firebase/firebaseConfig";
+import { useConfirmModalStore } from '@/stores/utilModalStore';
+import { useUtilModalStore } from '@/stores/utilModalStore';
+
+export default {
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
     },
-    emits: ['update:modelValue','close'],
-    setup(props,{emit}) {
+    editId: {
+      type: Number,
+      required: true,
+    },
+  },
+  emits: ['update:modelValue', 'close'],
+  setup(props, { emit }) {
+    const post = ref({});
+    const fileInput = ref(null);
+    const imageSrc = ref([]);   //미리보기 이미지 데이터 
+    const selectedFiles = ref([]); // 실제 파일 데이터
+    const utilModalStore = useUtilModalStore();
 
-      onMounted(() => {
-        // 서버에서 게시글 데이터와 이미지 데이터 불러오는 예시
-        loadPostData();
-      });
+    onMounted(() => {
+      loadPostData();
+    });
+    // 수정 데이터 불러오기
+    const loadPostData = async () => {
+  try {
+    const response = await apiClient.get('/api/post/getOne', {
+      params: { postId: props.editId },
+    });
+    post.value = response.data.data;
 
-      // 서버에서 불러온 게시글 내용
-      const post= ref({});
+    // imageSrc 에 imageUrl만 저장
+    imageSrc.value = post.value.imageUrl.map(img => img.imageUrl);
+    console.log(post.value.imageUrl.imageUrl);
 
-      // 서버에서 불러온 이미지 URL 리스트
-      const imageSrc = ref([]);
-  
-      // 서버에서 게시글 데이터 및 이미지 URL을 불러오는 함수
-      const loadPostData = async () => {
-        try {
-         const response = await apiClient.get("/api/post/getOne", {
-          params : {postId : props.editId},
-         });
-         console.log(response.data);
-         post.value = response.data.data;
-         console.log(post.value);
-        } catch (error) {
-          console.error("게시글 데이터를 불러오는 중 오류 발생:", error);
+    console.log(imageSrc.value); // URL만 저장된 배열 확인
+  } catch (error) {
+    console.error('게시글 데이터를 불러오는 중 오류 발생:', error);
+  }
+};
+
+    const onFileChange = (event) => {
+      const files = event.target.files;
+      if (files.length + imageSrc.value.length > 4) {      
+        utilModalStore.showModal(
+          '경고',
+          '이미지는 최대 4장까지 업로드 가능합니다',
+          'alert'
+        )
+        return;
+      }
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.match('image/.*')) {
+          utilModalStore.showModal(
+          '경고',
+          '이미지 파일만 업로드 가능합니다.',
+          'alert'
+        );
+        return;
         }
-      };
+        const reader = new FileReader(); // 파일을 읽어오는 FileReader 생성
+        reader.onload = (e) => {
+          const fileDataUrl = e.target.result; // url 로드 수행
 
-          /*   이미지 관련 함수들   */
-      const uploadImg = ref(false);
-      const fileInput = ref(null); //input file 참조
-      const selectedImg = ref([]);   //선택된 이미지의 경로
-      const onFileChange = (event) =>{
-        const files = event.target.files;
-
-          if(files.length + selectedImg.value.length >2){
-              alert("이미지는 최대 2장까지 업로드 가능합니다.");
-              return ;
-          }
-          for(let i=0; i<files.length ; i++){
-              const file = files[i]
-              if(!file.type.match("image/.*")){
-                  alert("이미지 파일만 업로드 가능합니다.");
-                  continue;
-              }
-              const reader = new FileReader(); //파일 읽기
-              reader.onload = (e) => {
-                  selectedImg.value.push({file,url:e.target.result}); // 선택된 파일의 url 
-              };
-              reader.readAsDataURL(file);
-              uploadImg.value= true;
-          }
+          imageSrc.value.push(fileDataUrl); 
+          console.log(imageSrc.value);
         };
-      const triggerFileInput = () => {
-          fileInput.value.click();  // input file 태그를 클릭하게끔 함
+        reader.readAsDataURL(file); // 파일을 Data URL로 읽음
+        selectedFiles.value.push(file);
       }
-      const removeImg = (index) => {
-          imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
+    };
+
+    const triggerFileInput = () => {
+      fileInput.value.click();
+    };
+    
+    const removeImg = (index) => {
+      imageSrc.value.splice(index, 1); // 배열에서 해당 인덱스 제거
+      selectedFiles.value.splice(index, 1);
+    };
+
+    // 서버에 수정 요청
+    const updatePost = async () => {
+      try {
+        // 이미지 업로드
+        const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
+        console.log('업로드 이미지: '+ uploadedUrls);
+
+        post.value.imageUrl = imageSrc.value.map((url) => {
+      // 기존 이미지와 매핑
+      const existingImage = post.value.imageUrl.find(img => img.imageUrl === url);
+
+      // 기존 이미지인 경우 imageId 유지
+      if (existingImage) {
+        return {
+          imageId: existingImage.imageId,
+          imageUrl: existingImage.imageUrl,
+          postId: post.value.postId // 게시글 ID
+        };
+      }
+
+      // 새로 추가된 이미지
+      const newImageUrl = uploadedUrls.shift(); //순서대로 매핑-> List형태 
+      return {
+        imageId: null, // 새 이미지라서 ID 없음
+        imageUrl: newImageUrl, // 새로 업로드한 URL
+        postId: post.value.postId
+      };
+    });
+
+        // 서버에 수정된 게시글 정보 전송
+        const response = await apiClient.put('/api/post/edit', post.value);
+        console.log('게시글 수정 성공', response.data);
+        closeModal();
+
+      } catch (error) {
+        console.error('게시글 수정 실패', error);
+      }
+    };
+
+    const confirmUpdate = () => {
+      const confirmModalStore = useConfirmModalStore();
+      confirmModalStore.showModal(
+        '게시글 수정',
+        '수정을 완료하시겠습니까?',
+        '',
+        '수정',
+        '',
+        () => updatePost()
+      )
+    };
+
+    const closeModal = () => {
+        emit('close');
+        emit('update:modelValue', false);
+    };
+
+    // 파이어베이스 이미지 업로드 함수
+
+    const uploadImagesToFirebase = async (files, path) => {
+      const urls = [];
+      for (const file of files) {
+          const uniqueName = `${Date.now()}-${file.name}`; // 중복 이름 없게
+          const storageRef = firebaseRef(firebaseStorage, `${path}/${uniqueName}`);
+          try {
+          await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(storageRef);
+          urls.push(url);
+          } catch (error) {
+          console.error(`Error uploading image ${file.name}:`, error);
+          }
+      }
+      console.log("Uploaded URLs:", urls); // 업로드된 URL 확인
+      return urls;
       };
 
-          // 서버에 수정 보내기 
-      const updatePost = async() => {
-        const rawpost = toRaw(post.value);
-        console.log('수정하려는 게시글 :'+ JSON.stringify(post.value.postId));
-        
-        const response = await apiClient.put("/api/post/edit", rawpost);
-        console.log(response.data.data);
-        closeModal();
-      }
-
-      const closeModal = async() => {
-        const result = confirm("수정을 완료하시겠습니까?");
-        if(result){
-            emit('close');
-            emit("update:modelValue",false);
-        }else{
-            return;
-        }
-      }
-
-      return { 
-        post, 
-        imageSrc,
-        closeModal, 
-        updatePost,
-        selectedImg,
-        onFileChange,
-        triggerFileInput,
-        uploadImg,
-        fileInput,
-        removeImg,
-     };
-    },
-  };
-  </script>
+    return {
+      post,
+      fileInput,
+      imageSrc,
+      selectedFiles,
+      onFileChange,
+      triggerFileInput,
+      removeImg,
+      updatePost,
+      confirmUpdate,
+      closeModal,
+      uploadImagesToFirebase,
+      useUtilModalStore,
+    };
+  },
+};
+</script>
   
   <style scoped>
       /* 모달 전체 스타일 */
@@ -190,6 +279,12 @@ import { ref, onMounted, toRaw } from 'vue';
     justify-content: center;
     margin-top: 20px;
   }
+  .preview-section{
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
   
   .preview-img {
     width: 150px;
@@ -202,6 +297,7 @@ import { ref, onMounted, toRaw } from 'vue';
       flex-direction: column;
       width: 170px;
       height: 170px;
+      margin-right: 10px;
     }
   .del-img {
     width: 15px;

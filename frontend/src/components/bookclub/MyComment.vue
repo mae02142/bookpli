@@ -11,25 +11,52 @@
             </svg>
           </button>
                             <!-- 게시글 보기 -->
-          <div class="post-section" v-if="item.openPost === true">
-            <div class="post-items" v-for="post in serverPost" :key="post.postId">
-                <div class="post-header">
-                    <img class="post-profile" :src="post.profilePath || Profile" alt="커뮤니티 이미지" />
-                    <p class="username">{{post.userNickname || 'USER'}}</p>
+        <div class="post-section" v-if="item.openPost === true">
+          <div class="post-header">
+              <img
+                class="post-profile"
+                :src="item.post.profilePath || Profile"
+                alt="커뮤니티 이미지"
+              />
+              <p class="username">{{ item.post?.userNickname || 'User' }}</p>
+            </div>
+          <div class="post-nav">
+            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
+              <button class="slide-prev" @click="prevSlide(index)"><</button>
+            </div>
+            <div class="post-images-wrapper">
+              <div
+                class="post-images"
+                :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
+              >
+                <div
+                  class="post-image"
+                  v-for="img in item.post.imageUrl"
+                  :key="img.imageId"
+                >
+                  <img :src="img.imageUrl" class="post-image-img" />
                 </div>
-                <div class="postContent">
-                    <p class="post-cnt">{{ post.postContent }}</p>
-                    <p class="post-date">{{ post.postDate.split('T')[0] }}</p>
-                </div>
-            </div>   
-            <hr style="border: 1px solid #c3c3c3;">
+              </div>
+            </div>
+            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
+              <button class="slide-next" @click="nextSlide(index)">></button>
+            </div>
           </div>
+          <div class="post-items">
+            <div class="postContent">
+              <p class="post-cnt">{{ item.post?.postContent }}</p>
+              <p class="post-date">{{ item.post?.postDate }}</p>
+            </div>
+          </div>
+        </div>
+
           
           <!-- 조회 및 수정 -->
-          <div style="display: flex; flex-direction: row;">
+          <div class ="cmt-article ">
+           <div class="comment-box"> 
             <div class="author-info">
               <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
-              <h3>{{ item.userNickname || 'USER' }}</h3>
+              <h3>{{ item.userNickname }}</h3>
             </div>
   
             <div class="comment-text">
@@ -39,7 +66,6 @@
                 @input="adjustHeight"
                 v-model="editComment.commentContent"></textarea>
               <p v-else>{{ item.commentContent }}</p>
-              <p class="comment-date">{{ item.commentDate.split('T')[0] }}</p>
   
               <div v-if="editingId === item.commentId" class="comment-footer">
                 <img
@@ -48,27 +74,32 @@
                   @click="checkLike(index)"
                   id="like-icon"
                   alt="Like"/>
-                <p class="like-count">{{ editComment.likeCount }}</p>
+                <p v-show="editComment.likeCount >0" class="like-count">{{ editComment.likeCount }}</p>
+                <p class="comment-date">{{ item.commentDate }}</p>
               </div>
   
               <div v-else class="comment-footer">
-                <img
-                  class="icon"
-                  :src="item.likes.changeLike"
-                  @click="checkLike(index)"
-                  id="like-icon"
-                  alt="Like"/>
-                <p class="like-count">{{ item.likeCount }}</p>
+                <div class="comment-likes">
+                  <img
+                    class="icon"
+                    :src="item.likes.changeLike"
+                    @click="checkLike(index)"
+                    id="like-icon"
+                    alt="Like"/>
+                  <p v-show="item.likeCount >0" class="like-count">{{ item.likeCount }}</p>
+                </div>
+                <p class="comment-date">{{ item.commentDate }}</p>
               </div>
             </div>
-  
-            <button
+            <div>
+              <button
               v-if="editingId === item.commentId"
               class="comment-btn"
               @click="saveComment">
               수정
             </button>
-  
+            </div>
+         
             <!-- 수정, 삭제 토글 버튼 -->
             <div style="position: relative;">
               <img
@@ -79,7 +110,7 @@
               <div v-show="showBtn[index]" class="dropdown">
                 <button @click="openInput(item.commentId)" class="show-btn">수정</button>
                 <hr class="btn-line" />
-                <button class="show-btn" @click="item.deleteCheck = true">삭제</button>
+                <button class="show-btn" @click="confirmRemove(item.commentId)">삭제</button>
   
                 <!-- 삭제 컴포넌트 -->
                 <RemoveComment
@@ -90,8 +121,9 @@
             </div>
           </div>
         </div>
-        <hr class="divider" />
-      </article>
+      </div>
+      <hr class="divider" />
+    </article>
     </section>
   </template>
   
@@ -104,6 +136,7 @@
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import RemoveComment from "./RemoveComment.vue";  
+  import { useConfirmModalStore } from "@/stores/utilModalStore";
   
   export default {
      props: {
@@ -143,7 +176,6 @@
 
           if(response.status == 200){ // 요청 성공 시
             serverComments.value = response.data.data;
-            console.log('서버 :'+ JSON.stringify(serverComments.value));
 
             if(Array.isArray(serverComments.value)){  // 추가 값 더하기 
               comments.value = serverComments.value.map(comment => ({
@@ -152,6 +184,10 @@
                 likes : {changeLike : dislike},
                 deleteCheck : false,
                 openPost : false,
+                post: {
+                  imageUrl: [],
+                },
+                curpos: 0,
               }));
             }else{
               console.log('배열이 아닙니다');
@@ -178,6 +214,7 @@
         const dropdown = (index) => {
             showBtn.value[index] = !showBtn.value[index];
         }
+
                  //댓글 높이 조정
         const adjustHeight = (event) => { 
             const textarea= event.target;
@@ -220,48 +257,97 @@
             } catch (error) {
                 console.error("서버 동기화 실패", error);
             }
+        };
+
+                /*댓글 삭제*/
+        const confirmRemove = (commentId) =>{
+          const confirmModalStore = useConfirmModalStore();
+          confirmModalStore.showModal(
+            '댓글 삭제',
+            '댓글을 삭제하겠습니까?',
+            '삭제 후 복원은 어렵습니다.',
+            '삭제하기',
+            '',
+            () =>  deleteList(commentId)
+          )
+        };        
+        const deleteList = async(commentId) => {
+                try{
+                    const response = await apiClient.delete(`/api/comment/delete`, {
+                        params : {commentId : commentId},
+                    });
+                    if(response.status == 200){
+                      const index = comments.value.findIndex((item)=> item.commentId == commentId);
+                      if(index !== -1){
+                        comments.value.splice(index, 1); // 리뷰 삭제
+                      }     
+                    }
+                }catch(error){
+                    console.error(error,'오류 발생');
+                }
+            };
+
+                 /* 게시글 함수  */  
+       const showPost = async (index) => {
+        const comment = comments.value[index];
+        if (comment.openPost === true) {
+          // 게시글 닫기
+          comment.openPost = false;
+          comment.post = {}; // 게시글 데이터 초기화
+        } else {
+          // 게시글 열기
+          try {
+            const post = await getPost(comment.postId);
+            comment.openPost = true;
+            comment.post = post; // 게시글 데이터를 해당 댓글에 추가
+          } catch (error) {
+            console.error("게시글 데이터를 불러오지 못했습니다:", error);
+          }
         }
+      };
 
-                //댓글 삭제
-        const deleteComment = (commentId) => {
-          console.log("삭제하려는 댓글 : "+ commentId);
-          const index = comments.value.findIndex((item)=> item.commentId == commentId);
-          if(index !== -1){
-            comments.value.splice(index, 1); // 리뷰 삭제
-          }   
-       };
-
-        //게시글 보여주기 
-       const serverPost = ref([]); //서버에서 받아온 게시글
-       const showPost = (index) => {
-            //서버에서 값을 받아서 serverPost 에 넣어
-            if(comments.value[index].openPost === true){
-                comments.value[index].openPost = false;
-                serverPost.value = '';
-            }else{
-                // 서버에서 값 받아오기
-                getPosts(comments.value[index].postId);
-                comments.value[index].openPost = true;
-            }
-       };
-       const getPosts = async(postId)=> {
-        console.log("불러올 게시글 : "+ postId);
-        const response = await apiClient.get(`/api/post/comment/readOne`,{
-          params : {postId : postId},
-        });
-        console.log(response.data.data);
-        if(response.status == 200){
-          serverPost.value = response.data.data;
+      const getPost = async (postId) => {
+        console.log("불러올 게시글 ID:", postId);
+        try {
+          const response = await apiClient.get(`/api/post/comment/readOne`, {
+            params: { postId },
+          });
+          if (response.status === 200) {
+            console.log("게시글 데이터:", response.data.data);
+            return response.data.data; // 게시글 데이터를 반환
+          }
+        } catch (error) {
+          console.error("게시글 불러오기 에러:", error);
+          throw error; // 에러를 상위 함수로 전달
         }
-       };
+      };
 
+
+         /* 이미지 슬라이더 처리 */
+
+         const nextSlide = (index) => {
+          const comment = comments.value[index];
+          if (comment.curpos < comment.post.imageUrl.length - 1) {
+            comment.curpos++;
+          } else {
+            comment.curpos = 0; // 마지막 슬라이드 이후 첫 번째 슬라이드로
+          }
+        };
+
+        const prevSlide = (index) => {
+          const comment = comments.value[index];
+          if (comment.curpos > 0) {
+            comment.curpos--;
+          } else {
+            comment.curpos = comment.post.imageUrl.length - 1; // 첫 번째 슬라이드 이전 마지막 슬라이드로
+          }
+        };
 
 
       return {
         getComments,
-        serverPost,
         showPost,
-        getPosts,
+        getPost,
         dislike,
         like,
         Profile,
@@ -275,12 +361,14 @@
         editComment,
         openInput,
         saveComment,
-        deleteComment,
+        confirmRemove,
+        nextSlide,
+        prevSlide,
       };
     },
   };
   </script>
-  <style>
+  <style scoped>
     /* 리스트 */
     .comment-content {
       width: 80%;
@@ -297,6 +385,18 @@
       padding-top: 20px;
     }
     
+    .comment-article{
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .comment-box{
+      display: flex;
+      flex-direction: row;
+      gap:15px;
+    }
+
     .author-image {
       width: 40px;
       height: 40px;
@@ -305,9 +405,9 @@
     
     .author-info {
       font-size: 15px;
-      margin-right: 20px;
       display: flex;
       flex-direction: column;
+      text-align: center;
     }
     .comment-text {
       font-size: 16px;
@@ -320,28 +420,32 @@
         outline: none;
         border-radius: 5px;
         height: auto;
-        width: 270px;
+        width: 95%;
         padding: 10px;
         overflow: hidden;
         transition: height 0.2s ease;
     }
     .comment-date {
         text-align: end;
-        margin-top: 20px;
         color: #909090;
     }
     
     .comment-footer {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       gap: 20px;
       margin-top: 20px;
     }
     
+    .comment-likes{
+      display: flex;
+      flex-direction: row;
+    }
+
     .icon {
       width: 18px;
       height: 18px;
-      margin : 0 10px;
+      margin-right : 10px;
     }
     .icon:hover {
       cursor: pointer;
@@ -381,6 +485,11 @@
     .show-btn:hover{
       cursor: pointer;
     }
+
+    .divider {
+      border: 0.5px solid #e5e5e5;
+    }
+
     /* 게시글 보기 버튼 */
 .cta {
   position: relative;
@@ -443,7 +552,6 @@
 /* 수정 버튼 */
 
 .comment-btn {
-    margin : 0 10px;
     border: none;
     background: #FFFDF1;
     width: 40px;
@@ -459,12 +567,23 @@
 
 /* 게시글 부분 */
 .post-section {
-    margin : 10px;
+    width: 80%;
+    margin: auto;
+    margin-bottom: 20px;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
 }
 .post-items{
     display: flex;
     flex-direction: row;
     gap: 40px;
+  }
+
+  .post-header{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 5px 20px;
   }
 
   .post{
@@ -488,6 +607,7 @@
 
   .postContent{
     width: 100%;
+    margin : 10px 20px;
    
   }
 
@@ -503,4 +623,70 @@
     color: #909090;
     text-align: end;
   }
+
+   /* post-image 부분 */
+
+   .post-images-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      margin : 0 auto;
+      overflow: hidden;
+    }
+
+    .post-article{
+      width: 100%;
+    }
+
+    .post-nav {
+      display: flex;
+      flex-direction: row;
+      width: 90%;
+      margin: auto;
+    }
+    .post-images{
+      display: flex;
+      transition: transform 0.3s ease-in-out;
+      width: 100%;
+    }
+
+    .post-image{
+      flex : 0 0 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .post-image-img{
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+
+    }    
+    .image-circle {
+    display: flex;
+    justify-content: space-between;
+
+    }   
+    .slide-prev{
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      color: #ccc
+    }
+    .slide-next {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      color: #ccc
+    }
+
+    .slide-prev:hover {
+      color : black;
+    }
+    .slide-next:hover {
+      color: black;
+    }
+
    </style>
