@@ -32,10 +32,10 @@
             v-model="startDate"
             :teleport="false"
             placeholder="날짜 선택"
-            :locale="ko"
             :format="dateFormat"
-            @update:modelValue="updateStartDate"
-        />
+            locale="ko"
+            @update:model-value="updateStartDate"
+            />
         </span>
         <span class="date-label">
         종료일
@@ -45,9 +45,9 @@
             v-model="endDate"
             :teleport="false"
             placeholder="날짜 선택"
-            :locale="ko"
             :format="dateFormat"
-            @update:modelValue="updateEndDate"
+            locale="ko"
+            @update:model-value="updateEndDate"
         />
         </span>
             </div>
@@ -68,109 +68,104 @@
 </template>
 
 <script setup>
-import { ref,computed, onMounted } from "vue";
-import { useAuthStore } from '@/stores/auth';
+import { ref, onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
-import { ko } from "date-fns/locale";
-import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 
-const route= useRoute();
-const router= useRouter();
-const progressStore= useProgressStore();
+const route = useRoute();
+const router = useRouter();
+const progressStore = useProgressStore();
 
-//날짜 포맷팅
-const dateFormat = "yyyy-MM-dd";
+const book = ref(route.query.data ? JSON.parse(route.query.data) : {});
 
-
-const book =ref(
-    route.query.data ? JSON.parse(route.query.data): {}
-);
-
-const updateStartDate = (value) => {
-    startDate.value = value; 
-};
-
-const updateEndDate = (value) => {
-    endDate.value = value;
-};
-
-
-const authStore= useAuthStore();
-
+// 날짜 상태
 const startDate = ref(null);
 const endDate = ref(null);
 const showStartPicker = ref(false);
 const showEndPicker = ref(false);
 
-const radioSelect= ref("");
+const radioSelect = ref("");
 
+// 날짜 포맷 함수 추가
+const dateFormat = (date) => {
+  if (!date) return '';
+  const d = new Date(date);
+  return d.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 변환
+};
 
+// 날짜 업데이트 함수 수정
+const updateStartDate = (value) => {
+  startDate.value = dateFormat(value);
+  showStartPicker.value = false;
+};
 
+const updateEndDate = (value) => {
+  endDate.value = dateFormat(value);
+  showEndPicker.value = false;
+};
 
-const handleAction= async () => {
-    if(radioSelect.value === "reading"){
-        await setGoal();
-    }else if(radioSelect.value === "dropped"){
-        await dropReading();
-    }else{
-        alert("독서상태를 선택해주세요");
-    }
-}
+const handleAction = async () => {
+  if (radioSelect.value === "reading") {
+    await setGoal();
+  } else if (radioSelect.value === "dropped") {
+    await dropReading();
+  } else {
+    alert("독서상태를 선택해주세요");
+  }
+};
 
-//도서 목표설정
+// 도서 목표 설정
 const setGoal = async () => {
-    if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
-        alert("독서상태와 독서기간을 모두 선택해주세요");
-        return;
-    }
+  if (!book.value.isbn13 || !startDate.value || !endDate.value) {
+    alert("독서상태와 독서기간을 모두 선택해주세요");
+    return;
+  }
 
-    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
-    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
+  try {
+    const response = await apiClient.put(`/api/goal/register/${book.value.isbn13}`, null, {
+      params: {
+        status: "reading",
+        startDate: startDate.value, // yyyy-MM-dd 형식
+        endDate: endDate.value,     // yyyy-MM-dd 형식
+      },
+    });
+    alert(response.data);
+    router.push("/miniroom/minihome");
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    alert("오류가 발생했습니다.");
+  }
+};
 
-    try{
-        const response= await apiClient.put(`/api/goal/register/${book.value.isbn13}`, null, {
-            params: {
-                status: book.value.status,
-                startDate: formatStartDate,
-                endDate: formatEndDate,
-            },
-        });
-        alert(response.data);
-        router.push('/miniroom/minihome');
-    }catch(error){
-        console.error(error.response?.data || error.message);
-        alert("오류가 발생했습니다.");
-    }
-}
-
-//독서중 해제
+// 독서중 해제
 const dropReading = async () => {
-    try{
-        const response= await apiClient.delete(`/api/goal/${book.value.isbn13}`,{
-            params: { status: "dropped" },
-        });
-        alert(response.data);
-        router.push("/miniroom/minihome");
-    }catch(error){
-        console.error(error.response?.data || error.message);
-        alert("오류가 발생했습니다.");
-    }
-}
+  try {
+    const response = await apiClient.delete(`/api/goal/${book.value.isbn13}`, {
+      params: { status: "dropped" },
+    });
+    alert(response.data);
+    router.push("/miniroom/minihome");
+  } catch (error) {
+    console.error(error.response?.data || error.message);
+    alert("오류가 발생했습니다.");
+  }
+};
 
-//pinia에서 저장된 진행상황
+// Pinia 저장된 진행상황 불러오기
 onMounted(() => {
-    const savedProgress= progressStore.getProgress(book.value.isbn13);
-    if(savedProgress){
-        book.value.currentPage=savedProgress.currentPage || 0;
-        book.value.startIndex=savedProgress.startIndex || 0;
-        book.value.progressPercentage=savedProgress.progressPercentage || 0;
-    }
+  const savedProgress = progressStore.getProgress(book.value.isbn13);
+  if (savedProgress) {
+    book.value.currentPage = savedProgress.currentPage || 0;
+    book.value.startIndex = savedProgress.startIndex || 0;
+    book.value.progressPercentage = savedProgress.progressPercentage || 0;
+  }
 });
 </script>
+
 
 <style>
 .title {
