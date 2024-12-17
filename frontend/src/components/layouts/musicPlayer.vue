@@ -17,7 +17,6 @@
           min="0" 
           :max="playerStore.currentTrack.duration" 
           v-model="playerStore.currentTime" 
-          @input="onSeekTrack"
         />
         <div class="time-info">
           <span>{{ formatTime(playerStore.currentTime) }}</span> /
@@ -77,11 +76,6 @@ const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-};
-
-const onSeekTrack = (event) => {
-  const seekSeconds = event.target.value;
-  playerStore.seekTrack(seekSeconds);
 };
 
 const onVolumeChange = () => {
