@@ -81,7 +81,7 @@ public class PostController {
     @PostMapping("/insert")
     public BaseResponse<Boolean> postInsert(@RequestBody PostRequestDTO requestDTO){
         try {
-            // 게시글 저장 후 id 반환
+
              boolean result = postService.createPost(requestDTO);
              return new BaseResponse<>(result);
         }catch (Exception e){
@@ -95,7 +95,6 @@ public class PostController {
     @PutMapping("/edit")
     public BaseResponse<Boolean> postEdit(@RequestBody PostRequestDTO postRequestDTO){
         try {
-            System.out.println("수정하려는 게시글 : " + postRequestDTO.getPostId());
             boolean result = postService.update(postRequestDTO);
             if (!result) {
                 throw new IllegalArgumentException("수정하는데 실패하였습니다");

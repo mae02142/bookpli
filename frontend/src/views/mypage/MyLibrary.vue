@@ -15,7 +15,7 @@
 
             <div class="menuitem-grid">
               <h4>{{ menuItem.title }}</h4>
-              <p class="menuitem-count">{{ menuItem.count }}권</p>
+              <p class="menuitem-count">{{ menuItem.count }}</p>
             </div>
           </li>
         </ul>
@@ -121,10 +121,10 @@ const groupedData = computed(() => {
     });
 const updateMenuItems = () => {
       menuItems.value = [
-        { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
-        { title: '담은 도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
-        { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
-        { title: '좋아요한 도서', count: likedBooks.value.length, icon: 'book_heart.png', route: 'liked' },
+        { title: '독서중', count: (groupedData.value.reading?.length || 0) +' 권', icon: 'openbook.png', route: 'reading' },
+        { title: '담은 도서', count: (groupedData.value.wished?.length || 0) +' 권', icon: 'bookmark.png', route: 'wished' },
+        { title: '완독', count:( groupedData.value.completed?.length || 0 )+' 권', icon: 'closedbook.png', route: 'completed' },
+        { title: '좋아요한 도서', count:( likedBooks.value.length)+' 권', icon: 'book_heart.png', route: 'liked' },
         { title: '나의 리뷰',  icon: 'review.png', route: 'myreview'}
       ];
     };

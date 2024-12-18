@@ -37,7 +37,6 @@ export default {
         };
 
         const deleteList = () => {
-            console.log("자식컴포에서 확인 :"+props.deleteId);
             emit('delete-review', props.deleteId, 'closeModal'); //삭제 요청을 부모로 보내기
         }
         
