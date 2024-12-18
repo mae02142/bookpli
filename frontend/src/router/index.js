@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +14,7 @@ const router = createRouter({
     },
     {
       path: "/mypage",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "mypli",
@@ -26,6 +28,7 @@ const router = createRouter({
     },
     {
       path: "/review",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "mylist",
@@ -43,6 +46,7 @@ const router = createRouter({
     },
     {
       path: "/bookclub",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "",
@@ -68,6 +72,7 @@ const router = createRouter({
         },
         {
           path: "goal/:isbn13",
+          meta: { requiresAuth: true },
           component: () => import("@/views/miniroom/ReadingGoal.vue"),
         },
       ],
@@ -102,14 +107,31 @@ const router = createRouter({
       props: (route) => ({ query: route.query.q }),
     },
 
-    { path: "/artist/:id", 
-      component: () => import("@/views/main/DetailsPage.vue") },
+    {
+      path: "/artist/:id",
+      component: () => import("@/views/main/DetailsPage.vue"),
+    },
 
     {
       path: "/details/:category",
       component: () => import("@/views/main/DetailsPage.vue"),
     },
   ],
+});
+
+// 네비게이션 가드 추가
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  // meta.requiresAuth가 true인 경우에만 인증 체크
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      next("/login"); // 로그인 페이지로 리다이렉트
+    } else {
+      next(); // 인증된 경우 통과
+    }
+  } else {
+    next(); // meta.requiresAuth가 없는 경우 그대로 통과
+  }
 });
 
 export default router;

@@ -107,7 +107,7 @@
         
 
         <h3 class="title-header">내가 담아놓은 책</h3>
-        <p class="more-wrapper book-more" @click="loadWishList">
+        <p class="more-wrapper book-more" @click="gotoLibrary">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
         </p>
         <div class="book-section">
@@ -125,7 +125,6 @@
     :rbook="selectBook"
     @close="closeModal"
     />
-    
 </div>
 
 </template>
@@ -200,6 +199,12 @@ const loadWishList = () =>{
     }
 };
 
+const gotoLibrary= () =>{
+    router.push({
+            path: `/mypage/mylibrary`,
+
+        });
+}
 
 
 //목표기간 변경
@@ -339,7 +344,6 @@ const updateFailedBooks = (index) => {
     }
 };
 
-
 // 독서 기록 저장
 const saveProgress = (index) => {
   const book = readList.value[index];
@@ -425,6 +429,7 @@ const gotoPlaylist= () => {
 
 // 로그인 직후 회원 정보 저장
 const getUserInfo = async() => {
+    console.log("getUserInfo>>>>>>>>>>>>>");
   try {
     const response = await apiClient.get("/api/user-info");
     userData.value= response.data;
@@ -606,7 +611,6 @@ progress {
 width: 100%;
 margin: 5px 0;
 }
-
 
 .vertical-line {
     background-color: #ccc;

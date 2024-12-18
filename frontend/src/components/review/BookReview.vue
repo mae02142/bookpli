@@ -29,7 +29,7 @@
                         </div>
                     </span>
                 </div>
-                    <div>{{review.reviewContent}}</div>
+                    <div class="review-content">{{review.reviewContent}}</div>
             </article>
         </div>
       </div>
@@ -169,7 +169,7 @@ const getList = async(isbn13) => {
   }
 
   .user-name{
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .userInfo{
@@ -179,6 +179,10 @@ const getList = async(isbn13) => {
 
     align-items: center;
     margin-right: 20px; 
+  }
+
+  .review-content{
+    font-size: 18px;
   }
 
 </style>

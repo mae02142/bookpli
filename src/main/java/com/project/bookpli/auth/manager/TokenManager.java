@@ -50,8 +50,7 @@ public class TokenManager {
             throw new IllegalStateException("Failed to retrieve Access Token for Spotify ID: " + spotifyId);
         }
 
-        tokenCacheService.updateAccessToken(spotifyId, newAccessToken);
-        return newAccessToken;
+        return newAccessToken; // 새로 갱신된 Access Token 반환
     }
 
     /**

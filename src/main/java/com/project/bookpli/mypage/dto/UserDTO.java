@@ -35,6 +35,8 @@ public class UserDTO {
     @JsonProperty("profilePath") // JSON 직렬화 시 이 필드만 포함
     private String profilePath;
 
+    private String role;
+
     // DTO -> Entity
     public User toEntity() {
         return User.builder()
@@ -54,6 +56,7 @@ public class UserDTO {
                 .email(user.getEmail())
                 .userNickname(user.getUserNickname())
                 .profilePath(user.getProfilePath())
+                .role(user.getRole())
                 .build();
     }
 

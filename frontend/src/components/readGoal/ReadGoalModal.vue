@@ -72,7 +72,7 @@
 </div>
 </template>
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
@@ -86,10 +86,12 @@ const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 
-defineProps({
+const props = defineProps({
     visible: Boolean,
     rbook: Object,
 });
+
+const localBook = ref(props.rbook); 
 
 const emit= defineEmits(["close"]);
 
@@ -105,18 +107,20 @@ const confirmAction= () => {
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
 
+//독서기간 변경
 const changeDate= async (rbook) => {
 
     const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd HH:mm:ss");
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
     
     try{
-        const response= await apiClient.put(`/api/goal/reset/${book.isbn13}`, null, {
+        const response= await apiClient.put(`/api/goal/reset/${rbook.isbn13}`, {
             params: {
                 startDate: formatStartDate,
                 endDate: formatEndDate,
             },
         });
+        console.log("응답!!! : ", response.data);
         alert("독서기간이 수정되었습니다.");
         
     }catch(error){
@@ -147,39 +151,69 @@ const showEndPicker = ref(false);
 
 const radioSelect= ref("");
 
-const handleAction= async () => {
-    if (!rbook) {
-        console.error("rbook이 정의되지 않았습니다.");
-        alert("선택된 책이 없습니다. 다시 시도해주세요.");
-        return;
-    }
+// const handleAction= async () => {
 
-    console.log("rbook값있는지 확인확인",rbook);
-    console.log("라디오 기본새팅값도 있는지 확인확인",radioSelect.value);
-    try{
-        if(rbook.status === "reading"){
-            await changeDate(rbook);
+//     try{
+//         if(book.status === "reading"){
+//             await changeDate(book.value);
 
-            if(radioSelect.value === "dropped"){
-                await dropReading();
+//             if(radioSelect.value === "dropped"){
+//                 await dropReading();
+//             }
+//         }else if(book.status === "wished"){
+//             if(radioSelect.value === "reading"){
+//                 await setGoal();
+//                 await changeDate(book);
+//             }else if(radioSelect.value === "dropped"){
+//                 await dropReading();
+//             }else{
+//                 alert("독서상태를 선택해주세요");
+//             }
+//         }
+//     }catch(error){
+//         console.log("기간변경하면서 에러",error);
+//     }; 
+// }
+
+const handleAction = async () => {
+    try {
+        if (!props.rbook) {
+            alert("선택된 책 정보가 없습니다.");
+            return;
+        }
+
+        console.log("rbook 상태 확인:", props.rbook.status);
+
+        if (props.rbook.status === "reading") {
+            // 독서기간 수정
+            await changeDate(props.rbook);
+
+            // 독서 상태 해제
+            if (radioSelect.value === "dropped") {
+            await dropReading(props.rbook);
             }
-        }else if(rbook.status === "wished"){
-
-        if(radioSelect.value === "reading"){
-            await changeStatus();
-            await changeDate(rbook);
-        }else if(radioSelect.value === "dropped"){
-            await dropReading();
-        }else{
-            alert("독서상태를 선택해주세요");
+        } else if (props.rbook.status === "wished") {
+            // 독서목표 설정
+            if (radioSelect.value === "reading") {
+            await setGoal(props.rbook);
+            await changeDate(props.rbook);
+            } else if (radioSelect.value === "dropped") {
+            await dropReading(props.rbook);
+            } else {
+            alert("독서 상태를 선택해주세요.");
+            }
+        } else {
+            alert("책 상태를 확인할 수 없습니다.");
         }
-        }
-    }catch(error){
-        console.log("기간변경하면서 에러",error);
-    }; 
-}
 
-const changeStatus = async () => {
+    } catch (error) {
+        console.error("handleAction 실행 중 에러:", error);
+        alert("작업 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+};
+
+
+const setGoal = async (rbook) => {
     if(!book.value.isbn13 || !book.value.status|| !startDate.value || !endDate.value){
         alert("독서상태와 독서기간을 모두 선택해주세요");
         return;
@@ -189,7 +223,7 @@ const changeStatus = async () => {
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd HH:mm:ss");
 
     try{
-        const response= await apiClient.put(`/api/goal/register/${book.value.isbn13}`, null, {
+        const response= await apiClient.put(`/api/goal/register/${rbook.isbn13}`, null, {
             params: {
                 status: book.value.status,
                 startDate: formatStartDate,
@@ -205,9 +239,9 @@ const changeStatus = async () => {
 }
 
 
-const dropReading = async () => {
+const dropReading = async (rbook) => {
     try{
-        const response= await apiClient.delete(`/api/goal/${book.value.isbn13}`,{
+        const response= await apiClient.delete(`/api/goal/${rbook.isbn13}`,{
             params: { status: "dropped" },
         });
         alert(response.data);
@@ -219,12 +253,34 @@ const dropReading = async () => {
 }
 
 //pinia에서 저장된 진행상황
+// Pinia 상태 감지 및 업데이트
+watch(
+    () => progressStore.progressData,
+    (newProgressData) => {
+    if (props.rbook && newProgressData[props.rbook.isbn13]) {
+        const updatedProgress = newProgressData[props.rbook.isbn13];
+        props.rbook.currentPage = updatedProgress.currentPage;
+        props.rbook.progressPercentage = updatedProgress.progressPercentage;
+    }
+    },
+    { deep: true, immediate: true }
+);
+
+// onMounted(() => {
+//     const savedProgress= progressStore.getProgress(book.value.isbn13);
+//     if(savedProgress){
+//         book.value.currentPage=savedProgress.currentPage || 0;
+//         book.value.startIndex=savedProgress.startIndex || 0;
+//         book.value.progressPercentage=savedProgress.progressPercentage || 0;
+//     }
+// });
+
 onMounted(() => {
-    const savedProgress= progressStore.getProgress(book.value.isbn13);
+    const savedProgress= progressStore.getProgress(props.rbook.isbn13);
     if(savedProgress){
-        book.value.currentPage=savedProgress.currentPage || 0;
-        book.value.startIndex=savedProgress.startIndex || 0;
-        book.value.progressPercentage=savedProgress.progressPercentage || 0;
+        props.rbook.currentPage=savedProgress.currentPage || 0;
+        props.rbook.startIndex=savedProgress.startIndex || 0;
+        props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
 });
 </script>

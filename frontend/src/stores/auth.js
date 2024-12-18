@@ -3,28 +3,33 @@ import { defineStore } from "pinia";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null, // 사용자 정보
+    isAuthenticated: false, // 인증 여부
   }),
-  getters: {
-    // 사용자 로그인 확인 용도
-    isAuthenticated: (state) => !!state.user,
-  },
   actions: {
-    // 인증 데이터 설정 (토큰과 사용자 정보)
     setUser(user) {
       this.user = user;
+      this.isAuthenticated = !!user; // user가 존재하면 true
     },
     clearAuthData() {
       this.user = null;
+      this.isAuthenticated = false;
       localStorage.removeItem("auth");
+    },
+    loadAuthData() {
+      const storedData = localStorage.getItem("auth");
+      if (storedData) {
+        this.user = JSON.parse(storedData);
+        this.isAuthenticated = !!this.user;
+      }
     },
   },
   persist: {
     enabled: true,
     strategies: [
       {
-        key: "auth", // 로컬 스토리지에 저장될 키 이름
-        storage: localStorage, // 저장 위치: 로컬 스토리지
-        paths: ["user"], // 유지하고 싶은 상태 지정
+        key: "auth",
+        storage: localStorage,
+        paths: ["user"],
       },
     ],
   },
