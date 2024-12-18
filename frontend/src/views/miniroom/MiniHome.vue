@@ -125,7 +125,6 @@
     :rbook="selectBook"
     @close="closeModal"
     />
-    
 </div>
 
 </template>
@@ -203,7 +202,7 @@ const loadWishList = () =>{
 const gotoLibrary= () =>{
     router.push({
             path: `/mypage/mylibrary`,
-            
+
         });
 }
 
@@ -345,7 +344,6 @@ const updateFailedBooks = (index) => {
     }
 };
 
-
 // 독서 기록 저장
 const saveProgress = (index) => {
   const book = readList.value[index];
@@ -431,6 +429,7 @@ const gotoPlaylist= () => {
 
 // 로그인 직후 회원 정보 저장
 const getUserInfo = async() => {
+    console.log("getUserInfo>>>>>>>>>>>>>");
   try {
     const response = await apiClient.get("/api/user-info");
     userData.value= response.data;
@@ -612,7 +611,6 @@ progress {
 width: 100%;
 margin: 5px 0;
 }
-
 
 .vertical-line {
     background-color: #ccc;

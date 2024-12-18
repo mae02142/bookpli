@@ -26,10 +26,13 @@ public class TokenCacheService {
      * @return Access Token
      */
     public String getAccessToken(String spotifyId, TokenSupplier tokenSupplier) {
-        return tokenCache.get(spotifyId, key -> {
+        String accessToken = tokenCache.getIfPresent(spotifyId); // 캐시에서 토큰 확인
+        if (accessToken == null) {
             logger.info("Access Token not found in cache. Fetching new token for Spotify ID: {}", spotifyId);
-            return tokenSupplier.get();
-        });
+            accessToken = tokenSupplier.get(); // 새 토큰을 가져옴
+            tokenCache.put(spotifyId, accessToken); // 캐시에 저장
+        }
+        return accessToken;
     }
 
     /**

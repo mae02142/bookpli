@@ -24,8 +24,10 @@ public class User {
 
     private String refreshToken;
 
+    private String role;
+
     @Builder
-    public User(Long userId, String spotifyId, String displayName, String userNickname, String email, String profilePath, String refreshToken) {
+    public User(Long userId, String spotifyId, String displayName, String userNickname, String email, String profilePath, String refreshToken, String role) {
         this.userId = userId;
         this.spotifyId = spotifyId;
         this.displayName = displayName;
@@ -33,6 +35,7 @@ public class User {
         this.email = email;
         this.profilePath = profilePath;
         this.refreshToken = refreshToken;
+        this.role = role;
     }
 
     public void updateRefreshToken(String refreshToken) {

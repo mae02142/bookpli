@@ -9,12 +9,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -84,9 +87,10 @@ public class JwtFilter extends OncePerRequestFilter {
     private void setAuthentication(Claims claims) {
         // 사용자 정보 및 권한 추출
         String spotifyId = claims.get("spotifyId", String.class);
-        String roles = claims.get("roles", String.class); // JWT에 roles 정보가 있는 경우
+//        String roles = claims.get("roles", String.class); // JWT에 roles 정보가 있는 경우
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(spotifyId, null, null);
+                new UsernamePasswordAuthenticationToken(spotifyId, "", authorities);
 
         // SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
