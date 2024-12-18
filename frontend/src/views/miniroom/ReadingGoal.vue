@@ -142,13 +142,19 @@ const setGoal = async () => {
 };
 
 // 독서중 해제
-const dropReading = async () => {
+const dropReading = async (rbook) => {
   try {
     const response = await apiClient.delete(`/api/goal/${book.value.isbn13}`, {
       params: { status: "dropped" },
     });
+
+    const updateReadList= readList.value.findIndex(book => book.isbn13 ===  rbook.isbn13);
+    if(updateReadList !== -1){
+      readList.value.splice(updateReadList,1);
+    }
+
     alert(response.data);
-    router.push("/miniroom/minihome");
+    emitClose();
   } catch (error) {
     console.error(error.response?.data || error.message);
     alert("오류가 발생했습니다.");
@@ -287,7 +293,7 @@ max-width: 800px;
 
 .progress-bar-fill {
     height: 100%;
-    background:rgb(171, 235, 171);
+    background:rgb(171, 235, 171) !important;
     width: 25%; 
 }
 

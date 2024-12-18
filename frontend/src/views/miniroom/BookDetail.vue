@@ -65,6 +65,9 @@
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
+<div class="music-player"> 
+    <MusicPlayer/>
+</div>
 </div>
 </template>
 
@@ -77,6 +80,7 @@ import apiClient from "@/api/axiosInstance";
 import { useAuthStore } from "@/stores/auth";
 import { useUtilModalStore } from "@/stores/utilModalStore";
 import Recommend from "@/components/recommBooks/Recommend.vue";
+import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 
 const route= useRoute();
 const authStore = useAuthStore();
@@ -228,6 +232,7 @@ const toggleWishList = async () => {
 };
 
 onMounted(async() => {
+    MusicPlayer;
     await loadBookDetail();
 
     if(route.query.data){

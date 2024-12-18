@@ -124,12 +124,11 @@
     :visible="showModal"
     :rbook="selectBook"
     @close="closeModal"
+    @dropReading="updateReadList"
     />
 </div>
 
 </template>
-console.log("selectBook 값 확인:", selectBook.value);
-
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -139,7 +138,6 @@ import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
-import ConfirmModal from "@/components/modal/ConfirmModal.vue";
 import { useUtilModalStore } from "@/stores/utilModalStore";
 import { useConfirmModalStore } from "@/stores/utilModalStore";
 
@@ -319,27 +317,8 @@ const calculateMonthStats = () => {
   }).length;
 };
 
-
-// const changeToFail = async (book, index)=>{
-//     const today= new Date();
-//     const endDate= new Date(book.endDate);
-
-
-//     if(today > endDate){
-//         try{
-//             const response= await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
-//             alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
-
-//             updateFailedBooks(index);
-//         }catch(error){
-//             console.log("실패처리실패",error);
-//         }
-//     }
-// };
-
-
 const changeToFail = async (book, index) => {
-  const utilModalStore = useUtilModalStore(); // 스토어 인스턴스 가져오기
+  const utilModalStore = useUtilModalStore(); 
 
     const today = new Date();
     const endDate = new Date(book.endDate);
@@ -358,8 +337,6 @@ const changeToFail = async (book, index) => {
         updateFailedBooks(index);
     } catch (error) {
         console.log("실패 처리 실패", error);
-
-        // 에러 발생 시 Alert 모달 호출
         utilModalStore.showModal(
         "오류 발생", 
         "도서 실패 처리 중 오류가 발생했습니다.", 
@@ -370,12 +347,20 @@ const changeToFail = async (book, index) => {
 };
 
 
-
 const updateFailedBooks = (index) => {
     if(index >= 0 && index < readList.value.length){
         readList.value.splice(index, 1); 
     }
 };
+
+// ReadGoalModal에서 삭제된 도서를 readList에서 제거
+const updateReadList = (isbn13) => {
+    const index = readList.value.findIndex(book => book.isbn13 === isbn13);
+    if (index !== -1) {
+        readList.value.splice(index, 1);
+    }
+};
+
 
 // 독서 기록 저장
 const saveProgress = (index) => {
