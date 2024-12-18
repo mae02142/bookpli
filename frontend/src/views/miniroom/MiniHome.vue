@@ -15,7 +15,7 @@
             <div class="status-card">
                 <div class="most-read-month">
                     <div class="card-background"></div>
-                    <div class="card-title">가장 많이 읽은달</div>
+                    <div class="card-title">독서 많이 한 달</div>
                     <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
                 </div>
                 <div class="yearly-read">
@@ -43,7 +43,12 @@
 
     <div class="right-section">
         <h3 class="title-header">이번달 독서통계</h3>
+        
         <div class="reading-status-box">
+            <div class="progress-legend">
+                <span class="goal"></span> 목표량
+                <span class="current"></span> 현재 진행률
+            </div>
             <ul v-if="readList.length > 0">
                 <div class="book-progress" v-for="(book, index) in readList" :key="index">
                 <p class="book-title" @click="openModal(book)">{{ book.title.split('-')[0] }}</p>
@@ -69,7 +74,7 @@
                                 <span v-else>
                                     p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
                                     <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
-                                    <input type="button" value="완료" @click="clearReading(book)"/>
+                                    <input type="button" value="완독" @click="clearReading(book)" class="complete-button"/>
                                 </span>
                         </span>    
                     </div>
@@ -509,6 +514,10 @@ readList.value.forEach((book, index) => {
     height: 100vh;
 }
 
+.book-section{
+    align-items: flex-start;
+}
+
 .left-section,
 .right-section {
 display: flex;
@@ -566,7 +575,7 @@ flex-direction: column;
 
 .right-section{
     margin-left: 30px;
-    width: 90%;
+    width: 80%;
     margin-right: 20px;
 }
 
@@ -583,8 +592,10 @@ border: 1px solid #ccc;
 display: flex;
 flex-direction: column; 
 gap: 20px; 
-min-width: 800px;
+min-width: 500px;
 min-width: 250px;
+
+width: 70%;
 }
 
 .user-profile {
@@ -619,13 +630,6 @@ min-width: 250px;
     margin-top: 50px;
 }
 
-.avatar {
-width: 150px;
-height: 150px;
-background-color: #ddd;
-border-radius: 50%;
-}
-
 .reading-status ul,
 .book-section ul {
 list-style: none;
@@ -644,12 +648,7 @@ margin: 5px 0;
     width: 2px;
 }
 
-.book-section2{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 200px;
-}
+
 
 .book-covers {
     display: flex; 
@@ -732,14 +731,14 @@ margin: 5px 0;
 
 .book-title {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .book-start-date {
-    margin: 0;
-    font-size: 14px;
+    margin-top: 10px;
+    font-size: 16px;
     color: #666;
 }
 
@@ -747,7 +746,7 @@ margin: 5px 0;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%; 
+    height: 15px; 
     background-color: rgb(2, 77, 42);
     border-radius: 6px;
     z-index: 1; 
@@ -757,27 +756,28 @@ margin: 5px 0;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
+    height: 15px;
     background-color: rgb(171, 235, 171);
     border-radius: 6px;
     z-index: 2; 
 }
 
 .progress-percentage {
-font-size: 12px;
+font-size: 16px;
+font-weight: bold;
 color: #666;
 }
 
 .full-progress{
     top: 0;
     left: 0;
-    height: 100%;
+    height: 15px;
     background-color: #D9D9D9;
     border-radius: 6px;
 }
 
 .page-info {
-font-size: 12px;
+font-size: 14px;
 color: #666;
 }
 
@@ -882,7 +882,7 @@ position: relative;
 
 .card-status {
 font-family: "Inter-Regular", sans-serif;
-font-size: 23px;
+font-size: 20px;
 font-weight: 400;
 color: #000000;
 margin-top: 10px;
@@ -923,9 +923,60 @@ position: relative;
     gap: 4px;
 }
 
+.reading-book-grid span {
+    white-space: nowrap; 
+    overflow: hidden;   
+    text-overflow: ellipsis; 
+    display: block;     
+    max-width: 150px;    
+}
+
 .reading-book-grid span:first-child {
     font-weight: bold;
     color: black;
     font-size: 15px;
 }
+
+.complete-button {
+    padding: 5px 9px;
+    font-size: 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* .goal{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: rgb(2, 77, 42);
+    border-radius: 6px;
+    z-index: 1;
+}
+.current{
+    height: 15px;
+    background-color: rgb(171, 235, 171);
+    border-radius: 6px; 
+}*/
+.progress-legend {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+} 
 </style>

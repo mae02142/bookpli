@@ -293,7 +293,7 @@ max-width: 800px;
 
 .progress-bar-fill {
     height: 100%;
-    background:rgb(171, 235, 171) !important;
+    background:rgb(171, 235, 171);
     width: 25%; 
 }
 
