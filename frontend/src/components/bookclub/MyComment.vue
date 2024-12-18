@@ -20,27 +20,40 @@
               />
               <p class="username">{{ item.post?.userNickname || 'User' }}</p>
             </div>
-          <div class="post-nav">
-            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
-              <button class="slide-prev" @click="prevSlide(index)"><</button>
-            </div>
-            <div class="post-images-wrapper">
-              <div
-                class="post-images"
-                :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
-              >
-                <div
-                  class="post-image"
-                  v-for="img in item.post.imageUrl"
-                  :key="img.imageId"
-                >
-                  <img :src="img.imageUrl" class="post-image-img" />
+                    <!-- 이미지 슬라이드 컨테이너 -->
+              <div class="post-nav">    
+                <div v-if="item.post.imageUrl?.length > 1" class="image-circle"> 
+                  <button class="slide-prev" @click="prevSlide(index)"><</button>
+                </div>  
+                <div class="post-images-wrapper">
+                  <div
+                    class="post-images"
+                    :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
+                  >
+                    <!-- 각 이미지 하나씩 슬라이드 -->
+                    <div
+                      class="post-image"
+                      v-for="(img, index) in item.post.imageUrl"
+                      :key="img.imageId"
+                      :class="{ active: index === item.curpos }"
+                    >
+                      <img :src="img.imageUrl" class="post-image-img" />
+                    </div>
+                  </div>
+                    <!-- 이미지 인디케이터 -->
+                    <div class="image-indicator-box" v-show="item.post.imageUrl.length>1">
+                      <div
+                        class="img-indicator"
+                        v-for="image, index in item.post.imageUrl"
+                        :key="index"
+                        :class="{activeImg: index === item.curpos}" 
+                      ></div>
+                    </div> 
                 </div>
-              </div>
-            </div>
-            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
-              <button class="slide-next" @click="nextSlide(index)">></button>
-            </div>
+                <div v-if="item.post.imageUrl.length > 1" class="image-circle">
+                  <button class="slide-next" @click="nextSlide(index)">></button>
+                </div>
+             </div>
           </div>
           <div class="post-items">
             <div class="postContent">
@@ -48,8 +61,6 @@
               <p class="post-date">{{ item.post?.postDate }}</p>
             </div>
           </div>
-        </div>
-
           
           <!-- 조회 및 수정 -->
           <div class ="cmt-article ">
@@ -555,6 +566,7 @@
     margin-bottom: 20px;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
+    padding-bottom: 10px;
 }
 .post-items{
     display: flex;
@@ -607,9 +619,10 @@
     text-align: end;
   }
 
-   /* post-image 부분 */
+   
+      /* post-image 부분 */
 
-   .post-images-wrapper {
+      .post-images-wrapper {
       position: relative;
       width: 100%;
       max-width: 300px;
@@ -624,8 +637,11 @@
     .post-nav {
       display: flex;
       flex-direction: row;
-      width: 90%;
+      justify-content: center;
+      align-items: center;
+      width: 80%;
       margin: auto;
+      position: relative;
     }
     .post-images{
       display: flex;
@@ -664,12 +680,49 @@
       font-size: 30px;
       color: #ccc
     }
-
     .slide-prev:hover {
       color : black;
     }
     .slide-next:hover {
       color: black;
     }
+
+/* 인디케이터 스타일 */
+.image-indicator-box{
+  display: flex;
+
+  margin-top: 10px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);  /* 중앙 정렬 */
+  z-index: 10;
+}
+
+.img-indicator {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin: 0 5px;
+  background-color: #c0bfbf;  /* 기본 색상 */
+  border-radius: 50%;
+  text-align: center;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.img-indicator.activeImg {
+  background-color: #faf5d1;  /* 활성화된 인디케이터 색상 */
+}
+
+.post-image.active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.post-image {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
 
    </style>

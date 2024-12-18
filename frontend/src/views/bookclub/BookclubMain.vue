@@ -561,6 +561,7 @@ body {
   border-top: none;
   border-radius: 4px;
   margin: 10px;
+  height: 100%;
 }
 
 .cover-two {
@@ -571,6 +572,7 @@ body {
   border-radius: 4px;
   margin-right: 1px;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+  height: 100%;
 }
 
 .img-btn:hover .cover-one {

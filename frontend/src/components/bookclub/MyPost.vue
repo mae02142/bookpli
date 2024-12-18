@@ -6,30 +6,39 @@
         <div class="post-container"> 
           <div class="post-article">
                 <!-- 이미지 슬라이드 컨테이너 -->
-            <div class="post-nav"> 
-              <div v-if="item.imageUrl.length >1" class="image-circle"> 
-                <button class="slide-prev" @click="prevSlide(item)"><</button>
-              </div>  
-              <div class="post-images-wrapper" >
-                <div
-                  class="post-images"
-                  :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
-                >
-                  <!-- 각 이미지 하나씩 슬라이드 -->
+                <div class="post-nav">    
+                <div v-if="item.imageUrl.length > 1" class="image-circle"> 
+                  <button class="slide-prev" @click="prevSlide(item)"><</button>
+                </div>  
+                <div class="post-images-wrapper">
                   <div
-                    class="post-image"
-                    v-for="img in item.imageUrl"
-                    :key="img.imageId"
+                    class="post-images"
+                    :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
                   >
-                    <img :src="img.imageUrl" class="post-image-img" />
+                    <!-- 각 이미지 하나씩 슬라이드 -->
+                    <div
+                      class="post-image"
+                      v-for="(img, index) in item.imageUrl"
+                      :key="img.imageId"
+                      :class="{ active: index === item.curpos }"
+                    >
+                      <img :src="img.imageUrl" class="post-image-img" />
+                    </div>
                   </div>
+                    <!-- 이미지 인디케이터 -->
+                    <div class="image-indicator-box" v-show="item.imageUrl.length>1">
+                      <div
+                        class="img-indicator"
+                        v-for="image, index in item.imageUrl"
+                        :key="index"
+                        :class="{activeImg: index === item.curpos}" 
+                      ></div>
+                    </div> 
                 </div>
-                     <!-- 슬라이드 네비게이션 -->
-              </div>
-              <div v-if="item.imageUrl.length >1" class="image-circle">
-                    <button class="slide-next" @click="nextSlide(item)">></button>
-              </div>
-            </div>
+                      <div v-if="item.imageUrl.length > 1" class="image-circle">
+                        <button class="slide-next" @click="nextSlide(item)">></button>
+                      </div>
+                    </div>
           </div>
           <div class="text-box-post">
             <div class="author-info">
@@ -418,6 +427,7 @@
       cursor: pointer;
     }
 
+  
       /* post-image 부분 */
 
       .post-images-wrapper {
@@ -439,6 +449,7 @@
       align-items: center;
       width: 80%;
       margin: auto;
+      position: relative;
     }
     .post-images{
       display: flex;
@@ -477,7 +488,6 @@
       font-size: 30px;
       color: #ccc
     }
-
     .slide-prev:hover {
       color : black;
     }
@@ -485,6 +495,42 @@
       color: black;
     }
 
+/* 인디케이터 스타일 */
+.image-indicator-box{
+  display: flex;
 
+  margin-top: 10px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);  /* 중앙 정렬 */
+  z-index: 10;
+}
+
+.img-indicator {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin: 0 5px;
+  background-color: #c0bfbf;  /* 기본 색상 */
+  border-radius: 50%;
+  text-align: center;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.img-indicator.activeImg {
+  background-color: #faf5d1;  /* 활성화된 인디케이터 색상 */
+}
+
+.post-image.active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.post-image {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
     
   </style>
