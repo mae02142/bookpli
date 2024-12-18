@@ -40,11 +40,12 @@
 
     <!-- Controls -->
     <div v-if="playerStore.currentTrack" class="controls">
-      <button @click="playerStore.previousTrack">⏮</button>
-      <button class="play-btn" @click="playerStore.togglePlay">
-        {{ playerStore.isPlaying ? "⏸" : "▶" }}
-      </button>
-      <button @click="playerStore.nextTrack">⏭</button>
+      <img src="@/assets/modal/prev_music.png" @click="playerStore.previousTrack">
+      <img 
+        :src="playerStore.isPlaying ? '/src/assets/modal/pause_music.png' : '/src/assets/modal/play_music.png'" 
+        @click="playerStore.togglePlay"
+      >
+      <img src="@/assets/modal/next_music.png" @click="playerStore.nextTrack">
     </div>
 
     <!-- Volume Control -->
@@ -104,9 +105,10 @@ onMounted(() => {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 1px 1px 2px rgba(0, 0, 0, 0.1);
   width: 250px;
   z-index: 10;
+  
 }
 
 .fold-button {
@@ -144,7 +146,13 @@ onMounted(() => {
 .controls {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 35px;
+  margin: 14px 0px;
+  min-height: 14px;
+}
+
+.controls img {
+  cursor: pointer;
 }
 
 button {
@@ -159,7 +167,6 @@ button:hover {
 }
 
 .volume-control {
-  margin-top: 10px;
   display: flex;
   align-items: center;
 }

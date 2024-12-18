@@ -693,10 +693,11 @@ text-align: center;
   background: none;
   border: none;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .option-button:hover {
-  background-color: #f5f5f5;
+  font-weight: bold;
 }
 
 .option-button.delete {

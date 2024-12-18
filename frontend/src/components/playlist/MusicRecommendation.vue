@@ -58,14 +58,21 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useModalStore } from '@/stores/modalState';
+import { formatDuration } from '@/utils/spotifyUtils';
 
 const songs = ref([]); 
 const hoveredIndex = ref(null);
+const modalStore = useModalStore
 
 // 노래 세부 정보 열기
 const openSongDetail = (song) => {
   selectedSong.value = song;
   modalStore.openModal("SongDetailModal");
+};
+
+// 유틸 함수: 곡 길이 포맷
+const handleFormat = (ms) => {
+  return formatDuration(ms);
 };
 </script>
 
