@@ -46,6 +46,8 @@
   import emptyStarImage from "@/assets/icons/empty_star.png"
   import { onMounted, ref } from "vue";
   import apiClient from "@/api/axiosInstance";
+  import { useUtilModalStore } from "@/stores/utilModalStore";
+
 
   export default {
     props: {
@@ -64,6 +66,7 @@
     },
     emits: ['update:isVisible'],
     setup(props, { emit }) {
+    
       onMounted(() => {
         console.log(JSON.stringify(props.bookId.isbn13));
         console.log(props.userId);
@@ -101,9 +104,14 @@
       };
   
       // 폼 제출
+      const utilModalStore = useUtilModalStore();
       const submitForm = async() => {
         if ( !reviewContent.value || rating.value === 0) {
-          alert("모든 항목을 작성해주세요!");
+          utilModalStore.showModal(
+        '경고',
+        '모든 항목을 작성해주세요.',
+        'alert'
+       )
           return undefined;
         }else{
           try{
@@ -114,6 +122,12 @@
         rating: rating.value
       };
         await apiClient.post("/api/review/post",review);
+       
+       utilModalStore.showModal(
+        '리뷰 등록',
+        '리뷰가 등록되었습니다.',
+        'alert'
+       )
       } catch(error){
         console.log(error,"등록 중 에러 발생");
       };
@@ -159,6 +173,7 @@
     border-radius: 10px;
     width: 550px;
     max-width: 90%;
+    height: 300px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
@@ -178,6 +193,7 @@
     font-weight: 400;
     color: #000;
     display: block;
+    text-align: left;
     margin-bottom: 20px;
   }
   textarea {
@@ -186,6 +202,7 @@
     height: auto;
     width: 100%;
     outline: none;
+    padding: 10px;
   }
   
   .star-rating {

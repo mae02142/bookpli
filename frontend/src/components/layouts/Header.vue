@@ -55,6 +55,7 @@ const query = ref("");
 const searchType = ref("book");
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const router = useRouter();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const userStore = useUserStore();
@@ -66,6 +67,7 @@ function goHome() {
 
 const handleLogout = () => {
   authStore.clearAuthData();
+  userStore.clearAccessToken();
   router.push({ path: "/main" });
 };
 

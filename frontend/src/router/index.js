@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +14,7 @@ const router = createRouter({
     },
     {
       path: "/mypage",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "mypli",
@@ -26,6 +28,7 @@ const router = createRouter({
     },
     {
       path: "/review",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "mylist",
@@ -43,6 +46,7 @@ const router = createRouter({
     },
     {
       path: "/bookclub",
+      meta: { requiresAuth: true },
       children: [
         {
           path: "",
@@ -68,6 +72,7 @@ const router = createRouter({
         },
         {
           path: "goal/:isbn13",
+          meta: { requiresAuth: true },
           component: () => import("@/views/miniroom/ReadingGoal.vue"),
         },
       ],
@@ -102,7 +107,7 @@ const router = createRouter({
       props: (route) => ({ query: route.query.q }),
     },
 
-    { path: "/artist/:id", 
+    { path: "/artist/:id",
       component: () => import("@/views/main/ArtistDetails.vue")
     },
 
