@@ -85,7 +85,7 @@
         </div>
 
         <h3 class="title-header">내가 읽고 있는 책</h3>  
-        <div>
+        <div class="read-book-list">
             <p class="more-wrapper book-more" @click="loadReadList">
             <img src="../../assets/icons/add.png" class="sm-images"/>더보기
             </p>
@@ -112,17 +112,19 @@
         
 
         <h3 class="title-header">내가 담아놓은 책</h3>
-        <p class="more-wrapper book-more" @click="gotoLibrary">
-            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
-        </p>
-        <div class="book-section">
-            <div v-if="addList.length > 0" class="book-covers">
-                <div class="book-item" v-for="wbook in pageinationWish.slice(0,4)" :key="wbook.isbn13">
-                    <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
+        <div class="wish-book-list">
+            <p class="more-wrapper book-more" @click="gotoLibrary">
+                <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+            </p>
+            <div class="book-section">
+                <div v-if="addList.length > 0" class="book-covers">
+                    <div class="book-item" v-for="wbook in pageinationWish.slice(0,4)" :key="wbook.isbn13">
+                        <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
+                    </div>
                 </div>
+                <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
             </div>
-            <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
-        </div>
+        </div>    
     </div>
 
     <ReadGoalModal 
@@ -411,7 +413,6 @@ confirmModalStore.showModal(
         try {
         const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
         if (status === 200) {
-            alert("완독 처리되었습니다.");
             await loadBooks("reading", readList);
             await loadBooks("completed", completedBooks);
             calculateCompletedStats(); 
@@ -948,35 +949,11 @@ position: relative;
     transition: background-color 0.3s ease;
 }
 
-/* .goal{
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 15px;
-    background-color: rgb(2, 77, 42);
-    border-radius: 6px;
-    z-index: 1;
-}
-.current{
-    height: 15px;
-    background-color: rgb(171, 235, 171);
-    border-radius: 6px; 
-}*/
-.progress-legend {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 10px;
-    font-size: 14px;
-    color: #666;
+.read-book-list{
+    width: 80%;
 }
 
-.legend-color {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-right: 5px;
-} 
+.wish-book-list{
+    width: 80%;
+}
 </style>
