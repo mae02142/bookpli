@@ -44,7 +44,7 @@
   <script>
   import fullStarImage from "@/assets/icons/full_star.png";
   import emptyStarImage from "@/assets/icons/empty_star.png"
-  import { onMounted, ref } from "vue";
+  import { ref } from "vue";
   import apiClient from "@/api/axiosInstance";
   import { useUtilModalStore } from "@/stores/utilModalStore";
 
@@ -67,12 +67,6 @@
     emits: ['update:isVisible'],
     setup(props, { emit }) {
     
-      onMounted(() => {
-        console.log(JSON.stringify(props.bookId.isbn13));
-        console.log(props.userId);
-
-      })
-
       const rating = ref(0);
       const reviewContent = ref("");
       const charCount = ref(0);
@@ -85,7 +79,7 @@
   
       // 별점 업데이트
       const updateRating = (index) => {
-        console.log("별점 변화 :" + index);
+
         rating.value = index;
       };
   
@@ -129,7 +123,7 @@
         'alert'
        )
       } catch(error){
-        console.log(error,"등록 중 에러 발생");
+        console.error(error,"등록 중 에러 발생");
       };
     }
       cancelForm();

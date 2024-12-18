@@ -23,7 +23,7 @@
           <img v-if="isLiked" class="like-icon" src="@/assets/icons/like.png"
             alt="Like Icon" @click="changeToDislike" />
           <img v-else class="like-icon" src="@/assets/icons/dislike.png"
-            alt="Like Icon" @click="changeToLike(book.isbn13)" />
+            alt="Like Icon" @click="changeToLike(book)" />
         </div>
         <div class="btn-grid">
           <p class="btn change-status" @click="changeStatus">
@@ -67,9 +67,9 @@ const isLiked = computed(() => bookLikeId.value !== null);
   
 
   // 좋아요 상태 관리
-  const changeToLike = async (isbn13) => {
-    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, isbn13);
-    emit('book-like-status', isbn13);
+  const changeToLike = async (book) => {
+    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, book);
+    emit('book-like-status', book.isbn13);
     
   };
 

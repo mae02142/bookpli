@@ -4,24 +4,32 @@
     <div class="left-section">
     <!-- 사용자 프로필 -->
         <div class="user-profile">
-            <div class="user-info">
+            <div class="user-profile-box">
+                <div class="user-info">
                 <img :src="userData.profilePath" class="avatar"></img>
                 <div class="book-plan">
                     <p class="userNm">{{userData.display_name}}님</p><br>
-                    <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
-                    <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
+                    <div class="reading-count">
+                        <img src="@/assets/icons/read_book.png">
+                        <p style="margin-bottom: 5px;">{{ currentMonth }} 목표 권 수: <span>{{currentGoal}}권</span></p>
+                    </div>
+                    <div class="complete-count">
+                        <img src="@/assets/icons/read_complete.png">
+                        <p>{{ currentMonth }} 읽은 권 수: <span>{{currentRead}}권</span></p>
+                    </div>
                 </div>
-            </div>
-            <div class="status-card">
-                <div class="most-read-month">
-                    <div class="card-background"></div>
-                    <div class="card-title">가장 많이 읽은달</div>
-                    <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
                 </div>
-                <div class="yearly-read">
-                    <div class="card-background"></div>
-                    <div class="card-title">1년 동안</div>
-                    <div class="card-status">{{yearCount}}권</div>
+                <div class="status-card">
+                    <div class="most-read-month">
+                        <div class="card-background"></div>
+                        <div class="card-title">가장 많이 읽은달</div>
+                        <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
+                    </div>
+                    <div class="yearly-read">
+                        <div class="card-background"></div>
+                        <div class="card-title">1년 동안</div>
+                        <div class="card-status">{{yearCount}}권</div>
+                    </div>
                 </div>
             </div>
         </div> 
@@ -43,7 +51,12 @@
 
     <div class="right-section">
         <h3 class="title-header">이번달 독서통계</h3>
+
         <div class="reading-status-box">
+            <div class="progress-legend">
+                <span class="goal"></span> 목표량
+                <span class="current"></span> 현재 진행률
+            </div>
             <ul v-if="readList.length > 0">
                 <div class="book-progress" v-for="(book, index) in readList" :key="index">
                 <p class="book-title" @click="openModal(book)">{{ book.title.split('-')[0] }}</p>
@@ -69,7 +82,7 @@
                                 <span v-else>
                                     p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
                                     <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
-                                    <input type="button" value="완료" @click="clearReading(book)"/>
+                                    <input type="button" value="완독" @click="clearReading(book)" class="complete-button"/>
                                 </span>
                         </span>    
                     </div>
@@ -124,12 +137,11 @@
     :visible="showModal"
     :rbook="selectBook"
     @close="closeModal"
+    @dropReading="updateReadList"
     />
 </div>
 
 </template>
-console.log("selectBook 값 확인:", selectBook.value);
-
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -139,8 +151,7 @@ import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
-import UtilModal from "@/components/modal/UtilModal.vue";
-import ConfirmModal from "@/components/modal/ConfirmModal.vue";
+import { useUtilModalStore } from "@/stores/utilModalStore";
 import { useConfirmModalStore } from "@/stores/utilModalStore";
 
 const router = useRouter();
@@ -164,6 +175,7 @@ const liked= ref("");
 const currentReading=ref(1);
 const currentWished=ref(1);
 const itemsPerPage= ref(4);
+const currentMonth = ref('');
 
 const modalStore= useConfirmModalStore();
 
@@ -181,23 +193,22 @@ const pageinationWish = computed (() => {
     return addList.value.slice(startIndex, endIndex);
 });
 
-const loadReadList = () =>{
-    if(currentReading.value * itemsPerPage.value < readList.value.length){
-        currentReading.value+=1;
-    }else{
-        alert("마지막 페이지 입니다.");
-        currentReading.value=1;
+
+const loadReadList = () => {
+    const utilModalStore = useUtilModalStore();
+
+    if (currentReading.value * itemsPerPage.value < readList.value.length) {
+    currentReading.value += 1;
+    } else {
+    utilModalStore.showModal(
+        "알림",
+        "마지막 페이지입니다.",
+        "warning"
+    );
+    currentReading.value = 1;
     }
 };
 
-const loadWishList = () =>{
-    if(currentWished.value * itemsPerPage.value < addList.value.length){
-        currentWished.value+=1;
-    }else{
-        alert("마지막 페이지 입니다.");
-        currentWished.value=1;
-    }
-};
 
 const gotoLibrary= () =>{
     router.push({
@@ -320,29 +331,50 @@ const calculateMonthStats = () => {
   }).length;
 };
 
+const changeToFail = async (book, index) => {
+  const utilModalStore = useUtilModalStore();
 
-const changeToFail = async (book, index)=>{
-    const today= new Date();
-    const endDate= new Date(book.endDate);
+    const today = new Date();
+    const endDate = new Date(book.endDate);
 
+    if (today > endDate) {
+    try {
+        const response = await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
 
-    if(today > endDate){
-        try{
-            const response= await apiClient.put(`/api/miniroom/fail/${book.isbn13}`);
-            alert(`"${book.title}"도서 완독이 실패처리 되었습니다.`);
+        // 통일된 Alert 모달 호출
+        utilModalStore.showModal(
+        "완독 실패 처리",
+        `"${book.title}" 도서 완독이 실패 처리 되었습니다.`,
+        "warning"
+        );
 
-            updateFailedBooks(index);
-        }catch(error){
-            console.log("실패처리실패",error);
-        }
+        updateFailedBooks(index);
+    } catch (error) {
+        console.log("실패 처리 실패", error);
+        utilModalStore.showModal(
+        "오류 발생",
+        "도서 실패 처리 중 오류가 발생했습니다.",
+        "error"
+        );
+    }
     }
 };
+
 
 const updateFailedBooks = (index) => {
     if(index >= 0 && index < readList.value.length){
         readList.value.splice(index, 1); 
     }
 };
+
+// ReadGoalModal에서 삭제된 도서를 readList에서 제거
+const updateReadList = (isbn13) => {
+    const index = readList.value.findIndex(book => book.isbn13 === isbn13);
+    if (index !== -1) {
+        readList.value.splice(index, 1);
+    }
+};
+
 
 // 독서 기록 저장
 const saveProgress = (index) => {
@@ -376,24 +408,31 @@ const stopEdit = (index) => {
 };
 
 
-// 도서 완독 처리
-const clearReading = async (book) => {
-  try {
-    const confirmClear = confirm("도서를 완독 처리하시겠습니까?");
-    if (!confirmClear) return;
-
-    const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
-    if (status === 200) {
-      alert("완독 처리되었습니다.");
-      await loadBooks("reading", readList);
-      await loadBooks("completed", completedBooks);
-      calculateCompletedStats(); // 통계 재계산
-      calculateMonthStats(); // 이번달 통계 재계산
+const clearReading = (book) => {
+const confirmModalStore = useConfirmModalStore();
+confirmModalStore.showModal(
+    "도서 완독 처리",
+    "도서를 완독 처리하시겠습니까?",
+    "완독 처리 후 되돌릴 수 없습니다.",
+    "완독 처리",
+    "warning",
+    async () => {
+        try {
+        const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
+        if (status === 200) {
+            alert("완독 처리되었습니다.");
+            await loadBooks("reading", readList);
+            await loadBooks("completed", completedBooks);
+            calculateCompletedStats();
+            calculateMonthStats();
+        }
+        } catch (error) {
+        console.error("완독 처리 실패:", error);
+        }
     }
-  } catch (error) {
-    console.error("완독 처리 실패:", error);
-  }
+    );
 };
+
 
 const likeordislike = async () => {
     try{
@@ -429,7 +468,6 @@ const gotoPlaylist= () => {
 
 // 로그인 직후 회원 정보 저장
 const getUserInfo = async() => {
-    console.log("getUserInfo>>>>>>>>>>>>>");
   try {
     const response = await apiClient.get("/api/user-info");
     userData.value= response.data;
@@ -453,6 +491,8 @@ onMounted(async () => {
   await loadBooks("reading", readList);
   await loadBooks("completed", completedBooks);
   await loadBooks("wished", addList);
+  const today = new Date();
+  currentMonth.value = `${today.getMonth() + 1}월`;
 
 // 각 책의 편집 상태 초기화
 isEditing.value = readList.value.map(() => false);
@@ -484,6 +524,10 @@ readList.value.forEach((book, index) => {
     height: 100vh;
 }
 
+.book-section{
+    align-items: flex-start;
+}
+
 .left-section,
 .right-section {
 display: flex;
@@ -493,6 +537,7 @@ flex-direction: column;
 
 .left-section {
     align-items: center;
+    margin-left: 10px;
 }
 
 .user-profile {
@@ -508,6 +553,7 @@ flex-direction: column;
     display: flex;
     align-items: center;
     gap: 15px; 
+    margin-bottom: 20px;
 }
 
 .avatar {
@@ -528,20 +574,23 @@ flex-direction: column;
 
 .most-read-month,
 .yearly-read {
-    position: relative;
-    width: 120px;
-    height: 80px;
+    display: flex;
+    width: 142px;
+    height: 85px;
     text-align: center;
-    background: #dffdcc;
+    background: #ffffff;
     border-radius: 20px;
-    padding: 15px;
     box-sizing: border-box;
+    flex-flow: column;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 1px 1px 2px 2px rgb(0 185 7 / 41%);
 }
 
 
 .right-section{
     margin-left: 30px;
-    width: 90%;
+    width: 80%;
     margin-right: 20px;
 }
 
@@ -558,8 +607,10 @@ border: 1px solid #ccc;
 display: flex;
 flex-direction: column; 
 gap: 20px; 
-min-width: 800px;
+min-width: 500px;
 min-width: 250px;
+
+width: 70%;
 }
 
 .user-profile {
@@ -594,13 +645,6 @@ min-width: 250px;
     margin-top: 50px;
 }
 
-.avatar {
-width: 150px;
-height: 150px;
-background-color: #ddd;
-border-radius: 50%;
-}
-
 .reading-status ul,
 .book-section ul {
 list-style: none;
@@ -619,24 +663,14 @@ margin: 5px 0;
     width: 2px;
 }
 
-.book-section2{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 200px;
-}
+
 
 .book-covers {
     display: flex; 
     gap: 20px; 
 }
 
-.book-covers2 {
-    display: flex; 
-    gap: 20px; 
-    justify-content: space-between;
 
-}
 
 .book-item {
     text-align: center;
@@ -652,12 +686,7 @@ margin: 5px 0;
     margin-left: 19px;
 }
 
-.book-cover2 {
-    width: 150px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-}
+
 
 .book-info {
     margin-top: 10px;
@@ -717,7 +746,7 @@ margin: 5px 0;
 
 .book-title {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     margin-bottom: 5px;
 }
@@ -732,7 +761,7 @@ margin: 5px 0;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%; 
+    height: 15px;
     background-color: rgb(2, 77, 42);
     border-radius: 6px;
     z-index: 1; 
@@ -742,27 +771,28 @@ margin: 5px 0;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
+    height: 15px;
     background-color: rgb(171, 235, 171);
     border-radius: 6px;
     z-index: 2; 
 }
 
 .progress-percentage {
-font-size: 12px;
+font-size: 16px;
+font-weight: bold;
 color: #666;
 }
 
 .full-progress{
     top: 0;
     left: 0;
-    height: 100%;
+    height: 15px;
     background-color: #D9D9D9;
     border-radius: 6px;
 }
 
 .page-info {
-font-size: 12px;
+font-size: 14px;
 color: #666;
 }
 
@@ -837,41 +867,19 @@ object-fit: cover;
 margin-bottom: 20px;
 }
 
-.most-read-month, .yearly-read {
-position: relative;
-width: 178px;
-height: 123px;
-margin-top: 20px;
-text-align: center;
-}
 
-.card-background {
-background: #dffdcc;
-border-radius: 20px;
-width: 100%;
-height: 100%;
-position: absolute;
-top: 0;
-left: 0;
-}
 
 .card-title {
-font-family: "Inter-Regular", sans-serif;
-font-size: 20px;
+font-size: 16px;
 font-weight: 400;
 color: #000000;
-margin-top: 15px;
-margin-bottom: 15px;
-position: relative;
 }
 
 .card-status {
-font-family: "Inter-Regular", sans-serif;
-font-size: 23px;
+font-size: 18px;
 font-weight: 400;
 color: #000000;
-margin-top: 10px;
-position: relative;
+font-weight: bold;
 }
 
 .sidebar {
@@ -895,7 +903,9 @@ position: relative;
 }
 
 .userNm{
-    font-size: x-large;
+    font-size: 18px;
+    margin-left: 2px;
+    font-weight: bold;
 }
 
 .book-icon {
@@ -908,9 +918,81 @@ position: relative;
     gap: 4px;
 }
 
+.reading-book-grid span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 150px;
+}
+
 .reading-book-grid span:first-child {
     font-weight: bold;
     color: black;
     font-size: 15px;
+}
+
+.user-profile-box {
+    display: grid;
+    justify-items: center;
+    padding: 20px;
+    box-shadow: 1px 1px 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 17px;
+}
+
+.reading-count, .complete-count {
+    display: flex;
+    width: 200px;
+    align-items: center;
+    gap: 5px;
+    padding: 6px;
+}
+
+.reading-count img, .complete-count img{
+    width: 25px;
+    height: 25px;
+}
+
+.complete-button {
+    padding: 5px 9px;
+    font-size: 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* .goal{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: rgb(2, 77, 42);
+    border-radius: 6px;
+    z-index: 1;
+}
+.current{
+    height: 15px;
+    background-color: rgb(171, 235, 171);
+    border-radius: 6px;
+}*/
+.progress-legend {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
 }
 </style>

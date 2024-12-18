@@ -40,7 +40,7 @@
                 <span v-else>내 서재에 담기</span>
             </div>
             <div class="book-status-like">
-                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="likeAndToggle()"/>
+                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="likeAndToggle(book)"/>
             </div>
         </div>
         <ReadGoalModal 
@@ -65,6 +65,9 @@
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
+<div class="music-player">
+    <MusicPlayer/>
+</div>
 </div>
 </template>
 
@@ -77,6 +80,10 @@ import apiClient from "@/api/axiosInstance";
 import { useAuthStore } from "@/stores/auth";
 import { useUtilModalStore } from "@/stores/utilModalStore";
 import Recommend from "@/components/recommBooks/Recommend.vue";
+import { addBookLike, removeBookLike } from "@/utils/likeUtils";
+import dislikeImage from '@/assets/icons/dislike_lightgray.png';
+import likeImage from '@/assets/icons/like.png';
+import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 
 const route= useRoute();
 const authStore = useAuthStore();
@@ -85,69 +92,52 @@ const isbn13 = route.params.isbn13;
 const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
-
 const activeTab= ref("");
-
 const recomBook= ref(null);
+const bookLikedId = ref(null); // bookLikeId 저장
+const isLiked = ref(false); // 좋아요 여부 상태
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
 }
 
-import dislikeImage from '@/assets/icons/dislike_lightgray.png';
-import likeImage from '@/assets/icons/like.png';
-
-
-// 좋아요 상태 관리 변수
-const isLiked = ref(false);
-
-// 좋아요 상태 토글 함수
-const toggleLike = () => {
-    isLiked.value = !isLiked.value;
-}
-
-//찜하기
-const likeBook = async ()  =>{
-    try{
-        const response= await apiClient.post(`/api/book/like/${authStore.user.userId}/${isbn13}`);
-    }catch(error){
-        console.log(error);
-    }
-}
-
-//찜하기 해제
-const dislike = async ()  =>{
-    try{
-        const response= await apiClient.delete(`/api/book/dislike/${authStore.user.userId}/${isbn13}`);
-    }catch(error){
-        console.log(error);
-    }
-}
-
-const liked= ref("");
-
-//찜한 도서인지
+// 찜한 도서인지 확인하는 함수
 const likeordislike = async () => {
-    try{
-        const response= await apiClient.get(`/api/book/${authStore.user.userId}/${isbn13}`);
-        isLiked.value=response.data;
-        console.log(liked.data);
-    }catch(error){
-        console.log(error);
-    }
-}
+  try {
+    const response = await apiClient.get(
+      `/api/library/${authStore.user.userId}/book/${isbn13}`
+    );
+    const likedId = response.data.data;
+    console.log(response.data.data);
 
+    // likedId 값에 따라 상태 업데이트
+    bookLikedId.value = likedId;
+    isLiked.value = !!likedId; // likedId가 존재하면 true, 아니면 false
+  } catch (error) {
+    console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
+  }
+};
 
-const likeAndToggle= async () => {
-    if(isLiked.value){
-        await dislike();
-    }else{
-        await likeBook();
+// 좋아요 추가 및 삭제를 토글하는 함수
+const likeAndToggle = async (book) => {
+  try {
+    if (isLiked.value) {
+      // 이미 좋아요 상태면 삭제
+      const isRemoved = await removeBookLike(apiClient, bookLikedId.value);
+      if (isRemoved) {
+        bookLikedId.value = null; // 좋아요 ID 초기화
+        isLiked.value = false; // 빈 하트 상태로 변경
+      }
+    } else {
+      // 좋아요 추가
+      const likedId = await addBookLike(apiClient, authStore.user.userId, book);
+      bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
+      isLiked.value = true; // 꽉 찬 하트 상태로 변경
     }
-    
-    //상태 반대 토글
-    isLiked.value= !isLiked.value;
-}
+  } catch (error) {
+    console.error("좋아요 토글 중 오류 발생:", error.message || error);
+  }
+};
 
 const setActiveTab= (tab) => {
     activeTab.value= tab;
@@ -228,6 +218,7 @@ const toggleWishList = async () => {
 };
 
 onMounted(async() => {
+    MusicPlayer;
     await loadBookDetail();
 
     if(route.query.data){
@@ -252,6 +243,17 @@ onMounted(async() => {
 </script>
 
 <style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #ffffff;
+    font-family: "Inter", sans-serif;
+}
+
 .book-details {
     display: flex;
     flex-direction: row;
@@ -289,12 +291,13 @@ onMounted(async() => {
 }
 
 .book-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     color: #000000;
 }
 
 .book-subtitle {
+    font-family: "Inter-Bold", sans-serif;
     font-size: 20px;
     font-weight: 700;
     color: #000000;
@@ -363,6 +366,7 @@ onMounted(async() => {
 
 .review-button {
     display: inline-block;
+    font-family: "Inter-Regular", sans-serif;
     font-size: 20px;
     font-weight: 400;
     color: #3e322a;
@@ -487,9 +491,5 @@ onMounted(async() => {
 
 .book-status-wish:hover {
     font-weight: bold;
-}
-
-.title-and-author span {
-    font-size: 14px;
 }
 </style>

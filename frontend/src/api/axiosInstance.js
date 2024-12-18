@@ -8,17 +8,18 @@ const apiClient = axios.create({
 });
 
 // Axios 응답 인터셉터
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      if (error.response.status === 401 || error.response.status === 403) {
-        console.error("접근 거부: 로그인 페이지로 이동합니다.");
-        router.push({ path: "/login" });
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+// apiClient.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response) {
+//       if (error.response.status === 401 || error.response.status === 403) {
+//         console.error("접근 거부: 로그인 페이지로 이동합니다.");
+//         router.push({ path: "/login" });
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
 
 export default apiClient;

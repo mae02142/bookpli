@@ -56,9 +56,10 @@
 </template>
 <script>
 import apiClient from '@/api/axiosInstance';
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import {ref as firebaseRef, uploadBytes, getDownloadURL} from "firebase/storage";
 import { firebaseStorage } from "@/firebase/firebaseConfig";
+import { useUtilModalStore } from '@/stores/utilModalStore';
 
     export default {
         props: {
@@ -78,12 +79,6 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
         emits: ['update:modelValue','close','reload'],
         setup(props,{emit}) {
 
-            onMounted(()=> {
-                console.log('bookclub : '+props.bookclubId);
-                console.log('userId : '+props.userId);
-
-            })
-           
          
             const fileInput = ref(null); //input file 참조
             const imageSrc = ref([]);   //미리보기 이미지 데이터 
@@ -94,13 +89,21 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
                 const files = event.target.files;
 
                 if(files.length + imageSrc.value.length >4){
-                    alert("이미지는 최대 4장까지 업로드 가능합니다.");
+                    utilModalStore.showModal(
+                        '이미지 등록',
+                        '이미지는 최대 4장까지 업로드 가능합니다.',
+                        'alert'
+                    );
                     return ;
                 }
                 for(let i=0; i<files.length ; i++){
                     const file = files[i]
                     if(!file.type.match("image/.*")){
-                        alert("이미지 파일만 업로드 가능합니다.");
+                        utilModalStore.showModal(
+                        '이미지 등록',
+                        '이미지 파일만 업로드 가능합니다.',
+                        'alert'
+                    );
                         continue;
                     }
                     const reader = new FileReader(); //파일 읽기
@@ -124,7 +127,7 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
             };
 
                  /* 게시글 등록 */
-
+            const utilModalStore = useUtilModalStore();
             const form = ref({
                 userId : props.userId,
                 bookClubId : props.bookclubId,
@@ -145,7 +148,6 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
                 console.error(`Error uploading image ${file.name}:`, error);
                 }
             }
-            console.log("Uploaded URLs:", urls); // 업로드된 URL 확인
             return urls;
             };
 
@@ -153,19 +155,27 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
             try{
                     // 이미지 업로드
                 const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
-                console.log('업로드 이미지: '+ uploadedUrls);
+                    
+                // 이미지 URL들을 PostImageDTO 객체 배열로 변환
+                const imageDtos = uploadedUrls.map(url => ({
+                    imageUrl: url,
+                    postId: null,  // 게시글이 생성된 후 postId 할당
+                }));
 
-                const data= {
-                    userId : props.userId,
-                    bookClubId : props.bookclubId,
+                // 서버로 보낼 데이터
+                const data = {
+                    userId: props.userId,
+                    bookClubId: props.bookclubId,
                     postContent: form.value.postContent,
-                    imageUrl : uploadedUrls,
+                    imageUrl: imageDtos,  // 이미지 URL 배열을 PostImageDTO 배열로
                 };
-                console.log('%%%%%%%%%%%%%%%%%%');
-                 console.log(JSON.stringify(data.value));
                 const response = await apiClient.post("/api/post/insert", data);
                 if(response.data.data == true){
-                    alert("게시글이 등록되었습니다");
+                    utilModalStore.showModal(
+                        '게시글 등록',
+                        '게시글이 등록되었습니다.',
+                        'alert'
+                    );
                     // 초기화
                     form.value.postContent = "";
                     imageSrc.value = [];
@@ -177,13 +187,16 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
             }
             catch(error){
                 console.error(error, '업로드 실패')
-                alert("게시글 등록에 실패하였습니다");
+                utilModalStore.showModal(
+                    '게시글 등록',
+                    '게시글 등록에 실패했습니다.',
+                    'alert'
+                );
             }
         };
 
                     //모달 닫기
             const closeModal = () =>{ 
-                console.log("모달창을 닫습니다.");
                 imageSrc.value = "";
                 emit("update:modelValue", false);
                 emit("reload");
@@ -192,7 +205,6 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
                 submitPost,
                 uploadImagesToFirebase,
                 selectedFiles,
-
                 closeModal,
                 form,
                 triggerFileInput,
@@ -298,50 +310,50 @@ import { firebaseStorage } from "@/firebase/firebaseConfig";
     }
 
     /* 이미지 파일 */
-.open-file {
-  background-color: rgb(255, 255, 255);
-  width: 140px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  border: 1px solid rgb(217, 217, 217);
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.3s;
-  border-radius: 10px;
-}
-.file-wrapper {
-  width: 15px;
-  height: auto;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  position: relative;
-}
-.file-wrapper svg {
-  width: 100%;
-}
-.file-front {
-    position: absolute;
-    width: 85%;
-    height: 60%;
-    border: 2px solid rgb(0, 0, 0);
-    border-bottom: 1px solid black;
-    transform: skewX(-30deg);
+    .open-file {
+    background-color: rgb(255, 255, 255);
+    width: 140px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    border: 1px solid rgb(217, 217, 217);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 10px;
+    }
+    .file-wrapper {
+    width: 15px;
+    height: auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: relative;
+    }
+    .file-wrapper svg {
+    width: 100%;
+    }
+    .file-front {
+        position: absolute;
+        width: 85%;
+        height: 60%;
+        border: 2px solid rgb(0, 0, 0);
+        border-bottom: 1px solid black;
+        transform: skewX(-30deg);
+        transform-origin: bottom right;
+        background-color: white;
+        transition: all 0.5s;
+        bottom: 0;
+    }
+    .open-file:hover .file-front {
+    height: 50%;
     transform-origin: bottom right;
-    background-color: white;
-    transition: all 0.5s;
-    bottom: 0;
-}
-.open-file:hover .file-front {
-  height: 50%;
-  transform-origin: bottom right;
-  transform: skewX(-45deg);
-}
-.open-file:hover {
-  box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.048);
-}
+    transform: skewX(-45deg);
+    }
+    .open-file:hover {
+    box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.048);
+    }
 
 </style>

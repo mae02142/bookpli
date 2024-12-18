@@ -20,27 +20,40 @@
               />
               <p class="username">{{ item.post?.userNickname || 'User' }}</p>
             </div>
-          <div class="post-nav">
-            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
-              <button class="slide-prev" @click="prevSlide(index)"><</button>
-            </div>
-            <div class="post-images-wrapper">
-              <div
-                class="post-images"
-                :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
-              >
-                <div
-                  class="post-image"
-                  v-for="img in item.post.imageUrl"
-                  :key="img.imageId"
-                >
-                  <img :src="img.imageUrl" class="post-image-img" />
+                    <!-- 이미지 슬라이드 컨테이너 -->
+              <div class="post-nav">    
+                <div v-if="item.post.imageUrl?.length > 1" class="image-circle"> 
+                  <button class="slide-prev" @click="prevSlide(index)"><</button>
+                </div>  
+                <div class="post-images-wrapper">
+                  <div
+                    class="post-images"
+                    :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
+                  >
+                    <!-- 각 이미지 하나씩 슬라이드 -->
+                    <div
+                      class="post-image"
+                      v-for="(img, index) in item.post.imageUrl"
+                      :key="img.imageId"
+                      :class="{ active: index === item.curpos }"
+                    >
+                      <img :src="img.imageUrl" class="post-image-img" />
+                    </div>
+                  </div>
+                    <!-- 이미지 인디케이터 -->
+                    <div class="image-indicator-box" v-show="item.post.imageUrl.length>1">
+                      <div
+                        class="img-indicator"
+                        v-for="image, index in item.post.imageUrl"
+                        :key="index"
+                        :class="{activeImg: index === item.curpos}" 
+                      ></div>
+                    </div> 
                 </div>
-              </div>
-            </div>
-            <div v-if="item.post.imageUrl?.length > 1" class="image-circle">
-              <button class="slide-next" @click="nextSlide(index)">></button>
-            </div>
+                <div v-if="item.post.imageUrl.length > 1" class="image-circle">
+                  <button class="slide-next" @click="nextSlide(index)">></button>
+                </div>
+             </div>
           </div>
           <div class="post-items">
             <div class="postContent">
@@ -48,8 +61,6 @@
               <p class="post-date">{{ item.post?.postDate }}</p>
             </div>
           </div>
-        </div>
-
           
           <!-- 조회 및 수정 -->
           <div class ="cmt-article ">
@@ -111,12 +122,6 @@
                 <button @click="openInput(item.commentId)" class="show-btn">수정</button>
                 <hr class="btn-line" />
                 <button class="show-btn" @click="confirmRemove(item.commentId)">삭제</button>
-  
-                <!-- 삭제 컴포넌트 -->
-                <RemoveComment
-                  v-model:isVisible="item.deleteCheck"
-                  :deleteId="item.commentId"
-                  @delete-comment="deleteComment"/>
               </div>
             </div>
           </div>
@@ -135,7 +140,6 @@
   import Profile from "@/assets/icons/profile.png"
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue";
-  import RemoveComment from "./RemoveComment.vue";  
   import { useConfirmModalStore } from "@/stores/utilModalStore";
   
   export default {
@@ -150,14 +154,11 @@
       },
      },
     components: {
-        RemoveComment,
         PostForm,
         Comment,
     },
     setup(props) {
       onMounted(() => {
-        console.log('userId'+ props.userId);
-        console.log('bookclubId'+ props.bookclubId);
         getComments();
       })
     
@@ -189,8 +190,6 @@
                 },
                 curpos: 0,
               }));
-            }else{
-              console.log('배열이 아닙니다');
             }
           }
         }catch(error){
@@ -226,11 +225,9 @@
         const editComment = ref({});
         // 수정 폼 오픈
         const openInput = (commentId) => {
-          console.log('수정하려는 id : '+commentId);
           editingId.value = commentId;
           editComment.value = { ...comments.value.find(comment => 
            comment.commentId === commentId) }; 
-           console.log("edit comment 에 복사: "+ JSON.stringify(editComment.value));
     };
 
           // 서버로 댓글 수정 전송 후 처리
@@ -242,12 +239,11 @@
             commentContent : editComment.value.commentContent,
             commentDate : editComment.value.commentDate
           }
-          console.log('댓글 :'+JSON.stringify(comment));
+          
           try {
             const response =  await apiClient.put("/api/comment/edit", comment);
                 if(response.status ==200){
                   const index = comments.value.findIndex((item) => item.commentId == comment.commentId);
-                  console.log(index);
 
                   if(index !== -1){
                     comments.value[index] = {...comments.value[index],...comment};
@@ -307,13 +303,11 @@
       };
 
       const getPost = async (postId) => {
-        console.log("불러올 게시글 ID:", postId);
         try {
           const response = await apiClient.get(`/api/post/comment/readOne`, {
             params: { postId },
           });
           if (response.status === 200) {
-            console.log("게시글 데이터:", response.data.data);
             return response.data.data; // 게시글 데이터를 반환
           }
         } catch (error) {
@@ -572,6 +566,7 @@
     margin-bottom: 20px;
     border: 1px solid #e5e5e5;
     border-radius: 10px;
+    padding-bottom: 10px;
 }
 .post-items{
     display: flex;
@@ -624,9 +619,10 @@
     text-align: end;
   }
 
-   /* post-image 부분 */
+   
+      /* post-image 부분 */
 
-   .post-images-wrapper {
+      .post-images-wrapper {
       position: relative;
       width: 100%;
       max-width: 300px;
@@ -641,8 +637,11 @@
     .post-nav {
       display: flex;
       flex-direction: row;
-      width: 90%;
+      justify-content: center;
+      align-items: center;
+      width: 80%;
       margin: auto;
+      position: relative;
     }
     .post-images{
       display: flex;
@@ -681,12 +680,49 @@
       font-size: 30px;
       color: #ccc
     }
-
     .slide-prev:hover {
       color : black;
     }
     .slide-next:hover {
       color: black;
     }
+
+/* 인디케이터 스타일 */
+.image-indicator-box{
+  display: flex;
+
+  margin-top: 10px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);  /* 중앙 정렬 */
+  z-index: 10;
+}
+
+.img-indicator {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin: 0 5px;
+  background-color: #c0bfbf;  /* 기본 색상 */
+  border-radius: 50%;
+  text-align: center;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.img-indicator.activeImg {
+  background-color: #faf5d1;  /* 활성화된 인디케이터 색상 */
+}
+
+.post-image.active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.post-image {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
 
    </style>
