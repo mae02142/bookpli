@@ -28,18 +28,18 @@
         v-for="myclub in myclubList"
         :key="myclub.userClubId"
       >
-      <RouterLink :to="{path : '/bookclub/community',
-      query : {cover : myclub.cover , title : myclub.title,
+      <RouterLink :to="{path : '/bookclub/community', 
+      query : {cover : myclub.cover , title : myclub.title, 
       author : myclub.author , bookClubId : myclub.bookClubId, description : myclub.description}}">
         <div class="bookclub-details">
           <img :src="myclub.cover" alt="icon" class="note-icon" />
           <p class="bookclub-name">{{ myclub.title.replace(/\(.*?\)/g, '').trim() }}</p>
         </div>
         </RouterLink>
-          <img @click="confirmRemove(myclub.userClubId)"
-          src="@/assets/icons/close.png"
-          alt="remove club"
-          class="close-icon"
+          <img @click="confirmRemove(myclub.userClubId)" 
+          src="@/assets/icons/close.png" 
+          alt="remove club" 
+          class="close-icon" 
           v-show="showEdit"
           />
       </div>
@@ -62,7 +62,7 @@
     </header>
     <section v-if="searchList" class="search-content">
       <h2 class="list-title">“{{ searchValue }}” 에 해당하는 커뮤니티</h2>
-
+    
     <article class="community-list">
       <div class="community-item" v-for="item in communities" :key="item.bookClubId">
         <div class="img-btn"  @click="addBookClub(item.isbn13)">
@@ -74,7 +74,7 @@
               <img :src="item.cover" :alt="item.title" class="item-image" />
             </div>
           </div>
-        </div>
+        </div>  
         <div class="item-details">
           <h3 class="item-title">{{ item.title.replace(/\(.*?\)/g, '').trim() }}</h3>
           <p class="item-author">{{ item.author.replace(/\(.*?\)/g, '').trim() }}</p>
@@ -95,374 +95,430 @@
               <img :src="book.cover" :alt="book.title" class="item-image" />
             </div>
           </div>
+        </div>  
+        <div class="item-details">
+          <h3 class="item-title">{{ book.title.replace(/\(.*?\)/g, '').trim() }}</h3>
+          <p class="item-author">{{ book.author.replace(/\(.*?\)/g, '').trim() }}</p>
         </div>
-        </div>
-      </article>
-      </section>
-    </div>
-    </div>
-  </template>
-  <script>
-  import apiClient from "@/api/axiosInstance";
-  import { onMounted, ref } from "vue";
-  import { useAuthStore } from '@/stores/auth';
-  import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
-  import { useRouter } from "vue-router";
-
-  export default {
-    components: {LeftSidebar},
-    setup() {
-      const authStore = useAuthStore();
-
-      const communities = ref([]); // 서버에서 받아온 도서리스트
-      const searchValue = ref(""); //검색어 
-      const searchList= ref(false); // 검색버튼 누르면 리스트 보일 수 있게
-
-      const searchBookClub = async(searchValue) => {
-        console.log('찾으려는 북클럽 keyword : '+ searchValue);
-        try{
-          console.log('겟요청 보내기');
-          const response = await apiClient.get("/api/bookclub/search", {
-            params : {keyword : searchValue},
-          });
-            console.log('겟 요청 후');
-            if(response.status == 200){
-              communities.value = response.data;
-              console.log(JSON.stringify(communities.value));
-            }
-        }catch(error){
-          console.error(error, '오류 발생');
-        }
-        searchList.value = true;
+      </div>
+    </article>
+    </section>
+  </div>
+  </div>
+</template>
+<script>
+import apiClient from "@/api/axiosInstance";
+import { onMounted, ref } from "vue";
+import { useAuthStore } from '@/stores/auth';
+import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
+import { useUtilModalStore } from "@/stores/utilModalStore";
+import { useConfirmModalStore } from "@/stores/utilModalStore";
+export default {
+  components: {LeftSidebar},
+  setup() {
+    const authStore = useAuthStore();
+    const utilModalStore = useUtilModalStore();
+    const communities = ref([]); // 서버에서 받아온 도서리스트
+    const searchValue = ref(""); //검색어 
+    const searchList= ref(false); // 검색버튼 누르면 리스트 보일 수 있게
+    const searchBookClub = async(searchValue) => {
+      console.log('찾으려는 북클럽 keyword : '+ searchValue);
+      try{
+        console.log('겟요청 보내기');
+        const response = await apiClient.get("/api/bookclub/search", {
+          params : {keyword : searchValue},
+        });
+          console.log('겟 요청 후');
+          if(response.status == 200){
+            communities.value = response.data;
+            console.log(JSON.stringify(communities.value));
+          }
+      }catch(error){
+        console.error(error, '오류 발생');
       }
-
-      //커뮤니티 추가
-      const addBookClub = async(index) => {
-        try{
-
-          // 로그인 여부 확인
-          if (!authStore.user || !authStore.user.userId) {
+      searchList.value = true;
+    }
+    //커뮤니티 추가
+    const addBookClub = async(isbn13) => {
+      try{
+        // 로그인 여부 확인
+        if (!authStore.user?.userId) {
           alert("로그인이 필요합니다!");
           window.location.href = "http://localhost:3000/auth/login";
           return;
         }
-
-        const response = await apiClient.post(
-  `/api/userbookclub/add/bookclub?isbn13=${encodeURIComponent(communities.value[index].isbn13)}&userId=${authStore.user.userId}`
+      const response = await apiClient.post(
+`/api/userbookclub/add/bookclub?isbn13=${encodeURIComponent(isbn13)}&userId=${authStore.user.userId}`
 );
-        console.log(response.data);
-        if(response.data.data === true){
-          alert("북클럽이 추가되었습니다.");
-        }else{
-          alert("이미 추가된 북클럽입니다.");
-        }
-      }catch(error){
-        console.log(error, "!!!!!오류 발생");
-      }
-      readMyClubs();
-    };
-
-      // 유저 북클럽 리스트 가져오기 
-
-    const  myclubList = ref([]);
-    const readMyClubs = async() => {
-      try{
-      const response = await apiClient.get(
-        "/api/userbookclub/mybookclubs",
-       {params : {userId :authStore.user.userId}
-      });
-      myclubList.value = response.data.data;
-      console.log(JSON.stringify(myclubList.value));
-      }catch(error){
-        console.error(error, "리스트 가져오는 중 에러 발생!")
-      }
-    };
-
-      // 북클럽 리스트 삭제 버튼 오픈
-    const showEdit = ref(false);
-    const openEdit = () => {
-      if(showEdit.value === true){
-        showEdit.value=false;
+      console.log(response.data);
+      if(response.data.data === true){
+        utilModalStore.showModal(
+          '안내',
+          '북클럽이 추가되었습니다.',
+          'alert'
+        )
       }else{
-        showEdit.value = true;
+        utilModalStore.showModal(
+          '안내',
+          '이미 추가된 북클럽입니다.',
+          'alert'
+        )
       }
+    }catch(error){
+      console.log(error, "!!!!!오류 발생");
     }
-      // 북클럽 삭제
-    const removeClub = async(userClubId) => {
-      const answer = confirm("북클럽을 삭제하시겠습니까?");
-      console.log("삭제하려는 id :"+ userClubId);
-      if(answer){
-        try{
-        const response = await apiClient.delete(
-          "/api/userbookclub/remove/myclub", {
-            params : {userClubId : userClubId},
-          });
-          if(response.status === 200){
-            alert("북클럽이 삭제되었습니다.");
-          }
-      }catch(error){
-        console.error(error, "에러 발생");
-      }
-      readMyClubs();
-      }
-    }
-
-    onMounted(()=>{
-      console.log('회원아이디 :'+ authStore.user.userId);
-      readMyClubs();
-    })
-      return {
-        communities,
-        searchValue,
-        searchList,
-        searchBookClub,
-        addBookClub,
-        myclubList,
-        readMyClubs,
-        showEdit,
-        openEdit,
-        removeClub,
-      };
-    },
+    readMyClubs();
   };
-  </script>
+    // 유저 북클럽 리스트 가져오기 
+  const  myclubList = ref([]);
+  const readMyClubs = async() => {
+    try{
+    const response = await apiClient.get(
+      "/api/userbookclub/mybookclubs",
+     {params : {userId :authStore.user.userId}
+    });
+    myclubList.value = response.data.data;
+    console.log(JSON.stringify(myclubList.value));
+    }catch(error){
+      console.error(error, "리스트 가져오는 중 에러 발생!")
+    }
+  };
+    // 북클럽 리스트 삭제 버튼 오픈
+  const showEdit = ref(false);
+  const openEdit = () => {
+    if(showEdit.value === true){
+      showEdit.value=false;
+    }else{
+      showEdit.value = true;
+    }
+  }
+  const confirmRemove = (userClubId)=>{
+    const confirmModalStore = useConfirmModalStore();
+    confirmModalStore.showModal(
+      '북클럽 삭제',
+      '북클럽을 삭제하겠습니까?',
+      '삭제 후 복원은 어렵습니다.',
+      '삭제하기',
+      '',
+      () => removeClub(userClubId)
+    )
+  };
+    // 북클럽 삭제
+  const removeClub = async(userClubId) => {
+      try{
+      const response = await apiClient.delete(
+        "/api/userbookclub/remove/myclub", {
+          params : {userClubId : userClubId},
+        });
+        if(response.status === 200){
+          utilModalStore.showModal(
+          '안내',
+          '북클럽이 삭제되었습니다.',
+          'alert'
+        )
+        }
+    }catch(error){
+      console.error(error, "에러 발생");
+    }
+    readMyClubs();
+    };
+      // Best Seller 리스트
+  const apiUrl = "http://www.aladin.co.kr/ttb/api/ItemList.aspx";
+  const ttbKey = "ttbyoungjae.bae1809001";
+      
+  const bestBooks = ref([]);
+      
+      const fetchBestBooksJSONP = () => {
+      return new Promise((resolve, reject) => {
+          const callbackName = `jsonpCallback_${Date.now()}`;
+          const script = document.createElement("script");
+          script.src = `${apiUrl}?ttbkey=${ttbKey}&QueryType=BestSeller&MaxResults=5&start=1&SearchTarget=Book&output=js&Version=20131101&callback=${callbackName}`;
+          script.onerror = () => {
+          reject(new Error("JSONP request failed"));
+          document.body.removeChild(script);
+          };
+          window[callbackName] = (response) => {
+          resolve(response);
+          delete window[callbackName];
+          document.body.removeChild(script);
+          };
+          document.body.appendChild(script);
+      });
+  };
+  const fetchBestBooks = async () => {
+      try {
+          const bestBooksData = await fetchBestBooksJSONP();
+          bestBooks.value = bestBooksData.item.map((book) => ({
+              title: book.title,
+              author: book.author,
+              cover: book.cover,
+              isbn13: book.isbn13,
+              description : book.description
+          }));
+      } catch (error) {
+          console.error("Error fetching Best Books data:", error);
+      }
+      console.log(bestBooks.value);
+  };
+  onMounted(()=>{
+    console.log('회원아이디 :'+ authStore.user.userId);
+    readMyClubs();
+    fetchBestBooks();
+  })
+    return {
+      communities,
+      searchValue,
+      searchList,
+      searchBookClub,
+      addBookClub,
+      myclubList,
+      readMyClubs,
+      showEdit,
+      openEdit,
+      confirmRemove,
+      removeClub,
+      fetchBestBooks,
+      bestBooks,
+    };
+  },
+};
+</script>
 <style scoped>
 /* Global Styles */
 body {
-  font-family: "Inter", sans-serif;
-  margin: 0;
-  padding: 0;
-
+font-family: "Inter", sans-serif;
+margin: 0;
+padding: 0;
 }
-
 /* Main Container */
 .community {
-  height: 100vh;
-  display: flex;
+height: 100vh;
+display: flex;
 }
-
 /* sidebar */
-
 .svg-container {
-    display: flex;
-    justify-content: end;
-  }
-
-  .rotatable-svg {
-    transition: transform 0.5s ease;
-  }
-
-  .svg-container:hover .rotatable-svg {
-    transform: rotate(360deg);
-    cursor: pointer;
-  }
-
-
-
-.sidebar3 {
-  width: 250px;
-  padding: 10px 20px;
-}
-
-.bookclub-list {
-  margin-top: 20px;
-}
-
-.bookclub-item {
   display: flex;
-  align-items: center;
-  height: 50px;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
+  justify-content: end;
 }
-
-.bookclub-item:hover {
+.rotatable-svg {
+  transition: transform 0.5s ease;
+}
+.svg-container:hover .rotatable-svg {
+  transform: rotate(360deg);
   cursor: pointer;
-  background-color: rgba(214, 214, 214, 0.6);
-  border-radius: 5px;
-  margin-top: 20px;
-  }
-
+}
+.sidebar3 {
+width: 250px;
+padding: 10px 20px;
+}
+.bookclub-list {
+margin-top: 20px;
+}
+.bookclub-item {
+display: flex;
+align-items: center;
+height: 50px;
+transition: background-color 0.3s ease;
+margin-top: 20px;
+}
+.bookclub-item:hover {
+cursor: pointer;
+background-color: rgba(214, 214, 214, 0.6);
+border-radius: 5px;
+margin-top: 20px;
+}
 .note-icon {
-  width: 25px;
-  height: 25px;
-  margin-right: 13px;
-  border-radius: 50%;
+width: 25px;
+height: 25px;
+margin-right: 13px;
+border-radius: 50%;
 }
-
 .bookclub-details {
-  display: flex;
+display: flex;
 }
-
 .bookclub-name {
-  font-size: 16px;
-  font-weight: bold;
-  margin :auto
+font-size: 16px;
+font-weight: bold;
+margin :auto
 }
-
 .close-icon {
-  width: 13px;
-  height: 13px;
-  margin: auto;
+width: 13px;
+height: 13px;
+margin: auto;
+margin-left: 5px;
 }
-
 /* main */
 .main{
-  display: flex;
-  margin-top: 50px;
-  width: 60%;
-  align-items: center;
-  flex-direction: column;
+display: flex;
+margin-top: 50px;
+width: 60%;
+align-items: center;
+flex-direction: column;
 }
-
 /* Header Section */
 .header {
- display: flex;
- flex-direction: column;
- align-items: center;
- justify-content: center;
-  margin-bottom: 40px;
-  line-height: 2;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+margin-bottom: 40px;
+line-height: 2;
 }
 .header h1 {
-  font-size: 33px;
-  font-weight: 400;
+font-size: 33px;
+font-weight: 400;
+margin: 20px 0;
 }
 .title-quotes {
-    display: flex;
-    align-items: center;
-    gap : 20px;
+  display: flex;
+  align-items: center;
+  gap : 20px;
 }
 .quotes {
-    padding-bottom: 30px;
+  padding-bottom: 30px;
 }
 .header .subtitle {
-  font-size: 18px;
-  color: #444;
+font-size: 18px;
+color: #444;
 }
-
 .search-bar {
-    display: flex;
-    align-items: center;
-    border-radius: 50px;
-    padding: 10px 20px;
-    width: 100%;
-    max-width: 600px;
-    box-sizing: border-box;
-    margin-top: 30px;
-    border: 1px solid #ccc;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid #909090;
+  border-radius: 50px;
+  padding: 10px 20px;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+  margin-top: 70px;
+  box-shadow: 1px 1.5px rgba(0, 0, 0, 0.2);
 }
 .search-bar input {
-    flex: 1;
-    border : none;
-    outline: none;
-    background-color: transparent;
-    font-size: 16px;
-    text-align: center;
-    color: #909090;
-}
-.search-bar img {
-    width: 24px;
-    height: 24px;
-    margin-left: 10px;
-    cursor: pointer;
-}
-
-.search-guide:focus {
-  text-align: left;
-}
-
-
-/* Community List Section */
-.search-content {
-  width: 100%;
-  max-width: 900px;
-  margin-top: 30px;
-}
-.community-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 한 줄에 2개 어떄?*/
-  gap: 20px; /* 아이템 간의 간격 */
-}
-.list-title {
-  font-size: 24px;
-  font-weight: 400;
-  color: #000;
-  text-align: left;
-  margin-bottom: 10px;
-}
-.divider {
-  width: 100%;
-  height: 1px;
-  background: #000;
-  margin-bottom: 20px;
-}
-
-/* Community List */
-
-.community-item {
-  display: flex;
-  flex-direction: row; /* 아이템을 세로로 정렬 */
-  padding: 10px;
-  background-color: #fff;
-}
-
-.item-image {
-  width: 115px;
-  height: 130px;
-  border: 1px solid #c0c0c0;
-  margin-right: 20px;
-}
-.item-details {
   flex: 1;
-  text-align: left;
-  line-height: 1.8;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-
-}
-.item-title {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.1;
-}
-.item-description {
+  border : none;
+  outline: none;
+  background-color: transparent;
   font-size: 16px;
-  color: #444;
-}
-.item-author {
-  font-size: 14px;
+  text-align: center;
   color: #909090;
 }
+.search-bar img {
+  width: 24px;
+  height: 24px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+.search-guide:focus {
+text-align: left;
+}
+/* Community List Section */
+.search-content {
+width: 100%;
+max-width: 900px;
+margin-top: 90px;
+}
+.community-list {
+display: grid;
+grid-template-columns: repeat(5, 1fr); /* 한 줄에 3개 */
+gap: 20px; /* 아이템 간의 간격 */
+}
+.list-title {
+font-size: 20px;
+font-weight: 400;
+color: #909090;
+text-align: left;
+margin-bottom: 30px;
+}
+/* Community List */
+.community-item {
+display: flex;
+flex-direction: column;
+gap: 20px;
+padding: 10px;
+background-color: #fff;
+width: 125px;
+}
+.item-details {
+flex: 1;
+text-align: left;
+line-height: 1.4;
+align-self: flex-start;
+}
+.item-title {
+font-size: 15px;
+font-weight: 600;
+margin: 0;
+}
+.item-description {
+font-size: 15px;
+color: #444;
+}
+.item-author {
+font-size: 13px;
+color: #909090;
+}
+.item-image {
+width: 100%;
+height: 100%;
+border: 1px double #c0c0c0;
+margin-right: 1px;
+border-radius: 4px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+transform-style: preserve-3d; /* 3D 변환 활성화 */
+transition: transform 0.5s ease;
+}
+/* 커뮤니티 추가 버튼 */
 .img-btn {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;  
+position: relative;
+width: 145px;
+height: 180px;
+margin-bottom: 10px;
 }
 .add-icon {
-    width: 15px;
-    height: 15px;
-    margin-right: 7px;
-}
-.add-icon:hover{
-  width: 17px;
-  height: 17px;
-  transform: rotate(45deg);
-  transition: all 0.2s ease;
-  
-}
-.add-community:hover {
-  transition: all 0.3s ease;
-  transform: scale(1.1);
-    cursor: pointer;
+font-size: 60px;
+font-weight: 700;
+color: #fff;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%); /* 중앙 정렬 */
 }
 .add-community {
-    display: flex;
-    align-items: center;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%); /* 중앙 정렬 */
+z-index: 10;
+opacity: 0; /* 기본적으로 숨김 */
+visibility: hidden; /* 기본적으로 숨김 */
+transition: opacity 0.3s ease, visibility 0.3s ease; /* 부드러운 전환 */
 }
-
+.img-btn:hover .add-community {
+opacity: 1; /* 호버 시 보이게 */
+visibility: visible; /* 호버 시 보이게 */
+cursor: pointer;
+}
+.cover-one {
+position: relative;
+border: 1px double gainsboro;
+border-left: none;
+border-top: none;
+border-radius: 4px;
+margin: 10px;
+}
+.cover-two {
+position: relative;
+border: 1px double gainsboro;
+border-left: none;
+border-top: none;
+border-radius: 4px;
+margin-right: 1px;
+box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+}
+.img-btn:hover .cover-one {
+transform: scale(1.05); /* 마우스 오버 시 이미지 크기 확대 */
+filter: brightness(0.5);
+cursor: pointer;
+}
 </style>

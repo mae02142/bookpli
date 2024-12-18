@@ -49,11 +49,13 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { useUserStore } from "@/stores/user";
 
 const query = ref("");
 const searchType = ref("book");
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const router = useRouter();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 
@@ -63,6 +65,7 @@ function goHome() {
 
 const handleLogout = () => {
   authStore.clearAuthData();
+  userStore.clearAccessToken();
   router.push({ path: "/main" });
 };
 
