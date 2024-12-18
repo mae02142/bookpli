@@ -80,39 +80,41 @@
                     <!-- 게시글 내용 -->
               <div class="post-container"> 
                 <div class="post-article">
-                      <!-- 이미지 슬라이드 컨테이너 -->
-                  <div class="post-nav">    
-                    <div v-if="post.imageUrl.length >1" class="image-circle"> 
-                      <button class="slide-prev" @click="prevSlide(post)"><</button>
-                    </div>  
-                      <div class="post-images-wrapper" >
-                        <div
-                          class="post-images"
-                          :style="{ transform: `translateX(-${post.curpos * 100}%)` }"
-                          >
-                        <!-- 각 이미지 하나씩 슬라이드 -->
-                          <div
-                            class="post-image"
-                            v-for="img in post.imageUrl"
-                            :key="img.imageId"
-                          >
-                            <img :src="img.imageUrl" class="post-image-img" />
-                          </div>
-                          <div class="image-indicator" v-if="post.imageUrl.length >1">
-                            <div
-                              class="image-circle"
-                              v-for="img , index in post.imageUrl"
-                              :key="img.imageUrl.index"
-                              :class="{activeImg: index === curpos}"
-                            ></div>
-                          </div>
-                        </div>
-                           <!-- 슬라이드 네비게이션 -->
-                      </div>
-                    <div v-if="post.imageUrl.length >1" class="image-circle">
-                        <button class="slide-next" @click="nextSlide(post)">></button>
+                 <!-- 이미지 슬라이드 컨테이너 -->
+              <div class="post-nav">    
+                <div v-if="post.imageUrl.length > 1" class="image-circle"> 
+                  <button class="slide-prev" @click="prevSlide(post)"><</button>
+                </div>  
+                <div class="post-images-wrapper">
+                  <div
+                    class="post-images"
+                    :style="{ transform: `translateX(-${post.curpos * 100}%)` }"
+                  >
+                    <!-- 각 이미지 하나씩 슬라이드 -->
+                    <div
+                      class="post-image"
+                      v-for="(img, index) in post.imageUrl"
+                      :key="img.imageId"
+                      :class="{ active: index === post.curpos }"
+                    >
+                      <img :src="img.imageUrl" class="post-image-img" />
                     </div>
+                  </div>
+                    <!-- 이미지 인디케이터 -->
+                    <div class="image-indicator-box" v-show="post.imageUrl.length>1">
+                      <div
+                        class="img-indicator"
+                        v-for="image, index in post.imageUrl"
+                        :key="index"
+                        :class="{activeImg: index === post.curpos}" 
+                      ></div>
+                    </div> 
                 </div>
+                      <div v-if="post.imageUrl.length > 1" class="image-circle">
+                        <button class="slide-next" @click="nextSlide(post)">></button>
+                      </div>
+                    </div>
+
                 <!--  유저 정보와 텍스트 -->
                 <div class="text-box-bookclub">
                   <div class="post-header">
@@ -130,6 +132,8 @@
                          @click="openComment(index)" 
                         src="@/assets/icons/chat.png"
                         alt="댓글 아이콘" />
+                        <p class="comment-counting"
+                         v-show="post.commentCount>0">{{post.commentCount}}</p>
 
                         <img class="like-icon" 
                         :src="post.likes.changeLike" 
@@ -142,15 +146,19 @@
                 </div>
               </div>
             </div>   
-            <Comment v-if:showComments="post.showComment" :postId="post.postId" />
+            <Comment v-show="post.showComment" 
+            :postId="post.postId"
+            v-model:commentCount="post.commentCount"
+            />
         <hr class="divider" />
         </article>
       </div>
-     </section>  
+     </section>
+     <musicPlayer />  
     </div>
   </template>
   <script>
-  import { onMounted, ref } from "vue";
+  import { onMounted, ref, nextTick } from "vue";
   import dislike from "@/assets/icons/dislike.png";
   import like from "@/assets/icons/like.png";
   import profile from "@/assets/icons/profile.png";
@@ -159,19 +167,19 @@
   import { useRoute } from "vue-router";
   import { useAuthStore } from '@/stores/auth';
   import apiClient from '@/api/axiosInstance';
-  
+  import musicPlayer from "@/components/layouts/musicPlayer.vue";
 
   export default {
     components : {
       PostForm,
       Comment,
+      musicPlayer,
     },  
     setup() {
       const authStore = useAuthStore();
       const route = useRoute(); // 현재 라우트 정보
     
       onMounted(()=>{
-        console.log('북클럽 상세 :' + JSON.stringify(route.query));
         getPosts();
       });
 
@@ -190,12 +198,10 @@
   
           /* 게시글 조회  */
     const getPosts = async() =>{
-      console.log("bookclubId :"+ route.query.bookClubId);
     try{
       const response = await apiClient.get("/api/post/bookclubs", {
         params: {bookclubId : route.query.bookClubId},
       });
-      console.log(response.data);
       if(response.status == 200){
         serverPosts.value = response.data.data;
         if (Array.isArray(serverPosts.value)) {
@@ -210,10 +216,10 @@
               likes: { changeLike: heartCheck },
               showComment: false,
               curpos : 0,
+              commentCount: 0,
             };
           })
         );
-        console.log(posts.value);
         };
       }
     }catch(error){
@@ -222,27 +228,30 @@
 
         /* 이미지 슬라이더 처리 */
 
-        const nextSlide = (post) => {
+        const nextSlide = async(post) => {
+          console.log("!@@@@@@@#!@#!#@!");        
+            console.log(post.curpos);
           if (post.curpos < post.imageUrl.length - 1) {
             post.curpos++;
           } else {
             post.curpos = 0; // 마지막 슬라이드 이후 첫 번째 슬라이드로
           }
+          await nextTick();
         };
 
-        const prevSlide = (post) => {
+        const prevSlide = async(post) => {
           if (post.curpos > 0) {
             post.curpos--;
           } else {
             post.curpos = post.imageUrl.length - 1; // 첫 번째 슬라이드 이전 마지막 슬라이드로
           }
+          await nextTick();
         };
 
             /* 좋아요 수 조회 */
     const getLikes = async(postId)=> {
       try{
         const response = await apiClient.get(`/api/postlike/${postId}`);
-        console.log('getlikes : '+ response.data)
         return response.data.data;
       }catch(error){
         console.error(error, "에러발생");
@@ -251,19 +260,15 @@
     }
         /* default 좋아요 처리 */
     const heartChecking = async(postId,userId) =>{
-      console.log(typeof(postId));
       const response = await apiClient.get(`/api/postlike/checkingLike`, {
         params: {
           postId : postId ,
           userId : userId , 
         },
       });
-      console.log(response.data.data);
       if(response.data.data){
-        console.log('좋아요 처리');
         return like;
       }else{
-        console.log('체킹되지 않았습니다.');
         return dislike;
       }
     }
@@ -274,15 +279,13 @@
         postId : postId,
         userId : authStore.user.userId,
       }
-      console.log('postId :' + postId + 'userId : '+ authStore.user.userId);
+
       try{
         const response = await apiClient.post(`api/postlike/mylike` ,checking );
-        console.log('checkLike :'+JSON.stringify(response.data));
+
         if(response.data.data !== undefined){
           posts.value[index].likes.changeLike = response.data.data  ? like : dislike;
           posts.value[index].likeCount += response.data.data ? 1 : -1;
-        } else {
-          console.error("좋아요 여부를 가져오지 못했습니다.");
         } 
        }catch(error) {
         console.error("API 호출 중 에러 발생: ", error);
@@ -376,10 +379,7 @@
   margin-right: 1px;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
 }
-
-
-
-  
+ 
   .content {
     margin-top: 10px;
     line-height: 2;
@@ -580,6 +580,11 @@
     height: 18px;
     margin : 0 10px;
   }
+
+  .comment-counting{
+    margin-top: 3px;
+  }
+
   .like-icon {
     width: 15px;
     height: 15px;
@@ -615,6 +620,7 @@
       align-items: center;
       width: 80%;
       margin: auto;
+      position: relative;
     }
     .post-images{
       display: flex;
@@ -659,6 +665,44 @@
     .slide-next:hover {
       color: black;
     }
+
+/* 인디케이터 스타일 */
+.image-indicator-box{
+  display: flex;
+
+  margin-top: 10px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);  /* 중앙 정렬 */
+  z-index: 10;
+}
+
+.img-indicator {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin: 0 5px;
+  background-color: #c0bfbf;  /* 기본 색상 */
+  border-radius: 50%;
+  text-align: center;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.img-indicator.activeImg {
+  background-color: #faf5d1;  /* 활성화된 인디케이터 색상 */
+}
+
+.post-image.active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.post-image {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
 
   </style>
   

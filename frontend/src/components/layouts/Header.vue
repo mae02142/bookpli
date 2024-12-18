@@ -55,9 +55,10 @@ const query = ref("");
 const searchType = ref("book");
 
 const authStore = useAuthStore();
-const userStore = useUserStore();
 const router = useRouter();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const userStore = useUserStore();
+const token = userStore.accessToken;
 
 function goHome() {
   router.push({ path: "/main" });

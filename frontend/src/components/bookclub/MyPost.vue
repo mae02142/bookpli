@@ -6,35 +6,44 @@
         <div class="post-container"> 
           <div class="post-article">
                 <!-- 이미지 슬라이드 컨테이너 -->
-            <div class="post-nav"> 
-              <div v-if="item.imageUrl.length >1" class="image-circle"> 
-                <button class="slide-prev" @click="prevSlide(item)"><</button>
-              </div>  
-              <div class="post-images-wrapper" >
-                <div
-                  class="post-images"
-                  :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
-                >
-                  <!-- 각 이미지 하나씩 슬라이드 -->
+                <div class="post-nav">    
+                <div v-if="item.imageUrl.length > 1" class="image-circle"> 
+                  <button class="slide-prev" @click="prevSlide(item)"><</button>
+                </div>  
+                <div class="post-images-wrapper">
                   <div
-                    class="post-image"
-                    v-for="img in item.imageUrl"
-                    :key="img.imageId"
+                    class="post-images"
+                    :style="{ transform: `translateX(-${item.curpos * 100}%)` }"
                   >
-                    <img :src="img.imageUrl" class="post-image-img" />
+                    <!-- 각 이미지 하나씩 슬라이드 -->
+                    <div
+                      class="post-image"
+                      v-for="(img, index) in item.imageUrl"
+                      :key="img.imageId"
+                      :class="{ active: index === item.curpos }"
+                    >
+                      <img :src="img.imageUrl" class="post-image-img" />
+                    </div>
                   </div>
+                    <!-- 이미지 인디케이터 -->
+                    <div class="image-indicator-box" v-show="item.imageUrl.length>1">
+                      <div
+                        class="img-indicator"
+                        v-for="image, index in item.imageUrl"
+                        :key="index"
+                        :class="{activeImg: index === item.curpos}" 
+                      ></div>
+                    </div> 
                 </div>
-                     <!-- 슬라이드 네비게이션 -->
-              </div>
-              <div v-if="item.imageUrl.length >1" class="image-circle">
-                    <button class="slide-next" @click="nextSlide(item)">></button>
-              </div>
-            </div>
+                      <div v-if="item.imageUrl.length > 1" class="image-circle">
+                        <button class="slide-next" @click="nextSlide(item)">></button>
+                      </div>
+                    </div>
           </div>
           <div class="text-box-post">
             <div class="author-info">
               <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
-              <h3>{{item.userNickname || 'USER'}}</h3>
+              <h3>{{item.userNickname}}</h3>
             </div>
                   <!-- 본문 글 -->
             <p class="mypost-cnt">{{ item.postContent }} </p>                                 
@@ -46,6 +55,9 @@
                         @click="openComment(index)" 
                         src="@/assets/icons/chat.png"
                         alt="댓글 아이콘" />
+                        <p class="comment-counting"
+                         v-show="item.commentCount>0">{{item.commentCount}}</p>
+
 
                         <img class="like-icon" 
                         :src="item.likes.changeLike"
@@ -69,7 +81,9 @@
               </div>
             </div> 
           </div>   
-          <Comment v-if:showComments="item.showComment" :postId="item.postId" />
+          <Comment v-show="item.showComment" 
+            :postId="item.postId"
+            v-model:commentCount="item.commentCount" />
           <hr class="divider" /> 
         </article>
     </section>
@@ -113,7 +127,6 @@
     setup(props) {
     const authStore = useAuthStore();
       onMounted(()=>{
-        console.log('club:'+props.bookclubId +'user:'+ props.userId);
         if(props.bookclubId && props.userId){
           getMyposts();
         }
@@ -124,8 +137,6 @@
 
           // 나의 게시글 조회
       const getMyposts = async()=> {
-        console.log('불러올 데이터의 유저 :' + props.userId);
-        console.log('북클럽 : '+ props.bookclubId);
 
         const response = await apiClient.get(`/api/post/bookclub/mypost`, {
           params : {userId : props.userId, 
@@ -146,11 +157,11 @@
                   editCheck: false,
                   showComment: false,
                   curpos : 0,
+                  commentCount : 0,
                 };
               })
             );
           }
-          console.log(posts.value);
         } else {
             console.error('serverPosts는 배열이 아닙니다.');
         }
@@ -187,14 +198,12 @@
       
           // default 좋아요 체킹 
       const heartChecking = async(postId, userId)=>{
-        console.log(typeof(postId));
       const response = await apiClient.get(`/api/postlike/checkingLike`, {
         params: {
           postId : postId ,
           userId : userId , 
         },
       });
-      console.log(response.data.data);
       if(response.data.data){
         return like;
       }else{
@@ -202,17 +211,15 @@
       }
     };
     
-      
              /* 좋아요 처리 기능 */
       const checkLike = async(postId,index) => { 
           const checking = {
             postId : postId,
             userId : authStore.user.userId,
           }
-          console.log('postId :' + postId + 'userId : '+ authStore.user.userId);
           try{
             const response = await apiClient.post(`api/postlike/mylike` ,checking );
-            console.log('checkLike :'+JSON.stringify(response.data));
+  
             if(response.data.data !== undefined){
               posts.value[index].likes.changeLike = response.data.data  ? like : dislike;
               posts.value[index].likeCount += response.data.data ? 1 : -1;
@@ -233,6 +240,8 @@
         }
       };
 
+
+      
   
           /* 수정 삭제 관련 함수 */
         const showBtn = ref([]);
@@ -311,6 +320,7 @@
     .author-info {
       font-size: 14px;
       margin-right: 20px;
+      text-align: center;
     }
 
     .mypost-cnt {
@@ -337,7 +347,7 @@
     /* 아이콘 섹션 */
     .footer-icon{
       display: flex;
-      gap: 20px;
+      gap: 5px;
     }
 
     .post-footer {
@@ -347,6 +357,10 @@
       margin-top: 20px;
     }
     
+    .comment-counting{
+    margin-top: 3px;
+  }
+
     .icon {
       width: 18px;
       height: 18px;
@@ -356,10 +370,14 @@
       cursor: pointer;
     }
     .like-icon {
-      width: 15px;
-      height: 15px;
-      margin-top: 2px;
-    }
+    width: 15px;
+    height: 15px;
+    margin: 2px 10px;
+  }
+  .like-count {
+    margin-top: 2px;
+  }
+
     
     .date {
       color: #909090;
@@ -409,6 +427,7 @@
       cursor: pointer;
     }
 
+  
       /* post-image 부분 */
 
       .post-images-wrapper {
@@ -430,6 +449,7 @@
       align-items: center;
       width: 80%;
       margin: auto;
+      position: relative;
     }
     .post-images{
       display: flex;
@@ -468,7 +488,6 @@
       font-size: 30px;
       color: #ccc
     }
-
     .slide-prev:hover {
       color : black;
     }
@@ -476,6 +495,42 @@
       color: black;
     }
 
+/* 인디케이터 스타일 */
+.image-indicator-box{
+  display: flex;
 
+  margin-top: 10px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);  /* 중앙 정렬 */
+  z-index: 10;
+}
+
+.img-indicator {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin: 0 5px;
+  background-color: #c0bfbf;  /* 기본 색상 */
+  border-radius: 50%;
+  text-align: center;
+  line-height: 10px;
+  cursor: pointer;
+}
+
+.img-indicator.activeImg {
+  background-color: #faf5d1;  /* 활성화된 인디케이터 색상 */
+}
+
+.post-image.active {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.post-image {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
     
   </style>

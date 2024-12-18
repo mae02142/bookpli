@@ -73,7 +73,6 @@
 <script setup>
 import { ref, onMounted, reactive } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { defineEmits } from "vue";
 import apiClient from "@/api/axiosInstance";
 
 const authStore = useAuthStore();

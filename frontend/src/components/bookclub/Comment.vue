@@ -39,7 +39,7 @@
   
   <script>
 import apiClient from "@/api/axiosInstance";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import dislike from "@/assets/icons/dislike.png";
 import like from "@/assets/icons/like.png";
 import { useAuthStore } from "@/stores/auth";
@@ -57,16 +57,14 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         required : true,
       }
       },
-    emits: ["update:showComments"],
+    emits: ['update:commentCount'],
+  
     setup(props, { emit }) {
 
       const authStore = useAuthStore();
 
       onMounted(()=>{
         if(props.postId){
-          console.log('showcomments : '+props.showComments);
-          console.log('자식컴포 postId '+ props.postId);
-          console.log('userId : '+ authStore.user.userId );
           getComments();
         }
       });
@@ -78,7 +76,6 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         // 등록된 댓글 가져오기 
       const getComments = async() => {
         const response = await apiClient.get(`/api/comment/post/${props.postId}`)
-        console.log(response.data);
         if(response.data.data && response.data.data.length > 0){
           serverComment.value = response.data.data;
           isExisting.value = true;
@@ -98,26 +95,23 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
               }
             })
           )
+          emit('update:commentCount', comments.value.length);
         } else {
             console.error('serverComments는 배열이 아닙니다.');
         }
       };  
-      
+
           // 좋아요 default 값 설정
       const heartChecking = async(commentId,userId) => {
-        console.log('c,u:'+ commentId , userId);
         const response = await apiClient.get(`/api/commentlike/checking`,{
           params:{
             commentId : commentId,
           userId : userId
           }
         });
-        console.log("default likes "+response.data.data);
-        if(response.data.data){
-          console.log('좋아요 처리가 되어있습니다');
+        if(response.data.data){  
           return like;
         }else{
-          console.log('체킹되지 않았습니다.');
           return dislike;
         }
       }
@@ -126,7 +120,6 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         const response = await apiClient.get(`/api/commentlike/${commentId}`);
         try{
         if(response.status == 200){
-          console.log('좋아요 수 :'+ response.data.data);
           return response.data.data;
         }
         }catch(error){
@@ -134,12 +127,12 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         }
       }
           /*  댓글 등록  */
-      const userComment = ref([]);
+      const userComment = ref('');
       const userName = authStore.user.userNickname || 'USER'; // 댓글 작성 시 작성자명
       const utilModalStore = useUtilModalStore();
 
       const postComment =async() => {
-          console.log('댓글 등록 postID : '+ props.postId );
+        
           const newComment = {
             userId : authStore.user.userId, 
             commentContent : userComment.value,
@@ -158,7 +151,7 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         }catch(error){
           console.error('오류 발생', error)
         }
-        getComments();
+        await getComments();
 
       };
 
@@ -173,10 +166,8 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
           userId : authStore.user.userId,
           commentId : commentId,
         };
-        console.log('commentId : '+commentId+ 'userId :'+  authStore.user.userId +' index : '+ index);
         try{
           const response = await apiClient.post(`/api/commentlike/mylike`,checking);
-          console.log('좋아요 체크'+response.data.data);
 
           if(response.data.data!==undefined){
           // 현재 상태를 확인하고 적절히 처리
@@ -218,6 +209,7 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         showBtn,
         dropdown,
         userName,
+  
       };
     },
   };

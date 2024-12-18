@@ -100,6 +100,7 @@ const isActive = computed(() => modalStore.activeModal === "SongDetailModal");
 
 const userStore = useUserStore();
 const token = userStore.accessToken;
+console.log(token)
 
 // 부모에서 전달받는 `props`
 const props = defineProps({
@@ -298,7 +299,7 @@ const addMusicToPlaylist = async(playlistId) => {
     emit('update-playlist');
     emit('update-tracks');
   } catch (error) {
-    window.alert("노래를 선택해주세요.");
+    utilModalStore.showModal("플리에 추가하기", `추가할 노래를 선택하세요.`, "warning");
     console.log(error);
   }
 }

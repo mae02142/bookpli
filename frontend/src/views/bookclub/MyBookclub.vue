@@ -68,6 +68,7 @@
      :userId="userInfo.userId"
      :bookclubId="bookInfo.bookclubId"
     />
+    <musicPlayer />
     </div>
   </template>
   
@@ -80,7 +81,7 @@
   import { useAuthStore } from '@/stores/auth';
   import Profile from"@/assets/icons/profile.png";
 import apiClient from "@/api/axiosInstance";
-
+import musicPlayer from "@/components/layouts/musicPlayer.vue";
 
 
   export default {
@@ -88,12 +89,12 @@ import apiClient from "@/api/axiosInstance";
         PostForm,
         MyPost,
         MyComment,
+        musicPlayer,
     },
     setup() {
       const route = useRoute();
       const authStore = useAuthStore();
       onMounted(()=>{
-        console.log('전달받은 데이터 : '+ JSON.stringify(route.query));
         getInfo();
       })
 
@@ -135,7 +136,6 @@ import apiClient from "@/api/axiosInstance";
           const response = await apiClient.get(`api/mypage/${authStore.user.userId}`);
           if(response.status == 200){
             userInfo.value = response.data.data;
-            console.log(userInfo.value);
           }else{
             console.error('오류 발생');
           }
