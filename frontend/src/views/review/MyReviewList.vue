@@ -62,24 +62,24 @@
         </div>
       </div>
     </section>
+    <musicPlayer />
     </div>
-   
 </template>
 
 <script>
-import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import fullStarImage from "@/assets/icons/full_star.png";
 import emptyStarImage from "@/assets/icons/empty_star.png";
 import RemoveReview from "@/components/review/RemoveReview.vue";
-import { onMounted, ref, computed} from "vue";
+import { onMounted, ref} from "vue";
 import apiClient from '@/api/axiosInstance';
 import { useAuthStore } from '@/stores/auth';
 import { useConfirmModalStore } from '@/stores/utilModalStore';
-
+import musicPlayer from "@/components/layouts/musicPlayer.vue";
 
 export default {
   components : {
     RemoveReview,
+    musicPlayer,
   },
   setup() {
   /* user info */
@@ -104,19 +104,15 @@ export default {
     const getMyList = async () => {
       try{
         const response = await apiClient.get(`/api/review/myreview/${authStore.user.userId}`)
-        if(response.status != 200){
-          console.log("리뷰를 불러오는데 오류가 발생했습니다.");
-          console.log(response.status);
-          return ; 
-        }
+        if(response.status == 200){
         serverReview.value = response.data;
-        console.log("server data 값 : "+JSON.stringify(serverReview.value));
         // 각각의 배열에 showModal을 넣어서 개별적 실행 
         if (Array.isArray(serverReview.value)){
           reviews.value = serverReview.value.map(review => ({
             ...review,
             showModal : false,
-          }))
+          }));
+        }
         } else {
           console.error('serverPosts는 배열이 아닙니다.');
         };
@@ -127,12 +123,10 @@ export default {
 
             /*  리뷰  수정  */
     const openInput = (reviewId) => {  // 수정하기 위해 데이터를 복사해서 창을 열기
-      console.log("수정하려는 값 : " + reviewId);
       editingId.value = reviewId;
       // 리뷰의 데이터를 복사하여 편집용 데이터로 설정
       editingReview.value = { ...reviews.value.find(review => 
         review.reviewId === reviewId) }; 
-        console.log("editing review 에 복사: "+ JSON.stringify(editingReview.value));
     };
       //별점 변경
     const ratingStar = (starIndex) => {  
@@ -147,10 +141,8 @@ export default {
         reviewContent: editingReview.value.reviewContent,
         rating: editingReview.value.rating,
       };
-      console.log(review);
 
-       const response = await apiClient.put(`/api/review/update`, review);
-         console.log("리뷰 수정 상태 : "+ response.status);
+     const response = await apiClient.put(`/api/review/update`, review);
         
       const index = reviews.value.findIndex((item) => item.reviewId === review.reviewId);
       if(index !== -1){
@@ -179,10 +171,8 @@ export default {
   };
           // 서버 삭제 요청
     const deleteReview = async(reviewId) => {
-      console.log("삭제하려는 값 : "+ reviewId);
       try{
         const response = await apiClient.delete(`/api/review/delete/${reviewId}`)
-        console.log(response.status);
 
         if(response.status=== 200){
           const checkUser = authStore.user.userId;

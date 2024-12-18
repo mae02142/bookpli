@@ -73,7 +73,6 @@
 <script setup>
 import { ref, onMounted, reactive } from "vue";
 import { useAuthStore } from "@/stores/auth";
-import { defineEmits } from "vue";
 import apiClient from "@/api/axiosInstance";
 
 const authStore = useAuthStore();
@@ -251,7 +250,7 @@ onMounted(() => {
   .info-input {
     width: 360px;
     padding: 10px;
-    border: 1px solid #555553;
+    border: 1px solid #b7b7b7;
     border-radius: 5px;
     font-size: 16px;
     color: #20201f;
@@ -310,7 +309,7 @@ onMounted(() => {
   .nickname-grid {
   padding: 0;
   width: 100%;
-  border: 1px solid #555553;
+  border: 1px solid #b7b7b7;;
   border-radius: 5px;
   display: flex;
   align-items: center;

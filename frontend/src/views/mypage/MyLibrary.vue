@@ -15,7 +15,7 @@
 
             <div class="menuitem-grid">
               <h4>{{ menuItem.title }}</h4>
-              <p class="menuitem-count">{{ menuItem.count }}권</p>
+              <p class="menuitem-count">{{ menuItem.count }}</p>
             </div>
           </li>
         </ul>
@@ -31,7 +31,7 @@
          <article
           class="book-item"
           v-for="(book) in filteredBooks"
-          :key="book.libraryId"
+          :key="book.isbn13"
         >
         <div class="bool-like-grid">
           <img
@@ -77,8 +77,10 @@
       @close="closeModal"
       @openForm="showForm=true"
       @delete-library="deleteLibrary"
-      @book-like-status="toggleBookLike"
+      @book-like-status="handleBookLikeStatus"
     />
+
+    <musicPlayer />
   </div>
 </template>
   
@@ -91,6 +93,8 @@
   import apiClient from '@/api/axiosInstance';
   import { useProgressStore } from '@/stores/readingProgressbar';
   import MyReviewList from '../review/MyReviewList.vue';
+  import musicPlayer from '@/components/layouts/musicPlayer.vue';
+
   const authStore = useAuthStore();
   const menuItems = ref([]);
   const books = ref([]);
@@ -103,13 +107,13 @@
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
  
-const getMyLibrary = async () => {
+  const getMyLibrary = async () => {
   try {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
-    books.value = response.data.data;
+    books.value = prepareBooksData(response.data.data); // books 데이터를 가공
     updateMenuItems();
   } catch (error) {
-    console.error('Error loading inquiries:', error);
+    console.error('Error loading library:', error);
   }
 };
 //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
@@ -121,25 +125,36 @@ const groupedData = computed(() => {
     });
 const updateMenuItems = () => {
       menuItems.value = [
-        { title: '독서중', count: groupedData.value.reading?.length || 0, icon: 'openbook.png', route: 'reading' },
-        { title: '담은 도서', count: groupedData.value.wished?.length || 0, icon: 'bookmark.png', route: 'wished' },
-        { title: '완독', count: groupedData.value.completed?.length || 0, icon: 'closedbook.png', route: 'completed' },
-        { title: '좋아요한 도서', count: likedBooks.value.length, icon: 'book_heart.png', route: 'liked' },
+        { title: '독서중', count: (groupedData.value.reading?.length || 0) +' 권', icon: 'openbook.png', route: 'reading' },
+        { title: '담은 도서', count: (groupedData.value.wished?.length || 0) +' 권', icon: 'bookmark.png', route: 'wished' },
+        { title: '완독', count:( groupedData.value.completed?.length || 0 )+' 권', icon: 'closedbook.png', route: 'completed' },
+        { title: '좋아요한 도서', count:( likedBooks.value.length)+' 권', icon: 'book_heart.png', route: 'liked' },
         { title: '나의 리뷰',  icon: 'review.png', route: 'myreview'}
       ];
     };
 // 현재 선택된 상태에 따른 책 필터링
 const filteredBooks = computed(() => {
   if (selectedStatus.value === 'liked') {
-    return books.value.filter((book) => isBookLiked(book.isbn13)); // 좋아요된 책만 필터링
+    return books.value.filter((book) => isBookLiked(book.isbn13));
   }
   return groupedData.value[selectedStatus.value] || [];
 });
+
 // 선택된 상태 변경
 const selectStatus = (status) => {
   selectedStatus.value = status;
-  updateMenuItems();
 };
+
+// 좋아요 상태
+const handleBookLikeStatus = (isbn13) => {
+  if (likedBooks.value.includes(isbn13)) {
+    likedBooks.value = likedBooks.value.filter((isbn) => isbn !== isbn13);
+  } else {
+    likedBooks.value.push(isbn13);
+  }
+  updateMenuItems(); // 메뉴 카운트 업데이트
+};
+
   // 툴팁 상태 관리
   const tooltip = reactive({
     show: false,
@@ -202,31 +217,22 @@ const deleteLibrary = async (libraryId) => {
       console.log(error);
     }
 }
+// 좋아요 상태 확인
 const getBookLikeStatus = async () => {
   try {
     const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
     likedBooks.value = response.data.data.map((like) => like.isbn13);
-    } catch (error) {
-      console.log(error);
-    }
-}
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 // 좋아요 여부 확인
 const isBookLiked = (isbn13) => likedBooks.value.includes(isbn13);
-// 좋아요 상태 업데이트
-const toggleBookLike = (isbn13) => {
-  if (likedBooks.value.includes(isbn13)) {
-    // 이미 좋아요 되어 있는 경우 -> 목록에서 제거
-    likedBooks.value = likedBooks.value.filter((isbn) => isbn !== isbn13);
-  } else {
-    // 좋아요가 안 되어 있는 경우 -> 목록에 추가
-    likedBooks.value.push(isbn13);
-  }
-  updateMenuItems();
-};
+
 onMounted(async() => {
   await getMyLibrary();
   await getBookLikeStatus();
-  books.value = prepareBooksData(books.value);
   updateMenuItems();
 });
 </script>
@@ -252,9 +258,8 @@ onMounted(async() => {
     transition: background-color 0.3s ease;
   }
   .sidebar-item:hover {
-  cursor: pointer;
-  background-color: rgba(214, 214, 214, 0.6);
-  border-radius: 5px;
+    cursor: pointer;
+    color: #1db954;
   }
   
   .sidebar-icon {
@@ -297,6 +302,7 @@ onMounted(async() => {
     display: grid;
     width: min-content;
     justify-self: center;
+    align-self: flex-start;
   }
   
   .book-item:hover {

@@ -1,13 +1,11 @@
 // 책 좋아요 기능
-export const addBookLike = async (apiClient, userId, isbn13) => {
+export const addBookLike = async (apiClient, userId, book) => {
   try {
-    const response = await apiClient.post(
-      `/api/library/${userId}/book/${isbn13}`
-    );
+    const response = await apiClient.post(`/api/library/${userId}/book`, book);
     return response.data.data;
   } catch (error) {
     console.error("좋아요 실패:", error);
-    throw new Error("좋아요 추가 요청 중 오류가 발생했습니다."); // 호출자에게 에러 전달
+    throw new Error("좋아요 추가 요청 중 오류가 발생했습니다.");
   }
 };
 
