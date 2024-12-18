@@ -52,7 +52,7 @@
                             :key="song.uri"
                         >
                             <td style="min-width: 40px; text-align: center;">{{ index + 1 }}</td>
-                            <td>
+                            <td class="song-cover">
                                 <img
                                     :src="song.image"
                                     class="album-cover"
@@ -63,15 +63,11 @@
                             </td>
                             <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                             <td class="song-artist">{{ song.artist }}</td>
-                            <td
-                                class="song-details"
-                                style="min-width: 20px; text-align: center; position: relative;"
-                                @click="toggleOptionMenu1(index)"
-                            >
+                            <td class="song-details" style="min-width: 20px; text-align: center; position: relative;" @click="toggleOptionMenu1(index)">
                                 ⋮
                                 <div v-show="showOptionMenu1[index]" class="option-menu">
                                     <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
-                                    <span style="padding-bottom: 5px;" @click="selectPlaylist">내 플리에 추가하기</span>
+                                    <span style="padding-bottom: 5px;" @click="togglePlaylistModal(song.uri, $event)">내 플리에 추가하기</span>
                                     <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
                                 </div>
                             </td>
@@ -99,20 +95,33 @@
                             </td>
                             <td class="song-title" @click="playSong(song.uri)">{{ song.title }}</td>
                             <td class="song-artist">{{ song.artist }}</td>
-                            <td
-                                class="song-details"
-                                style="min-width: 20px; text-align: center; position: relative;"
-                                @click="toggleOptionMenu2(index)"
-                            >
+                            <td class="song-details" style="min-width: 20px; text-align: center; position: relative;" @click="toggleOptionMenu2(index)">
                                 ⋮
                                 <div v-show="showOptionMenu2[index]" class="option-menu">
                                     <span style="padding-bottom: 5px;" @click="playSong(song.uri)">재생하기</span>
-                                    <span style="padding-bottom: 5px;" @click="selectPlaylist">내 플리에 추가하기</span>
+                                    <span style="padding-bottom: 5px;" @click="togglePlaylistModal(song.uri, $event)">내 플리에 추가하기</span>
                                     <span style="padding-bottom: 5px;" @click="openSongDetail(song)">앨범 정보 보기</span>
                                 </div>
                             </td>
                         </tr>
                     </table>
+                    <!-- 플레이리스트 추가 모달 -->
+                    <div v-if="showPlaylistModal" class="modal-overlay" @click.self="closeModal">
+                        <div class="modal-content">
+                            <h3 class="modal-title">내 플레이리스트에 추가</h3>
+                            <ul>
+                                <li 
+                                    v-for="playlist in playlists" 
+                                    :key="playlist.id" 
+                                    @click="addToPlaylist(playlist.id)"
+                                    class="playlist-item"
+                                >
+                                    {{ playlist.name }}
+                                </li>
+                            </ul>
+                            <button class="close-button" @click="closeModal">닫기</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -133,6 +142,7 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 import { useUserStore } from "@/stores/user";
+import { useAuthStore } from "@/stores/auth";
 import { useModalStore } from '@/stores/modalState';
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue";
 import { useUtilModalStore } from "@/stores/utilModalStore";
@@ -152,11 +162,16 @@ export default {
         const selectedSong = ref(null);
         const userProfile = ref(null);
         const showPlaylistModal = ref(false);
+        const selectedTrack = ref(null); // 선택된 트랙 ID 저장
+        const playlistModalPosition = ref({}); // 모달 위치
+        const utilModalStore = useUtilModalStore();
 
         const token = userStore.accessToken;
 
         const showOptionMenu1 = ref([]);
         const showOptionMenu2 = ref([]);
+        const playlists = ref([]);
+
 
         // Function to fetch current user's profile
         const fetchUserProfile = async () => {
@@ -173,6 +188,22 @@ export default {
                     "Error fetching user profile:",
                     error.response ? error.response.data : error.message
                 );
+            }
+        };
+
+        const getMyPlaylist = async () => {
+            const authStore = useAuthStore(); 
+            try {
+                const response = await apiClient.get("api/mypli");
+                playlists.value = response.data.data.items
+                .filter((item) => item.owner.id === authStore.user.spotifyId)
+                .map((item) => ({
+                    id: item.id,
+                    name: item.name,
+                }));
+                console.log(playlists.value);
+            } catch (error) {
+                console.log(error);
             }
         };
 
@@ -202,7 +233,6 @@ export default {
 
         const addPlaylistToMyPlaylists = async (playlistId) => {
             if (!userProfile.value || !userProfile.value.id) {
-                alert("사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
                 return;
             }
 
@@ -219,7 +249,7 @@ export default {
                 });
 
                 if (checkResponse.data[0]) {
-                    alert("이미 이 플레이리스트를 팔로우하고 있습니다.");
+                    utilModalStore.showModal("플리에 추가하기", `이미 팔로우하고 있는 플리입니다.`, "already-exist");
                     return;
                 }
 
@@ -235,21 +265,12 @@ export default {
                     }
                 );
 
-                alert("플레이리스트가 성공적으로 추가되었습니다!");
+                utilModalStore.showModal("플리에 추가하기", `내 플리에 추가되었습니다.`, "add-playlist");
             } catch (error) {
                 console.error(
                     "Error adding playlist:",
                     error.response ? error.response.data : error.message
                 );
-
-                // Handle specific error responses
-                if (error.response && error.response.status === 401) {
-                    alert("인증에 실패했습니다. 다시 로그인해주세요.");
-                } else if (error.response && error.response.status === 403) {
-                    alert("이 플레이리스트를 팔로우할 권한이 없습니다.");
-                } else {
-                    alert("플레이리스트를 추가하는 데 실패했습니다. 다시 시도해주세요.");
-                }
             }
         };
 
@@ -266,47 +287,19 @@ export default {
             modalStore.openModal("SongDetailModal");
         };
 
+        const togglePlaylistModal = (trackUri, event) => {
+            selectedTrack.value = trackUri; // Assign the passed trackUri to selectedTrack
+            showPlaylistModal.value = !showPlaylistModal.value;
 
-        const selectPlaylist = async (playlistId) => {
-            try {
-                // 1. 선택한 플레이리스트에 곡 존재 여부 확인
-                const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
-
-                // 2. 곡이 이미 존재하면 확인 창 표시
-                const utilModalStore = useUtilModalStore();
-                const tracks = response.data.data.items.map((item) => item.track.id);
-
-                if (tracks.includes(songData.value.id)) {
-                utilModalStore.showModal(
-                    '플레이리스트 담기',
-                    `"${playlists.value.find((p) => p.id === playlistId)?.name}"에 이미 존재하는 곡입니다.`,
-                    'already-exist'
-                );
-                } else {
-                await addMusicToPlaylist(playlistId);
-                }
-            } catch (error) {
-                console.log(error);
+            if (showPlaylistModal.value) {
+                getMyPlaylist(); // Fetch playlist data
+                const rect = event.target.getBoundingClientRect()
+                playlistModalPosition.value = {
+                    top: `${rect.top + window.scrollY + 30}px`,
+                    left: `${rect.left + window.scrollX + 20}px`,
+                };
             }
-            showPlaylistModal.value = false; // 선택 후 모달 닫기
         };
-
-        const addMusicToPlaylist = async(playlistId) => {
-            const songUri = `spotify:track:${songData.value.id}`;
-            try {
-                await apiClient.post(`/api/mypli/playlist/${playlistId}`, {
-                    uris: [songUri],
-                });
-
-                const playlist = playlists.value.find((p) => p.id === playlistId);
-                displayNotification(`"${playlist.name}"에 추가되었습니다.`);
-                emit('update-playlist');
-                emit('update-tracks');
-            } catch (error) {
-                window.alert("노래를 선택해주세요.");
-                console.log(error);
-            }
-        }
 
         // Function to fetch recommended playlists
         const fetchRecommendedPlaylists = async () => {
@@ -468,12 +461,6 @@ export default {
 
             try {
                 const devices = await getActiveDevices();
-                if (devices.length === 0) {
-                    alert(
-                        "활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요."
-                    );
-                    return;
-                }
 
                 await axios.put(
                     playUrl,
@@ -494,7 +481,7 @@ export default {
                     "Error playing song:",
                     error.response ? error.response.data : error.message
                 );
-                alert("노래를 재생할 수 없습니다. Spotify가 활성화되어 있는지 확인하세요.");
+                utilModalStore.showModal("트랙 재생", `트랙 재생에 실패하였습니다.`, "warnig");
             }
         };
 
@@ -504,12 +491,6 @@ export default {
 
             try {
                 const devices = await getActiveDevices();
-                if (devices.length === 0) {
-                    alert(
-                        "활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요."
-                    );
-                    return;
-                }
 
                 await axios.put(
                     playUrl,
@@ -524,34 +505,67 @@ export default {
                         },
                     }
                 );
-
-                console.log(`Playing playlist: ${playlistUri}`);
-                alert("플레이리스트를 재생합니다.");
             } catch (error) {
                 console.error(
                     "Error playing playlist:",
                     error.response ? error.response.data : error.message
                 );
-                alert("플레이리스트를 재생할 수 없습니다. Spotify가 활성화되어 있는지 확인하세요.");
+                utilModalStore.showModal("플리 재생 실패", `플리를 재생하는데 실패하였습니다.`, "warning");
             }
         };
 
         // Function to add a song to the user's playlist
-        const addToPlaylist = (songUri) => {
-            // Implement the actual logic to add the song to a user's playlist here
-            alert(`노래 ${songUri}을(를) 내 플레이리스트에 추가했습니다.`);
-            closeAllMenus1();
-            closeAllMenus2();
+        const addToPlaylist = async (playlistId) => {
+            console.log(token)
+            console.log(selectedTrack.value)
+            if (!selectedTrack.value) {
+                utilModalStore.showModal("플리에 추가하기", `플레이리스트를 선택하세요.`, "double-check");
+                return;
+            }
+            if (!token) {
+                modalStore.showModal(
+                    '로그인 페이지로 이동',
+                    '로그인 후 이용해주세요.',
+                    {
+                        onConfirm: () => {
+                        window.location.href = "/login";
+                        },
+                        onCancel: () => {
+                        isMusicSection.value = false;
+                        },
+                    }
+                );
+            }
+
+            try {
+                await axios.post(
+                    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+                    { uris: [selectedTrack.value] }, // Use selectedTrack here
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+                utilModalStore.showModal("플리에 추가하기", `내 플리에 추가되었습니다.`, "add-pli");
+                showPlaylistModal.value = false; // Close the modal
+            } catch (error) {
+                console.error("Error adding to playlist:", error);
+                utilModalStore.showModal("플리에 추가하기", `내 플리에 추가하는데 실패했습니다.`, "warning");
+            }
         };
 
         // Function to view album information
         const viewAlbumInfo = (albumId) => {
             // Implement the actual logic to view album information, possibly opening a modal
-            alert(`앨범 정보 보기: ${albumId}`);
             closeAllMenus1();
             closeAllMenus2();
         };
 
+        const closeModal = () => {
+            showPlaylistModal.value = false; // 모달 상태를 false로 설정
+        };
         // Function to close all option menus
         const closeAllMenus1 = () => {
             showOptionMenu1.value = [];
@@ -569,7 +583,7 @@ export default {
             fetchRecommendedPlaylists();
             fetchDomesticRanking();
             fetchInternationalRanking();
-            fetchUserProfile(); // Fetch user profile on mount
+            fetchUserProfile();
         });
 
         return {
@@ -590,8 +604,13 @@ export default {
             modalStore,
             openSongDetail,
             selectedSong,
-            userProfile, // Expose userProfile
-            selectPlaylist,
+            userProfile,
+            togglePlaylistModal,
+            showPlaylistModal,
+            getMyPlaylist,
+            playlists,
+            playlistModalPosition,
+            closeModal,
         };
     },
 };
@@ -616,15 +635,27 @@ body {
     display: flex;
 }
 
-/* Option Menu 항목 스타일 */
-.music-option-menu span {
+.playlist-option {
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    z-index: 1001;
+    flex-direction: column;
+    width: max-content;
+    top: 32%;
+    left: 20px;
+    display: flex;
+}
+
+.option-menu span {
     padding: 10px;
     cursor: pointer;
     width: 100%;
     text-align: left;
 }
 
-.music-option-menu span:hover {
+.option-menu span:hover {
     color: #67de86;
 }
 
@@ -738,6 +769,7 @@ body {
 
 .song-title:hover {
     transform: scale(1.02);
+    color: #1db954;
 }
 
 .song-artist {
@@ -771,5 +803,57 @@ body {
 
 .album-cover:hover {
     transform: scale(1.05);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+    text-align: center;
+}
+
+.modal-title {
+    padding-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: bolder;
+}
+
+.playlist-item {
+    list-style: none;
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.playlist-item:hover {
+    background-color: #f0f0f0;
+}
+
+.close-button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #1db954;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    background-color: #1ed760;
 }
 </style>
