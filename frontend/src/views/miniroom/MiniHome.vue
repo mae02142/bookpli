@@ -4,24 +4,32 @@
     <div class="left-section">
     <!-- 사용자 프로필 -->
         <div class="user-profile">
-            <div class="user-info">
+            <div class="user-profile-box">
+                <div class="user-info">
                 <img :src="userData.profilePath" class="avatar"></img>
                 <div class="book-plan">
                     <p class="userNm">{{userData.display_name}}님</p><br>
-                    <p style="margin-bottom: 5px;">이번달 목표 권 수: <span>{{currentGoal}}권</span></p>
-                    <p>이번달 읽은 권 수: <span>{{currentRead}}권</span></p>
+                    <div class="reading-count">
+                        <img src="@/assets/icons/read_book.png">
+                        <p style="margin-bottom: 5px;">{{ currentMonth }} 목표 권 수: <span>{{currentGoal}}권</span></p>
+                    </div>
+                    <div class="complete-count">
+                        <img src="@/assets/icons/read_complete.png">
+                        <p>{{ currentMonth }} 읽은 권 수: <span>{{currentRead}}권</span></p>
+                    </div>
                 </div>
-            </div>
-            <div class="status-card">
-                <div class="most-read-month">
-                    <div class="card-background"></div>
-                    <div class="card-title">가장 많이 읽은달</div>
-                    <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
                 </div>
-                <div class="yearly-read">
-                    <div class="card-background"></div>
-                    <div class="card-title">1년 동안</div>
-                    <div class="card-status">{{yearCount}}권</div>
+                <div class="status-card">
+                    <div class="most-read-month">
+                        <div class="card-background"></div>
+                        <div class="card-title">가장 많이 읽은달</div>
+                        <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
+                    </div>
+                    <div class="yearly-read">
+                        <div class="card-background"></div>
+                        <div class="card-title">1년 동안</div>
+                        <div class="card-status">{{yearCount}}권</div>
+                    </div>
                 </div>
             </div>
         </div> 
@@ -164,6 +172,7 @@ const liked= ref("");
 const currentReading=ref(1);
 const currentWished=ref(1);
 const itemsPerPage= ref(4);
+const currentMonth = ref('');
 
 const modalStore= useConfirmModalStore();
 
@@ -429,7 +438,6 @@ const gotoPlaylist= () => {
 
 // 로그인 직후 회원 정보 저장
 const getUserInfo = async() => {
-    console.log("getUserInfo>>>>>>>>>>>>>");
   try {
     const response = await apiClient.get("/api/user-info");
     userData.value= response.data;
@@ -453,6 +461,8 @@ onMounted(async () => {
   await loadBooks("reading", readList);
   await loadBooks("completed", completedBooks);
   await loadBooks("wished", addList);
+  const today = new Date();
+  currentMonth.value = `${today.getMonth() + 1}월`;
 
 // 각 책의 편집 상태 초기화
 isEditing.value = readList.value.map(() => false);
@@ -493,6 +503,7 @@ flex-direction: column;
 
 .left-section {
     align-items: center;
+    margin-left: 10px;
 }
 
 .user-profile {
@@ -508,6 +519,7 @@ flex-direction: column;
     display: flex;
     align-items: center;
     gap: 15px; 
+    margin-bottom: 20px;
 }
 
 .avatar {
@@ -528,14 +540,17 @@ flex-direction: column;
 
 .most-read-month,
 .yearly-read {
-    position: relative;
-    width: 120px;
-    height: 80px;
+    display: flex;
+    width: 142px;
+    height: 85px;
     text-align: center;
-    background: #dffdcc;
+    background: #ffffff;
     border-radius: 20px;
-    padding: 15px;
     box-sizing: border-box;
+    flex-flow: column;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 1px 1px 2px 2px rgb(0 185 7 / 41%);
 }
 
 
@@ -837,41 +852,19 @@ object-fit: cover;
 margin-bottom: 20px;
 }
 
-.most-read-month, .yearly-read {
-position: relative;
-width: 178px;
-height: 123px;
-margin-top: 20px;
-text-align: center;
-}
 
-.card-background {
-background: #dffdcc;
-border-radius: 20px;
-width: 100%;
-height: 100%;
-position: absolute;
-top: 0;
-left: 0;
-}
 
 .card-title {
-font-family: "Inter-Regular", sans-serif;
-font-size: 20px;
+font-size: 16px;
 font-weight: 400;
 color: #000000;
-margin-top: 15px;
-margin-bottom: 15px;
-position: relative;
 }
 
 .card-status {
-font-family: "Inter-Regular", sans-serif;
-font-size: 23px;
+font-size: 18px;
 font-weight: 400;
 color: #000000;
-margin-top: 10px;
-position: relative;
+font-weight: bold;
 }
 
 .sidebar {
@@ -895,7 +888,9 @@ position: relative;
 }
 
 .userNm{
-    font-size: x-large;
+    font-size: 18px;
+    margin-left: 2px;
+    font-weight: bold;
 }
 
 .book-icon {
@@ -912,5 +907,26 @@ position: relative;
     font-weight: bold;
     color: black;
     font-size: 15px;
+}
+
+.user-profile-box {
+    display: grid;
+    justify-items: center;
+    padding: 20px;
+    box-shadow: 1px 1px 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 17px;
+}
+
+.reading-count, .complete-count {
+    display: flex;
+    width: 200px;
+    align-items: center;
+    gap: 5px;
+    padding: 6px;
+}
+
+.reading-count img, .complete-count img{
+    width: 25px;
+    height: 25px;
 }
 </style>

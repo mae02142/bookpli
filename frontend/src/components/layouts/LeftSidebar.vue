@@ -48,6 +48,8 @@ const closeModal = () => {
 
 .sidebar-icon:hover {
     cursor: pointer;
+    width: 47px;
+    transition: transform 0.6s ease-in-out;
 }
 
 </style>

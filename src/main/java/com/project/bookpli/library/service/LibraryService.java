@@ -63,10 +63,25 @@ public class LibraryService {
     }
 
     @Transactional
-    public Long addBookLike(Long userId, String isbn13) {
+    public Long addBookLike(Long userId, BookDTO request) {
+        // 이미 좋아요한 기록이 있는지 확인
+        Optional<BookLike> existingLike = bookLikeRepository.findByUserIdAndIsbn13(userId, request.getIsbn13());
+        if (existingLike.isPresent()) {
+            // 중복된 요청이 있을 경우 기존 bookLikeId를 반환
+            return existingLike.get().getBookLikeId();
+        }
+
+        // 책이 존재하는지 확인 후 없으면 저장
+        Book book = bookRepository.findById(request.getIsbn13())
+                .orElseGet(() -> {
+                    Book newBook = BookDTO.toEntity(request);
+                    return bookRepository.saveAndFlush(newBook); // 즉시 저장 및 플러시
+                });
+
+        // BookLike 엔티티 생성 및 저장
         BookLike bookLike = BookLike.builder()
                 .userId(userId)
-                .isbn13(isbn13)
+                .isbn13(book.getIsbn13())
                 .build();
 
         return bookLikeRepository.save(bookLike).getBookLikeId();

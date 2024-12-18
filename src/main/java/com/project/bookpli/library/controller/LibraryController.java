@@ -41,9 +41,10 @@ public class LibraryController {
         return new BaseResponse<>(response);
     }
 
-    @PostMapping("{userId}/book/{isbn13}")
-    public BaseResponse<Long> addBookLike(@PathVariable Long userId, @PathVariable String isbn13){
-        Long response = libraryService.addBookLike(userId, isbn13);
+    @PostMapping("{userId}/book")
+    public BaseResponse<Long> addBookLike(@PathVariable Long userId, @RequestBody BookDTO book){
+        Long response = libraryService.addBookLike(userId, book);
+        System.out.println("check>>>>>>>>>>>>>>>"+ book);
         return new BaseResponse<>(response);
     }
 
