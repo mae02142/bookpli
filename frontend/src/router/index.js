@@ -103,7 +103,8 @@ const router = createRouter({
     },
 
     { path: "/artist/:id", 
-      component: () => import("@/views/main/DetailsPage.vue") },
+      component: () => import("@/views/main/ArtistDetails.vue")
+    },
 
     {
       path: "/details/:category",

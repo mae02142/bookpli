@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
 <div>
     <div class="book-details">
         <div class="book-cover-section">

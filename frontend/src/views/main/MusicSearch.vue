@@ -22,12 +22,15 @@
                 <section class="search-section" v-if="artists.length">
                     <div class="section-header">
                         <h2 class="section-title">아티스트</h2>
-                        <button class="view-more-button" @click="goToDetails('artists')">더보기</button>
+                        <button class="view-more-button" @click="goToDetails('artists')">
+                            더보기
+                        </button>
                     </div>
                     <hr>
                     <div class="results-grid horizontal-scroll">
-                        <div v-for="artist in artists" :key="artist.id" class="result-item" @click="fetchArtistAlbums(artist.id)">
-                            <img :src="artist.images[0]?.url || placeholderImage" alt="아티스트 이미지" />
+                        <div
+                            v-for="artist in artists" :key="artist.id || artist.name" class="result-item" @click="artist?.id ? goToArtistDetail(artist.id) : null">
+                            <img :src="artist?.images?.[0]?.url || placeholderImage" alt="아티스트 이미지"/>
                             <p class="artist-title">{{ artist.name }}</p>
                         </div>
                     </div>
@@ -56,7 +59,7 @@
                     <hr>
                     <div class="results-grid horizontal-scroll">
                         <div v-for="playlist in playlists" :key="playlist.id" class="result-item" @click="playPlaylist(playlist.uri)">
-                            <img :src="playlist.images[0]?.url || placeholderImage" alt="플레이리스트 이미지" />
+                            <img :src="playlist.images[0]?.url || placeholderImage" alt="플레이리스트 이미지"/>
                             <p class="playlist-title">{{ playlist.name }}</p>
                         </div>
                     </div>
@@ -73,10 +76,12 @@ import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { useUserStore } from "@/stores/user";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
+import { useUtilModalStore } from "@/stores/utilModalStore";
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const utilModalStore = useUtilModalStore();
 
 const query = route.query.q || "";
 const type = route.query.type || "music";
@@ -125,9 +130,8 @@ const playTrack = async (trackUri) => {
         await axios.put("https://api.spotify.com/v1/me/player/play", { uris: [trackUri] }, {
             headers: { Authorization: `Bearer ${userStore.accessToken}`, "Content-Type": "application/json" },
         });
-        console.log("트랙 재생 시작:", trackUri);
     } catch (error) {
-        console.error("Track 재생 오류:", error.message);
+        utilModalStore.showModal("트랙 재생하기", `트랙 재생 오류.`, "warning");
     }
 };
 
@@ -137,9 +141,8 @@ const playAlbum = async (albumId) => {
         await axios.put("https://api.spotify.com/v1/me/player/play", { context_uri: `spotify:album:${albumId}` }, {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
         });
-        console.log("앨범 재생 시작:", albumId);
     } catch (error) {
-        console.error("Album 재생 오류:", error.message);
+        utilModalStore.showModal("앨범 재생하기", `앨범 재생 오류.`, "warning");
     }
 };
 
@@ -149,9 +152,8 @@ const playPlaylist = async (playlistUri) => {
         await axios.put("https://api.spotify.com/v1/me/player/play", { context_uri: playlistUri }, {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
         });
-        console.log("플레이리스트 재생 시작:", playlistUri);
     } catch (error) {
-        console.error("Playlist 재생 오류:", error.message);
+        utilModalStore.showModal("플리 재생하기", `플리 재생 오류.`, "warning");
     }
 };
 
@@ -164,13 +166,22 @@ const fetchArtistAlbums = async (artistId) => {
         });
         albums.value = response.data.items;
     } catch (error) {
-        console.error("아티스트 앨범 조회 오류:", error.message);
+        utilModalStore.showModal("아티스트 정보 보기", `아티스트를 불러오는데 실패하였습니다.`, "warning");
     }
 };
 
 // 상세 페이지 이동
 const goToDetails = (category) => {
     router.push({ path: `/details/${category}`, query: { q: query } });
+};
+
+const goToArtistDetail = (artistId) => {
+    if (!artistId) {
+        console.warn("Invalid artistId:", artistId);
+        utilModalStore.showModal("아티스트 불러오기", `아티스트 ID를 불러오는데 실패하였습니다.`, "warning");
+        return;
+    }
+    router.push({ path: `/artist/${artistId}` });
 };
 
 onMounted(() => {
