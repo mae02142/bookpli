@@ -111,12 +111,6 @@
                 <button @click="openInput(item.commentId)" class="show-btn">수정</button>
                 <hr class="btn-line" />
                 <button class="show-btn" @click="confirmRemove(item.commentId)">삭제</button>
-  
-                <!-- 삭제 컴포넌트 -->
-                <RemoveComment
-                  v-model:isVisible="item.deleteCheck"
-                  :deleteId="item.commentId"
-                  @delete-comment="deleteComment"/>
               </div>
             </div>
           </div>
@@ -135,7 +129,6 @@
   import Profile from "@/assets/icons/profile.png"
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue";
-  import RemoveComment from "./RemoveComment.vue";  
   import { useConfirmModalStore } from "@/stores/utilModalStore";
   
   export default {
@@ -150,14 +143,11 @@
       },
      },
     components: {
-        RemoveComment,
         PostForm,
         Comment,
     },
     setup(props) {
       onMounted(() => {
-        console.log('userId'+ props.userId);
-        console.log('bookclubId'+ props.bookclubId);
         getComments();
       })
     
@@ -189,8 +179,6 @@
                 },
                 curpos: 0,
               }));
-            }else{
-              console.log('배열이 아닙니다');
             }
           }
         }catch(error){
@@ -226,11 +214,9 @@
         const editComment = ref({});
         // 수정 폼 오픈
         const openInput = (commentId) => {
-          console.log('수정하려는 id : '+commentId);
           editingId.value = commentId;
           editComment.value = { ...comments.value.find(comment => 
            comment.commentId === commentId) }; 
-           console.log("edit comment 에 복사: "+ JSON.stringify(editComment.value));
     };
 
           // 서버로 댓글 수정 전송 후 처리
@@ -242,12 +228,11 @@
             commentContent : editComment.value.commentContent,
             commentDate : editComment.value.commentDate
           }
-          console.log('댓글 :'+JSON.stringify(comment));
+          
           try {
             const response =  await apiClient.put("/api/comment/edit", comment);
                 if(response.status ==200){
                   const index = comments.value.findIndex((item) => item.commentId == comment.commentId);
-                  console.log(index);
 
                   if(index !== -1){
                     comments.value[index] = {...comments.value[index],...comment};
@@ -307,13 +292,11 @@
       };
 
       const getPost = async (postId) => {
-        console.log("불러올 게시글 ID:", postId);
         try {
           const response = await apiClient.get(`/api/post/comment/readOne`, {
             params: { postId },
           });
           if (response.status === 200) {
-            console.log("게시글 데이터:", response.data.data);
             return response.data.data; // 게시글 데이터를 반환
           }
         } catch (error) {

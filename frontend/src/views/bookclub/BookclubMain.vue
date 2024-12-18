@@ -107,6 +107,7 @@
       </article>
       </section>
     </div>
+    <musicPlayer />
     </div>
   </template>
   <script>
@@ -116,9 +117,12 @@
   import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
   import { useUtilModalStore } from "@/stores/utilModalStore";
   import { useConfirmModalStore } from "@/stores/utilModalStore";
-
+  import musicPlayer from "@/components/layouts/musicPlayer.vue";
   export default {
-    components: {LeftSidebar},
+    components: {
+    LeftSidebar,
+    musicPlayer,
+    },
     setup() {
       const authStore = useAuthStore();
       const utilModalStore = useUtilModalStore();
@@ -128,16 +132,12 @@
       const searchList= ref(false); // 검색버튼 누르면 리스트 보일 수 있게
 
       const searchBookClub = async(searchValue) => {
-        console.log('찾으려는 북클럽 keyword : '+ searchValue);
         try{
-          console.log('겟요청 보내기');
           const response = await apiClient.get("/api/bookclub/search", {
             params : {keyword : searchValue},
           });
-            console.log('겟 요청 후');
             if(response.status == 200){
               communities.value = response.data;
-              console.log(JSON.stringify(communities.value));
             }
         }catch(error){
           console.error(error, '오류 발생');
@@ -151,7 +151,11 @@
 
           // 로그인 여부 확인
           if (!authStore.user?.userId) {
-            alert("로그인이 필요합니다!");
+            utilModalStore.showModal(
+              '경고',
+              '로그인이 필요합니다.',
+              'alert'
+            );
             window.location.href = "http://localhost:3000/auth/login";
             return;
           }
@@ -159,7 +163,6 @@
         const response = await apiClient.post(
   `/api/userbookclub/add/bookclub?isbn13=${encodeURIComponent(isbn13)}&userId=${authStore.user.userId}`
 );
-        console.log(response.data);
         if(response.data.data === true){
           utilModalStore.showModal(
             '안내',
@@ -174,7 +177,7 @@
           )
         }
       }catch(error){
-        console.log(error, "!!!!!오류 발생");
+        console.error(error, "!!!!!오류 발생");
       }
       readMyClubs();
     };
@@ -189,7 +192,6 @@
        {params : {userId :authStore.user.userId}
       });
       myclubList.value = response.data.data;
-      console.log(JSON.stringify(myclubList.value));
       }catch(error){
         console.error(error, "리스트 가져오는 중 에러 발생!")
       }
@@ -279,12 +281,10 @@
         } catch (error) {
             console.error("Error fetching Best Books data:", error);
         }
-        console.log(bestBooks.value);
     };
 
 
     onMounted(()=>{
-      console.log('회원아이디 :'+ authStore.user.userId);
       readMyClubs();
       fetchBestBooks();
     })
@@ -315,10 +315,13 @@ body {
 
 }
 
+
 /* Main Container */
 .community {
   height: 100vh;
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: 0fr 0fr 1fr;
 }
 
 /* sidebar */
@@ -336,8 +339,6 @@ body {
     transform: rotate(360deg);
     cursor: pointer;
   }
-
-
 
 .sidebar3 {
   width: 250px;
@@ -389,9 +390,10 @@ body {
 
 /* main */
 .main{
+  margin: auto;
   display: flex;
   margin-top: 50px;
-  width: 60%;
+  width: 100%;
   align-items: center;
   flex-direction: column;
 }

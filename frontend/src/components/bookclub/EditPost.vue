@@ -99,9 +99,6 @@ export default {
 
     // imageSrc 에 imageUrl만 저장
     imageSrc.value = post.value.imageUrl.map(img => img.imageUrl);
-    console.log(post.value.imageUrl.imageUrl);
-
-    console.log(imageSrc.value); // URL만 저장된 배열 확인
   } catch (error) {
     console.error('게시글 데이터를 불러오는 중 오류 발생:', error);
   }
@@ -132,7 +129,6 @@ export default {
           const fileDataUrl = e.target.result; // url 로드 수행
 
           imageSrc.value.push(fileDataUrl); 
-          console.log(imageSrc.value);
         };
         reader.readAsDataURL(file); // 파일을 Data URL로 읽음
         selectedFiles.value.push(file);
@@ -153,7 +149,6 @@ export default {
       try {
         // 이미지 업로드
         const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
-        console.log('업로드 이미지: '+ uploadedUrls);
 
         post.value.imageUrl = imageSrc.value.map((url) => {
       // 기존 이미지와 매핑
@@ -179,9 +174,9 @@ export default {
 
         // 서버에 수정된 게시글 정보 전송
         const response = await apiClient.put('/api/post/edit', post.value);
-        console.log('게시글 수정 성공', response.data);
-        closeModal();
-
+        if(response.status ==200){
+          closeModal();
+        }
       } catch (error) {
         console.error('게시글 수정 실패', error);
       }
@@ -219,7 +214,6 @@ export default {
           console.error(`Error uploading image ${file.name}:`, error);
           }
       }
-      console.log("Uploaded URLs:", urls); // 업로드된 URL 확인
       return urls;
       };
 

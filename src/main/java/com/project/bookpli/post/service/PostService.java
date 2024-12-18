@@ -172,12 +172,12 @@ public class PostService {
                             .build();
                     postImageRepository.save(image);
                 }
-                return true;
             }
+            return true;
         } catch (Exception e) {
             System.out.println("등록 중 오류 발생" + e.getMessage());
+            return false;
         }
-        return false;
     }
 
 

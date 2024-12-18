@@ -38,13 +38,12 @@
 </template>
 <script setup>
 import apiClient from '@/api/axiosInstance';
-import { onMounted, ref, watch} from "vue";
+import { onMounted, ref} from "vue";
 import fullStarImage from "@/assets/icons/full_star.png";
 import profile from "@/assets/icons/profile.png";
 
 
 onMounted(()=>{
-    console.log(props.isbn13);
     getList(props.isbn13);
 })
  
