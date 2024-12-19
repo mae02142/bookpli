@@ -1,137 +1,139 @@
 <template>
 <div class="dashboard">
     <LeftSidebar/> 
-    <div class="left-section">
-    <!-- 사용자 프로필 -->
-        <div class="user-profile">
-            <div class="user-profile-box">
-                <div class="user-info">
-                <img :src="userData.profilePath" class="avatar"></img>
-                <div class="book-plan">
-                    <p class="userNm">{{userData.display_name}}님</p><br>
-                    <div class="reading-count">
-                        <img src="@/assets/icons/read_book.png">
-                        <p style="margin-bottom: 5px;">{{ currentMonth }} 목표 권 수: <span>{{currentGoal}}권</span></p>
+    <section class="minihome-section">
+        <div class="left-section">
+        <!-- 사용자 프로필 -->
+            <div class="home-user-profile">
+                <div class="user-profile-box">
+                    <div class="user-info">
+                    <img :src="userData.profilePath" class="avatar"></img>
+                    <div class="book-plan">
+                        <p class="userNm">{{userData.display_name}}님</p><br>
+                        <div class="reading-count">
+                            <img src="@/assets/icons/read_book.png">
+                            <p style="margin-bottom: 5px;">{{ currentMonth }} 목표 권 수: <span>{{currentGoal}}권</span></p>
+                        </div>
+                        <div class="complete-count">
+                            <img src="@/assets/icons/read_complete.png">
+                            <p>{{ currentMonth }} 읽은 권 수: <span>{{currentRead}}권</span></p>
+                        </div>
                     </div>
-                    <div class="complete-count">
-                        <img src="@/assets/icons/read_complete.png">
-                        <p>{{ currentMonth }} 읽은 권 수: <span>{{currentRead}}권</span></p>
                     </div>
-                </div>
-                </div>
-                <div class="status-card">
-                    <div class="most-read-month">
-                        <div class="card-background"></div>
-                        <div class="card-title">가장 많이 읽은달</div>
-                        <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
-                    </div>
-                    <div class="yearly-read">
-                        <div class="card-background"></div>
-                        <div class="card-title">1년 동안</div>
-                        <div class="card-status">{{yearCount}}권</div>
-                    </div>
-                </div>
-            </div>
-        </div> 
-
-    <!-- 음악 플레이어 -->
-    <div class="music-section">
-        <h3 class="music-title">play music</h3>
-        <p class="more-wrapper music-more" @click="gotoPlaylist">
-            <img src="../../assets/icons/add.png" class="sm-images" />더보기
-        </p>
-        <div class="music-player"> 
-            <MusicPlayer/>
-        </div>
-    </div>    
-    </div>
-
-    <!-- 세로 구분선 -->
-    <div class="vr full-height"></div>
-
-    <div class="right-section">
-        <h3 class="title-header">이번달 독서통계</h3>
-
-        <div class="reading-status-box">
-            <div class="progress-legend">
-                <span class="goal"></span> 목표량
-                <span class="current"></span> 현재 진행률
-            </div>
-            <ul v-if="readList.length > 0">
-                <div class="book-progress" v-for="(book, index) in readList" :key="index">
-                <p class="book-title" @click="openModal(book)">{{ book.title.split('-')[0] }}</p>
-                <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
-                <!-- 종료일이 지나면 실패처리 -->
-                <div class="progress-wrapper" v-if="new Date(book.endDate) > new Date()">
-                <!-- Progress Bar -->
-                <!-- 목표량 Progress Bar -->
-                <div class="full-progress" max="100"></div>
-                <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}"></div> 
-                                
-                <!-- 현재 Progress Bar -->
-                <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"
-                    @mounted="changeToFail(book, index)"></div>
-                    <div class="progress-info">
-                        <span class="progress-percentage">{{ calInputPage[index] }}%</span>
-                        <span class="page-info">
-                                <span v-if="isEditing[index]">
-                                    <input type="number" v-model.number="currentPage[index]" 
-                                    @blur="stopEdit(index)" @keyup.enter="stopEdit(index)" class="edit-input"/>
-                                    /{{ book.startindex }}
-                                </span>
-                                <span v-else>
-                                    p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
-                                    <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
-                                    <input type="button" value="완독" @click="clearReading(book)" class="complete-button"/>
-                                </span>
-                        </span>    
-                    </div>
-                </div>  
-                </div>
-            </ul>    
-            <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
-        </div>
-
-        <h3 class="title-header">내가 읽고 있는 책</h3>  
-        <div>
-            <p class="more-wrapper book-more" @click="loadReadList">
-            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
-            </p>
-            <div class="book-section">
-                <div v-if="readList.length > 0" class="book-covers">
-                    <div class="book-item" v-for="rbook in pageinationRead.slice(0,4)" :key="rbook.isbn13">
-                        <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
-                        <div class="book-info">
-                            <div>
-                                <span class="book-icon" @click="openModal(rbook)">📖</span>
-                            </div>
-                            <div class="reading-book-grid">
-                                <span>{{ rbook.title.split('-')[0] }}</span>
-                                <span>{{ rbook.author }}</span>
-                            </div>
+                    <div class="status-card">
+                        <div class="most-read-month">
+                            <div class="card-background"></div>
+                            <div class="card-title">가장 많이 읽은달</div>
+                            <div class="card-status">{{ mostReadInfo.month}}월 | {{mostReadInfo.count}}권</div>
+                        </div>
+                        <div class="yearly-read">
+                            <div class="card-background"></div>
+                            <div class="card-title">1년 동안</div>
+                            <div class="card-status">{{yearCount}}권</div>
                         </div>
                     </div>
                 </div>
+            </div> 
+            <div class="mini-divider"></div>
+        <!-- 음악 플레이어 -->
+        <div class="music-section">
+            <h3 class="music-title">play music</h3>
+            <p class="more-wrapper music-more" @click="gotoPlaylist">
+                <img src="../../assets/icons/add.png" class="sm-images" />더보기
+            </p>
+            <div class="music-player"> 
+                <MusicPlayer/>
+            </div>
+        </div>    
+        </div>
+
+        <!-- 세로 구분선 -->
+        <div class="vr full-height"></div>
+
+        <div class="right-section">
+            <h3 class="title-header">이번달 독서통계</h3>
+
+            <div class="reading-status-box">
+                <div class="progress-legend">
+                    <span class="goal"><div class="goal-bar"></div></span> 목표량
+                    <span class="current"><div class="current-bar"></div></span> 현재 진행률
+                </div>
+                <ul v-if="readList.length > 0">
+                    <div class="book-progress" v-for="(book, index) in readList" :key="index">
+                    <p class="book-title" @click="openModal(book)">{{ book.title.split('-')[0] }}</p>
+                    <p class="book-start-date">시작일 {{ book.startDate.split('T')[0] }}</p>
+                    <!-- 종료일이 지나면 실패처리 -->
+                    <div class="progress-wrapper" v-if="new Date(book.endDate) > new Date()">
+                    <!-- Progress Bar -->
+                    <!-- 목표량 Progress Bar -->
+                    <div class="full-progress" max="100"></div>
+                    <div class="goal-progress" :style="{ width: calculateGoalProgress[index]+ '%'}"></div> 
+                                    
+                    <!-- 현재 Progress Bar -->
+                    <div class="current-progress" :style="{ width: calInputPage[index]+ '%'}"
+                        @mounted="changeToFail(book, index)"></div>
+                        <div class="progress-info">
+                            <span class="progress-percentage">{{ calInputPage[index] }}%</span>
+                            <span class="page-info">
+                                    <span v-if="isEditing[index]">
+                                        <input type="number" v-model.number="currentPage[index]" 
+                                        @blur="stopEdit(index)" @keyup.enter="stopEdit(index)" class="edit-input"/>
+                                        /{{ book.startindex }}
+                                    </span>
+                                    <span v-else>
+                                        p.{{ currentPage[index] || 0 }}/{{ book.startindex }}
+                                        <img src="../../assets/icons/bookmark2.png" class="sm-images" @click="startEdit(index)"/>
+                                        <input type="button" value="완독" @click="clearReading(book)" class="complete-button"/>
+                                    </span>
+                            </span>    
+                        </div>
+                    </div>  
+                    </div>
+                </ul>    
                 <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
             </div>
-        </div>
 
-
-        
-
-        <h3 class="title-header">내가 담아놓은 책</h3>
-        <p class="more-wrapper book-more" @click="gotoLibrary">
-            <img src="../../assets/icons/add.png" class="sm-images"/>더보기
-        </p>
-        <div class="book-section">
-            <div v-if="addList.length > 0" class="book-covers">
-                <div class="book-item" v-for="wbook in pageinationWish.slice(0,4)" :key="wbook.isbn13">
-                    <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
+            <h3 class="title-header">내가 읽고 있는 책</h3>  
+            <div>
+                <p class="more-wrapper book-more" @click="loadReadList">
+                <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+                </p>
+                <div class="book-section">
+                    <div v-if="readList.length > 0" class="book-covers">
+                        <div class="book-item" v-for="rbook in pageinationRead.slice(0,5)" :key="rbook.isbn13">
+                            <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
+                            <div class="book-info">
+                                <div>
+                                    <span class="book-icon" @click="openModal(rbook)">📖</span>
+                                </div>
+                                <div class="reading-book-grid">
+                                    <span>{{ rbook.title.split('-')[0] }}</span>
+                                    <span>{{ rbook.author }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p v-else class="empty">읽고 있는 도서가 존재하지 않습니다.</p>      
                 </div>
             </div>
-            <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
-        </div>
-    </div>
+
+
+            
+
+            <h3 class="title-header">내가 담아놓은 책</h3>
+            <p class="more-wrapper book-more" @click="gotoLibrary">
+                <img src="../../assets/icons/add.png" class="sm-images"/>더보기
+            </p>
+            <div class="book-section">
+                <div v-if="addList.length > 0" class="book-covers">
+                    <div class="book-item" v-for="wbook in pageinationWish.slice(0,5)" :key="wbook.isbn13">
+                        <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
+                    </div>
+                </div>
+                <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
+            </div>
+        </div>       
+    </section>
 
     <ReadGoalModal 
     :visible="showModal"
@@ -174,7 +176,7 @@ const liked= ref("");
 
 const currentReading=ref(1);
 const currentWished=ref(1);
-const itemsPerPage= ref(4);
+const itemsPerPage= ref(5);
 const currentMonth = ref('');
 
 const modalStore= useConfirmModalStore();
@@ -520,8 +522,20 @@ readList.value.forEach((book, index) => {
 
 <style scoped>
 .dashboard {
-    display: flex;
     height: 100vh;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 0fr 0.95fr;
+}
+
+.minihome-section{
+    width: 100%;
+    display: flex;
+    margin: 20px;
+    border: 1px solid #cecece52;
+    border-radius: 20px;
+    padding: 30px 10px;
+    background-color: #fffffb;
 }
 
 .book-section{
@@ -532,21 +546,25 @@ readList.value.forEach((book, index) => {
 .right-section {
 display: flex;
 flex-direction: column;
+background: white;
+border: 1px solid #cecece52;
+border-radius: 30px; 
 }
 
 
 .left-section {
     align-items: center;
-    margin-left: 10px;
+    gap: 20px;
+    margin: 10px;
+    padding: 10px;
 }
 
-.user-profile {
+.home-user-profile {
     display: flex;
     justify-content: space-between; 
     align-items: center;
-    border-bottom: 1px solid #ccc;
     padding-bottom: 20px;
-    margin-bottom: 20px;
+    margin: 10px 20px;
 }
 
 .user-info {
@@ -587,11 +605,17 @@ flex-direction: column;
     box-shadow: 1px 1px 2px 2px rgb(0 185 7 / 41%);
 }
 
+.mini-divider{
+    border: none;
+    width: 90%;
+    border-top: 1px solid #ccc;
+}
+
 
 .right-section{
-    margin-left: 30px;
+    margin : 10px;
     width: 80%;
-    margin-right: 20px;
+    padding: 30px;
 }
 
 .reading-status-box {
@@ -602,7 +626,7 @@ border-radius: 8px;
 
 overflow-y: auto; 
 overflow-x: hidden;
-border: 1px solid #ccc;
+border: 1px solid #e0e0e0;
 
 display: flex;
 flex-direction: column; 
@@ -610,7 +634,8 @@ gap: 20px;
 min-width: 500px;
 min-width: 250px;
 
-width: 70%;
+width: 80%;
+margin: auto;
 }
 
 .user-profile {
@@ -638,8 +663,7 @@ width: 70%;
 .music-player {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    align-items: flex-start; 
+    align-items: center; 
     position: relative; 
     margin-left: 40px;
     margin-top: 50px;
@@ -797,7 +821,7 @@ color: #666;
 }
 
 .music-title{
-    margin-bottom: 15px;
+    margin: 20px 0;
     font-size: x-large;
 }
 
@@ -825,6 +849,7 @@ color: #666;
     width: 15px;
     height: 15px;
     margin-right: 5px; 
+    cursor: pointer;
 }
 
 .more-wrapper {
@@ -899,6 +924,8 @@ font-weight: bold;
 
 .empty{
     text-align: center;
+    font-size: 18px;
+    color: #909090;
     
 }
 
@@ -963,7 +990,17 @@ font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
+.goal-bar{
+    width: 30px;
+    height: 10px;
+    background-color: rgb(171, 235, 171);   
+}
 
+.current-bar{
+    width: 30px;
+    height: 10px;
+    background-color: rgb(2, 77, 42);
+}
 /* .goal{
     position: absolute;
     top: 0;

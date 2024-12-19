@@ -59,6 +59,7 @@
         step="0.01" 
         v-model="playerStore.volume" 
         @input="onVolumeChange"
+        class="volume-progress-bar"
       />
     </div>
   </div>
@@ -130,11 +131,17 @@ onMounted(() => {
   height: 200px;
   border-radius: 10px;
   object-fit: cover;
+  border: 1px solid #ebebeb
 }
 
 .music-progress-bar {
   width: 100%;
   margin-top: 10px;
+  accent-color: black;
+}
+
+.volume-progress-bar {
+  accent-color: #8a8a8a;
 }
 
 .time-info {

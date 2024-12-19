@@ -1,27 +1,26 @@
 <template>
     <div class="community">
-
       <LeftSidebar />
     <div class="sidebar3">
-    <div class="svg-container">
-      <svg
-        class="rotatable-svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        @click="openEdit"
-      >
-        <path
-          d="M9.60803 1.75L9.10502 4.336C8.26922 4.64433 7.49158 5.09181 6.80503 5.6595L4.32003 4.803L1.92603 8.947L3.91603 10.677C3.75891 11.5528 3.75891 12.4497 3.91603 13.3255L1.92603 15.055L4.32053 19.197L6.80253 18.342C7.48887 18.9108 8.26765 19.3578 9.10502 19.6635L9.60753 22.25H14.392L14.8845 19.69C15.7175 19.3576 16.4961 18.9026 17.1945 18.34L19.679 19.197L22.071 15.055L20.083 13.3235C20.2418 12.4492 20.2418 11.5533 20.083 10.679L22.073 8.9455L19.6785 4.8035L17.1965 5.6585C16.5096 5.09047 15.731 4.64358 14.894 4.337L14.3915 1.751L9.60803 1.75ZM11.9565 8.853C12.7921 8.8678 13.5885 9.21013 14.1742 9.80629C14.7599 10.4025 15.0881 11.2048 15.0881 12.0405C15.0881 12.8762 14.7599 13.6785 14.1742 14.2747C13.5885 14.8709 12.7921 15.2132 11.9565 15.228C11.1112 15.228 10.3005 14.8923 9.70262 14.2946C9.10478 13.697 8.76879 12.8863 8.76853 12.041V12.0405C8.76853 11.6219 8.85099 11.2073 9.01121 10.8206C9.17143 10.4338 9.40626 10.0824 9.7023 9.78642C9.99834 9.49043 10.3498 9.25565 10.7366 9.09549C11.1234 8.93533 11.5379 8.85293 11.9565 8.853Z"
-          stroke="black"
-          stroke-width="0.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </div>
+      <div class="svg-container">
+        <svg
+          class="rotatable-svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          @click="openEdit"
+        >
+          <path
+            d="M9.60803 1.75L9.10502 4.336C8.26922 4.64433 7.49158 5.09181 6.80503 5.6595L4.32003 4.803L1.92603 8.947L3.91603 10.677C3.75891 11.5528 3.75891 12.4497 3.91603 13.3255L1.92603 15.055L4.32053 19.197L6.80253 18.342C7.48887 18.9108 8.26765 19.3578 9.10502 19.6635L9.60753 22.25H14.392L14.8845 19.69C15.7175 19.3576 16.4961 18.9026 17.1945 18.34L19.679 19.197L22.071 15.055L20.083 13.3235C20.2418 12.4492 20.2418 11.5533 20.083 10.679L22.073 8.9455L19.6785 4.8035L17.1965 5.6585C16.5096 5.09047 15.731 4.64358 14.894 4.337L14.3915 1.751L9.60803 1.75ZM11.9565 8.853C12.7921 8.8678 13.5885 9.21013 14.1742 9.80629C14.7599 10.4025 15.0881 11.2048 15.0881 12.0405C15.0881 12.8762 14.7599 13.6785 14.1742 14.2747C13.5885 14.8709 12.7921 15.2132 11.9565 15.228C11.1112 15.228 10.3005 14.8923 9.70262 14.2946C9.10478 13.697 8.76879 12.8863 8.76853 12.041V12.0405C8.76853 11.6219 8.85099 11.2073 9.01121 10.8206C9.17143 10.4338 9.40626 10.0824 9.7023 9.78642C9.99834 9.49043 10.3498 9.25565 10.7366 9.09549C11.1234 8.93533 11.5379 8.85293 11.9565 8.853Z"
+            stroke="black"
+            stroke-width="0.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
       <div class="bookclub-list">
         <!-- 북클럽 목록 -->
         <div
@@ -33,7 +32,9 @@
         query : {cover : myclub.cover , title : myclub.title, 
         author : myclub.author , bookClubId : myclub.bookClubId, description : myclub.description}}">
           <div class="bookclub-details">
-            <img :src="myclub.cover" alt="icon" class="note-icon" />
+            <div class="bookclub-image">
+              <img :src="myclub.cover" alt="icon" class="note-icon" />
+            </div>
             <p class="bookclub-name">{{ myclub.title.replace(/\(.*?\)/g, '').trim() }}</p>
           </div>
           </RouterLink>
@@ -46,7 +47,7 @@
         </div>
       </div>
     </div>
-
+    <!-- 북클럽 페이지  -->
     <div class ="main">
       <header class="header">
         <div class="title-quotes">
@@ -62,28 +63,29 @@
             <img class="search-community" @click="searchBookClub(searchValue)" src="@/assets/icons/search.png" alt="Search Community">
         </div>
       </header>
+          <!-- 검색 시 보여지는 북클럽 -->
       <section v-if="searchList" class="search-content">
-        <h2 class="list-title">“{{ searchValue }}” 에 해당하는 커뮤니티</h2>
-      
-      <article class="community-list">
-        <div class="community-item" v-for="item in communities" :key="item.bookClubId">
-          <div class="img-btn"  @click="addBookClub(item.isbn13)">
-            <div class="add-community">
-                <p class="add-icon" >+</p>
-            </div>
-          <div class="cover-one">
-              <div class="cover-two">
-                <img :src="item.cover" :alt="item.title" class="item-image" />
+        <h2 class="list-title">“{{ searchValue }}” 에 해당하는 북클럽</h2>
+        <article class="community-list">
+          <div class="community-item" v-for="item in communities" :key="item.bookClubId">
+            <div class="img-btn"  @click="addBookClub(item.isbn13)">
+              <div class="add-community">
+                  <p class="add-icon" >+</p>
               </div>
+            <div class="cover-one">
+                <div class="cover-two">
+                  <img :src="item.cover" :alt="item.title" class="item-image" />
+                </div>
+              </div>
+            </div>  
+            <div class="item-details">
+              <h3 class="item-title">{{ item.title.replace(/\(.*?\)/g, '').trim() }}</h3>
+              <p class="item-author">{{ item.author.replace(/\(.*?\)/g, '').trim() }}</p>
             </div>
-          </div>  
-          <div class="item-details">
-            <h3 class="item-title">{{ item.title.replace(/\(.*?\)/g, '').trim() }}</h3>
-            <p class="item-author">{{ item.author.replace(/\(.*?\)/g, '').trim() }}</p>
           </div>
-        </div>
-      </article>
+        </article>
       </section>
+      <!-- 기본 보여지는 북클럽 -->
       <section v-else class="search-content">
         <h2 class="list-title"> BestSeller's BookClub</h2>
 
@@ -104,7 +106,7 @@
             <p class="item-author">{{ book.author.replace(/\(.*?\)/g, '').trim() }}</p>
           </div>
         </div>
-      </article>
+       </article>
       </section>
     </div>
     <musicPlayer />
@@ -367,12 +369,17 @@ body {
 .note-icon {
   width: 25px;
   height: 25px;
-  margin-right: 13px;
   border-radius: 50%;
 }
 
 .bookclub-details {
   display: flex;
+}
+
+.bookclub-image{
+  width: 25px;
+  height: 25px;
+  margin-right: 15px;
 }
 
 .bookclub-name {
@@ -495,6 +502,7 @@ body {
   line-height: 1.4;
   align-self: flex-start;
 }
+
 .item-title {
   font-size: 15px;
   font-weight: 600;

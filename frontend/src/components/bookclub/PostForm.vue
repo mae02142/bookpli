@@ -1,9 +1,9 @@
 <template>
-<div class="modal-wrap"
+<div class="post-modal-wrap"
  v-show="modelValue"
   @click="closeModal">
-    <div class="modal-content" @click.stop>
-        <div class="modal-items">
+    <div class="post-modal-content" @click.stop>
+        <div class="post-modal-items">
             <header class="header">
                 <h3>게시글 등록</h3>
                 <hr>
@@ -47,7 +47,7 @@
                 @change="onFileChange" 
                 multiple accept="image/*"
                 >
-                <button @click="submitPost" class="modal-btn">게시</button>
+                <button @click="submitPost" class="post-modal-btn">게시</button>
             </div>
         </article>
         </div>
@@ -218,7 +218,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
 </script>
 <style scoped>
         /* 모달 전체 스타일 */
-    .modal-wrap {
+    .post-modal-wrap {
         position: fixed;
         left: 0;
         top : 0;
@@ -227,7 +227,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
         background: rgb(0, 0, 0, 0.4);
         z-index: 1000;
     }
-    .modal-content {
+    .post-modal-content {
         font-size: 18px;
         position: relative;
         top : 50%;
@@ -290,7 +290,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
       width: 170px;
       height: 170px;
     }
-    .modal-btn {
+    .post-modal-btn {
         width: 50px;
         height: 35px;
         background-color: #fffdf1;
@@ -298,7 +298,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
         border: none;
         margin : 20px;
     }
-    .modal-btn:hover{
+    .post-modal-btn:hover{
         cursor: pointer;
         background-color: beige;
         }
