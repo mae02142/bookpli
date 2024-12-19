@@ -4,10 +4,22 @@
       <img src="@/assets/logos/logo.png" @click="goHome" class="logo">
       <nav class="nav">
         <router-link to="/miniroom/minihome">
-          <span class="nav-item">미니룸</span>
+          <div class="header-grid nav-item">
+            <img src="@/assets/icons/header_home.png">
+            <span>미니룸</span>
+          </div>
         </router-link>
         <router-link to="/bookclub">
-          <span class="nav-item">북적북적</span>
+          <div class="header-grid nav-item">
+            <img src="@/assets/icons/header_club.png">
+            <span>북적북적</span>
+          </div>
+        </router-link>
+        <router-link to="/mypage/mypli">
+          <div class="header-grid nav-item">
+            <img src="@/assets/icons/music/header_note.png">
+            <span>내 플리</span>
+          </div>
         </router-link>
       </nav>
     </div>
@@ -114,11 +126,14 @@ const submitSearch = () => {
   gap: 30px;
   margin-left: 60px;
   margin-top: 12px;
+  align-items: center;
+  
 }
 
 .nav-item {
-  font-size: 16px;
+  font-size: 15px;
   color: #000000;
+  font-weight: bold;
 }
 
 .nav-item:hover {
@@ -196,5 +211,15 @@ ul {
 
 li {
   margin: 5px 0;
+}
+
+.header-grid {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.header-grid img{
+  width: 20px;
 }
 </style>

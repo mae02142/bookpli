@@ -26,7 +26,7 @@
             alt="Like Icon" @click="changeToLike(book)" />
         </div>
         <div class="btn-grid">
-          <p class="btn change-status" @click="changeStatus">
+          <p class="btn change-status" v-if="props.book.status!=='completed'">
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
@@ -81,11 +81,6 @@ const isLiked = computed(() => bookLikeId.value !== null);
   }
   }
   
-  // 이벤트 핸들러
-  const changeStatus = () => {
-    alert('독서 상태를 변경합니다!');
-  };
-
   const writeReview = () => {
     emit('openForm'); //이벤트 전달
     emit('close');

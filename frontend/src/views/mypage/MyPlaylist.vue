@@ -134,18 +134,27 @@
                 />
                 <span v-else>{{ index + 1 }}</span>
               </td>
-              <td
-                @mouseover="hoveredIndex = index"
-                @mouseleave="hoveredIndex = null"
-              >
+              <td>
                 <div class="song-info">
                   <img
                     :src="song.albumCover"
                     alt="Album Cover"
                     class="album-cover"
+                     @click="openSongDetail(song)"
+                     @mouseover="showTooltip($event)"
+                     @mouseleave="hideTooltip"
                   />
-                  <div class="song-details">
-                    <p class="song-title" @click="openSongDetail(song)">
+                  <div
+                    v-if="tooltip.visible"
+                    class="tooltip"
+                    :style="{ top: `${tooltip.y}px`, left: `${tooltip.x}px` }"
+                  >
+                    상세보기
+                  </div>
+                  <div class="song-details"
+                      @mouseover="hoveredIndex = index"
+                      @mouseleave="hoveredIndex = null">
+                    <p class="song-title">
                       {{ song.name }}
                     </p>
                     <p class="song-artist">{{ song.artists }}</p>
@@ -175,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, reactive  } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
@@ -387,6 +396,25 @@ const refreshPlaylistTracks = async () => {
   }
 };
 
+// 툴팁 상태 관리
+const tooltip = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+});
+
+// 툴팁 표시
+const showTooltip = (event) => {
+  tooltip.visible = true;
+  tooltip.x = event.pageX + 10; // 마우스 위치 기준 10px 오른쪽
+  tooltip.y = event.pageY + 10; // 마우스 위치 기준 10px 아래
+};
+
+// 툴팁 숨김
+const hideTooltip = () => {
+  tooltip.visible = false;
+};
+
 // 페이지 로드 시 실행
 onMounted(() => {
   getUserPlaylist(); // 플레이리스트 가져오기
@@ -434,7 +462,7 @@ onMounted(() => {
 }
 
 .playlist-item:hover{
-  color: #218838;
+  color: #1db954;
   }
 
 .note-icon {
@@ -453,6 +481,10 @@ onMounted(() => {
 .playlist-name {
   font-size: 16px;
   font-weight: bold;
+  max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-count {
@@ -562,11 +594,19 @@ text-align: center;
 .song-title {
   font-size: 14px;
   font-weight: bold;
+  white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.song-details:hover {
+    transform: scale(1.02);
+    color: #1db954;
 }
 
 .song-artist {
   font-size: 13px;
-  color: #4c4c4c;
 }
 
 .delete-button {
@@ -774,5 +814,18 @@ text-align: center;
   display: flex;
   justify-content: center;
   margin-top: 50px;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 10;
+  pointer-events: none; /* 마우스 이벤트 무시 */
+  white-space: nowrap; /* 한 줄로 표시 */
+  transform: translate(-50%, -100%); /* 이미지 위에 위치하도록 조정 */
 }
 </style>

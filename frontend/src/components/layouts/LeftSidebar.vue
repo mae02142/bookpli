@@ -40,6 +40,7 @@ const closeModal = () => {
   flex-flow: column;
   gap: 25px;
   place-items: center;
+  box-sizing: content-box;
 }
 
 .sidebar-icon {

@@ -39,10 +39,8 @@
             alt="Book Cover"
             class="book-cover"
             @click="openModal(book)"
-            @mouseover="showTooltip"
-            @mouseleave="hideTooltip"
           />
-          <img src="@/assets/icons/heart_circle_noline.png" class="book-like-icon" v-if="isBookLiked(book.isbn13)">
+          <img src="@/assets/icons/heart_circle_noline.png" class="book-like-icon" v-if="selectedStatus === 'liked' || book.isLiked">
         </div>
           <div class="book-details-block">
             <div class="title-grid">
@@ -79,7 +77,6 @@
       @delete-library="deleteLibrary"
       @book-like-status="handleBookLikeStatus"
     />
-
     <musicPlayer />
   </div>
 </template>
@@ -95,6 +92,7 @@
   import MyReviewList from '../review/MyReviewList.vue';
   import musicPlayer from '@/components/layouts/musicPlayer.vue';
 
+  const isGoalModalVisible = ref(false); // 모달 상태
   const authStore = useAuthStore();
   const menuItems = ref([]);
   const books = ref([]);
@@ -106,11 +104,12 @@
   const likedBooks = ref([]); // 좋아요된 책의 ISBN 목록
   // 리뷰 작성 모달 상태
   const showForm = ref(false);
- 
+
   const getMyLibrary = async () => {
   try {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
     books.value = prepareBooksData(response.data.data); // books 데이터를 가공
+    console.log("확인 >>>>>>>>>", books.value);
     updateMenuItems();
   } catch (error) {
     console.error('Error loading library:', error);
@@ -132,12 +131,16 @@ const updateMenuItems = () => {
         { title: '나의 리뷰',  icon: 'review.png', route: 'myreview'}
       ];
     };
+
 // 현재 선택된 상태에 따른 책 필터링
 const filteredBooks = computed(() => {
-  if (selectedStatus.value === 'liked') {
-    return books.value.filter((book) => isBookLiked(book.isbn13));
+  if (selectedStatus.value === "liked") {
+    return likedBooks.value; // 좋아요 데이터만 사용
   }
-  return groupedData.value[selectedStatus.value] || [];
+  return (groupedData.value[selectedStatus.value] || []).map((book) => ({
+    ...book,
+    isLiked: likedBooks.value.some((like) => like.isbn13 === book.isbn13),
+  }));
 });
 
 // 선택된 상태 변경
@@ -155,24 +158,6 @@ const handleBookLikeStatus = (isbn13) => {
   updateMenuItems(); // 메뉴 카운트 업데이트
 };
 
-  // 툴팁 상태 관리
-  const tooltip = reactive({
-    show: false,
-    text: "",
-    x: 0,
-    y: 0,
-  });
-  // 툴팁 표시 함수
-const showTooltip = (event) => {
-  tooltip.show = true;
-  tooltip.text = "상세보기";
-  tooltip.x = event.pageX + 10; // 마우스 위치 오른쪽으로 10px
-  tooltip.y = event.pageY + 10; // 마우스 위치 아래로 10px
-};
-// 툴팁 숨김 함수
-const hideTooltip = () => {
-  tooltip.show = false;
-};
 // 모달 열기
 const openModal = (book) => {
   selectedBook.value = book; // 선택된 책 데이터 설정
@@ -191,6 +176,7 @@ const prepareBooksData = (books) => {
       ...book,
       progress: progressPercentage,
       remainingDays: calculateRemainingDays(book.endDate),
+      isLiked: likedBooks.value.includes(book.isbn13), // 좋아요 상태 추가
     };
   });
 };
@@ -221,14 +207,13 @@ const deleteLibrary = async (libraryId) => {
 const getBookLikeStatus = async () => {
   try {
     const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
-    likedBooks.value = response.data.data.map((like) => like.isbn13);
+    likedBooks.value = response.data.data;
+    console.log("좋아요 데이터:", likedBooks.value);
   } catch (error) {
-    console.error(error);
+    console.error("좋아요 상태 불러오기 오류:", error);
+    likedBooks.value = [];
   }
 };
-
-// 좋아요 여부 확인
-const isBookLiked = (isbn13) => likedBooks.value.includes(isbn13);
 
 onMounted(async() => {
   await getMyLibrary();
@@ -312,7 +297,7 @@ onMounted(async() => {
   .book-cover {
     width: 143px;
     height: 210px;
-    object-fit: cover;
+    position: relative;
   }
   
   .book-details-block {
@@ -372,18 +357,8 @@ onMounted(async() => {
     gap: 3px;
     flex-flow: column;
   }
-  .tooltip {
-  position: absolute;
-  z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.bool-like-grid {
+
+  .bool-like-grid {
   position: relative; /* 부모 컨테이너를 기준으로 위치 설정 */
   display: inline-block;
 }

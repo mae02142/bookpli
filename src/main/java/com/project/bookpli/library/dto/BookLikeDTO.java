@@ -12,6 +12,10 @@ public class BookLikeDTO {
     private Long bookLikeId;
     private Long userId;
     private String isbn13;
+    private String title;
+    private String author;
+    private String cover;
+
 
     // Entity -> DTO
     public static BookLikeDTO fromEntity(BookLike bookLike) {
