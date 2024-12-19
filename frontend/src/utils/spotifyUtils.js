@@ -1,5 +1,7 @@
+import apiClient from "@/api/axiosInstance";
+
 // Spotify API: 특정 플레이리스트의 트랙 가져오기
-export const getPlaylistTracks = async (apiClient, playlistId) => {
+export const getPlaylistTracks = async (playlistId) => {
   try {
     const response = await apiClient.get(`/api/mypli/playlist/${playlistId}`);
     return response.data.data.items.map((item) => {
@@ -21,7 +23,7 @@ export const getPlaylistTracks = async (apiClient, playlistId) => {
 };
 
 // 노래 삭제
-export const deleteSongFromPlaylist = async (apiClient, playlistId, songId) => {
+export const deleteSongFromPlaylist = async (playlistId, songId) => {
   const songUri = `spotify:track:${songId}`; // Spotify 트랙 URI 형식
   try {
     await apiClient.delete(`/api/mypli/playlist/${playlistId}/tracks`, {
