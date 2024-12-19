@@ -208,8 +208,7 @@ const toggleWishList = async () => {
 
             isInLibrary.value = false;
             libraryId.value = null;
-            // book.value.status = "";
-
+            book.value.status = "";
         } catch (error) {
             console.error("도서 삭제 오류:", error);
         }
@@ -225,18 +224,8 @@ const toggleWishList = async () => {
     }
 };
 
-// const loadRecommendations = async () => {
-//     try {
-//         const response = await apiClient.get(`/api/recommendations`);
-//         recommendations.value = response.data.data;
-//     } catch (error) {
-//         console.error("추천 도서 로드 중 오류 발생:", error);
-//     }
-// };
-
 onMounted(async() => {
     MusicPlayer;
-    // await loadRecommendations();
     await loadBookDetail();
 
     if(route.query.data){

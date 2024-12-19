@@ -2,7 +2,6 @@ package com.project.bookpli.book.repository;
 
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.book.dto.BookDTO;
-import com.project.bookpli.miniroom.dto.BookLikeDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

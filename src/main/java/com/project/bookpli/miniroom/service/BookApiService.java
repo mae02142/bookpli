@@ -3,24 +3,20 @@ package com.project.bookpli.miniroom.service;
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.entity.Book;
-import com.project.bookpli.entity.BookLike;
 import com.project.bookpli.entity.Library;
 import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
-import com.project.bookpli.miniroom.dto.BookLikeDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.miniroom.dto.LibraryDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -85,6 +81,7 @@ public class BookApiService {
         BookDTO dto = BookDTO.builder()
                 .isbn13(isbn13)
                 .title(item.get("title") != null ? item.get("title").toString() : "제목 없음")
+//                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
                 .author(item.get("author") != null ?
                         item.get("author").toString().replaceAll("\\s*\\(지은이\\).*", "") :
                         "저자 없음")
@@ -134,27 +131,6 @@ public class BookApiService {
         }
     }
 
-//    @Transactional
-//    public BookResponseDTO setReadGoal(LocalDate startDate, LocalDate endDate, BookDTO request) {
-//        String isbn13= request.getIsbn13();
-//        // Book 엔티티 검색 또는 생성
-//        Book book = bookrep.findById(isbn13)
-//                .orElseGet(() -> {
-//                    // 외부 서비스나 DTO로 데이터를 받아와서 저장
-//                    Book newbook = BookDTO.toEntity(request);
-//                    return bookrep.save(newbook);
-//                });
-//
-//        // Library 상태 업데이트
-//        int updatedRows = librep.setReadGoal(isbn13, startDate, endDate);
-//
-//        if (updatedRows > 0) {
-//            return BookResponseDTO.fromEntity(book);
-//        } else {
-//            throw new IllegalArgumentException("독서 목표 설정에 실패했습니다.");
-//        }
-//    }
-
     //도서 저장
     public void saveGoal(LibraryDTO libraryDTO, String isbn13) {
         // 도서 검색
@@ -162,16 +138,6 @@ public class BookApiService {
         if (book == null) {
             throw new IllegalArgumentException("해당 ISBN의 도서를 찾을 수 없습니다.");
         }
-
-
-//        // DTO 생성 (빌더 패턴 사용)
-//        Library newDTO = Library.builder()
-//                    .userId(libraryDTO.getUser_id())          // 새 데이터의 사용자 ID
-//                    .book(book) //book 객체
-//                    .status(libraryDTO.getStatus())           // 새 데이터의 상태
-//                    .startDate(libraryDTO.getStartDate())     // 새 데이터의 시작 날짜
-//                    .endDate(libraryDTO.getEndDate())         // 새 데이터의 종료 날짜
-//                    .build();
 
         Library newLibrary = libraryDTO.toEntity(book); // DTO를 엔티티로 변환
         librep.save(newLibrary);                             // 새 데이터 저장
@@ -186,39 +152,5 @@ public class BookApiService {
     //도서 실패
     public int failReading(String isbn13){
         return librep.changeFail(isbn13);
-    }
-
-    //찜하기
-    public BookLike likeBook(Long userId, String isbn13){
-
-        BookLikeDTO dto= BookLikeDTO.builder()
-                        .user_id(userId)
-                        .isbn13(isbn13)
-                        .build();
-
-        BookLike bookLike=dto.toEntity(null);
-
-        // 중복 여부 확인
-        if (blrep.existsByUserIdAndIsbn13(userId,isbn13)) {
-            throw new IllegalArgumentException("이미 찜한 도서입니다.");
-        }
-
-        return blrep.save(bookLike);
-    }
-
-    //찜하기 해제
-    public void  dislike(Long userId, String isbn13){
-        Optional<BookLike> dislike=blrep.findByUserIdAndIsbn13(userId, isbn13);
-
-        if(dislike.isPresent()){
-            blrep.delete(dislike.get());
-        }else {
-            throw new IllegalArgumentException("해당 도서가 찜 목록에 없습니다.");
-        }
-    }
-
-    //찜한 도서?
-    public boolean isLiked(Long userId, String isbn13){
-        return blrep.existsByUserIdAndIsbn13(userId, isbn13);
     }
 }

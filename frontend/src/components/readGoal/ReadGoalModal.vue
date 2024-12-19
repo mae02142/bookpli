@@ -281,7 +281,7 @@ const dropReading = async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
     try{
         const response= await apiClient.delete(`/api/goal/${rbook.isbn13}`,{
-            params: { status: "dropped" },
+            params: { status: "wished" },
         });
         emit("dropReading",rbook.isbn13);
         utilModalStore.showModal(

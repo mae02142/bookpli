@@ -1,63 +1,151 @@
 <template>
-    <div v-if="book" class="detail-modal-container">
-      <div class="detail-modal-content">
-        <div class="bookinfo-grid">
-          <img
-            class="modal-image"
-            :src="`${book.cover}`"
-            alt="Book Image"
-          />
-          <div class="progress-grid">
-            <p class="book-title">{{ book.title }}</p>
-            <p class="book-author">{{ book.author }}</p>
-            <div class="progress-container" v-if="book.status === 'reading'">
-              <img src="@/assets/icons/read_book.png">
-              <span class="progress-text">{{ book.progress }}%</span>
-              <span class="remaining-days">{{ book.remainingDays }}일 남음</span>
-            </div>
-            <div class="complete-container" v-if="book.status === 'completed'">
-              <img src="@/assets/icons/read_complete.png">
-              독서 완료
-            </div>
+  <div class="detail-modal-container">
+    <div class="detail-modal-content">
+      <div class="bookinfo-grid">
+        <img class="modal-image" :src="localBook.cover" alt="Book Image" />
+        <div class="progress-grid">
+          <p class="book-title">{{ localBook.title }}</p>
+          <p class="book-author">{{ localBook.author }}</p>
+          <div class="progress-container" v-if="book.status === 'reading'">
+            <img src="@/assets/icons/read_book.png" />
+            <span class="progress-text">{{ localBook.progress }}%</span>
+            <span class="remaining-days">{{ localBook.remainingDays }}일 남음</span>
           </div>
-          <img v-if="isLiked" class="like-icon" src="@/assets/icons/like.png"
-            alt="Like Icon" @click="changeToDislike" />
-          <img v-else class="like-icon" src="@/assets/icons/dislike.png"
-            alt="Like Icon" @click="changeToLike(book)" />
+          <div class="complete-container" v-if="localBook.status === 'completed'">
+            <img src="@/assets/icons/read_complete.png" />
+            독서 완료
+          </div>
         </div>
-        <div class="btn-grid">
-          <p class="btn change-status" v-if="props.book.status!=='completed'" @click="openGoalModal(book)">
-            독서상태 변경
-          </p>
-          <p class="btn write-review" @click="writeReview">리뷰 작성</p>
-          <p class="btn" @click="handleClick">도서 상세 보기</p>
-          <p class="btn remove-book" @click="removeBook">
-            내 서재에서 삭제
-          </p>
-          <p class="btn confirm" @click="closeModal">확인</p>
-        </div>
+        <img
+          v-if="isLiked"
+          class="like-icon"
+          src="@/assets/icons/like.png"
+          alt="Like Icon"
+          @click="changeToDislike"
+        />
+        <img
+          v-else
+          class="like-icon"
+          src="@/assets/icons/dislike.png"
+          alt="Dislike Icon"
+          @click="changeToLike(localBook)"
+        />
+      </div>
+      <div class="btn-grid">
+        <p
+          v-if="!localBook.status"
+          class="btn add-to-library"
+          @click="handleAddToLibrary"
+        >
+          서재에 담기
+        </p>
+        <p
+          class="btn change-status"
+          v-if="localBook.status === 'wished' || localBook.status === 'reading'"
+          @click="openGoalModal(localBook)"
+        >
+          독서 상태 변경
+        </p>
+        <p class="btn write-review" @click="writeReview">리뷰 작성</p>
+        <p class="btn" @click="handleClick">도서 상세 보기</p>
+        <p class="btn remove-book" @click="removeBook">내 서재에서 삭제</p>
+        <p class="btn confirm" @click="closeModal">확인</p>
       </div>
     </div>
     <ReadGoalModal
-            :visible="readGoalToggle"
-            :rbook="bookData"
-            @close="closeModal"
-        />
-  </template>
-  
-  <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useRouterUtils } from '@/router/routerUtils';
-import apiClient from '@/api/axiosInstance';
-import { addBookLike, removeBookLike } from '@/utils/likeUtils';
-import { useAuthStore } from '@/stores/auth';
+      :visible="readGoalToggle"
+      :rbook="bookData"
+      @close="closeGoalModal"
+    />
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed, watch } from "vue";
+import { useRouterUtils } from "@/router/routerUtils";
+import apiClient from "@/api/axiosInstance";
+import { addBookLike, removeBookLike } from "@/utils/likeUtils";
+import { useAuthStore } from "@/stores/auth";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 
+// Store 및 유틸리티
 const authStore = useAuthStore();
 const { gotoDetail } = useRouterUtils();
+
+// 상태 변수
 const bookLikeId = ref(null);
 const readGoalToggle = ref(false);
-const bookData= ref({});
+const bookData = ref({});
+const isInLibrary = ref(false);
+
+// Props 정의
+const props = defineProps({
+  book: {
+    type: Object,
+    required: true,
+  },
+});
+
+// 로컬 상태로 사용할 book 데이터
+const localBook = ref({ ...props.book });
+
+// props.book 변화를 감지하여 localBook을 업데이트
+watch(
+  () => props.book,
+  (newBook) => {
+    localBook.value = { ...newBook };
+  },
+  { deep: true }
+);
+
+const emit = defineEmits(["close", "openForm", "delete-library", "book-like-status", "update-book-status"]);
+
+const isLiked = computed(() => bookLikeId.value !== null);
+
+const getBookLikeStatus = async () => {
+  try {
+    const response = await apiClient.get(
+      `/api/library/${authStore.user.userId}/book/${props.book.isbn13}`
+    );
+    bookLikeId.value = response.data.data;
+  } catch (error) {
+    console.error("좋아요 상태를 가져오는 중 오류 발생:", error);
+  }
+};
+
+const handleAddToLibrary = async () => {
+  try {
+    // API 요청
+    const response = await apiClient.post(`/api/library/${authStore.user.userId}`, localBook.value);
+    const updatedLibraryId = response.data.data.libraryId;
+
+    // 로컬 데이터 업데이트
+    localBook.value = {
+      ...localBook.value,
+      status: "reading",
+      libraryId: updatedLibraryId,
+    };
+
+    // 부모에게 업데이트된 도서 데이터 전달
+    emit("update-book-status", { ...localBook.value });
+  } catch (error) {
+    console.error("서재 추가 실패:", error);
+  }
+};
+
+
+const changeToLike = async (book) => {
+  bookLikeId.value = await addBookLike(authStore.user.userId, book);
+  emit("book-like-status", book.isbn13);
+};
+
+const changeToDislike = async () => {
+  const result = await removeBookLike(bookLikeId.value);
+  if (result) {
+    bookLikeId.value = null;
+    emit("book-like-status", props.book.isbn13);
+  }
+};
 
 const openGoalModal = (book) => {
   bookData.value = book;
@@ -68,73 +156,28 @@ const closeGoalModal = () => {
   readGoalToggle.value = false;
 };
 
-const isLiked = computed(() => bookLikeId.value !== null);
-
-  // 부모로부터 전달받은 책 데이터
-  const props = defineProps({
-    book: {
-    type: Object,
-    required: true,
-  },
-  });
-  
-  // 부모로 이벤트 전달
-  const emit = defineEmits(['close','openForm', 'delete-library', 'book-like-status']);
-  
-
-  // 좋아요 상태 관리
-  const changeToLike = async (book) => {
-    bookLikeId.value = await addBookLike(authStore.user.userId, book);
-    emit('book-like-status', book.isbn13);
-    
-  };
-
-  const changeToDislike = async () => {
-    const result = await removeBookLike(bookLikeId.value);
-    if (result) {
-      bookLikeId.value = null;
-      emit('book-like-status', props.book.isbn13);
-  }
-  }
-  
-  // 이벤트 핸들러
-  const changeStatus = () => {
-    alert('독서 상태를 변경합니다!');
-  };
-
-  const writeReview = () => {
-    emit('openForm'); //이벤트 전달
-    emit('close');
-  };
-  
-  const removeBook = async () => {
-    emit('delete-library', props.book.libraryId); // 부모에게 이벤트 전달
-    emit('close');
-  };
-  
-  // 모달 닫기
-  const closeModal = () => {
-    emit('close'); // 부모로 close 이벤트 전달
-  };
-
-  const handleClick = () => {
-    gotoDetail(props.book.isbn13);
-  }
-
-  const getBookLikeStatus = async () => {
-  try {
-    const response = await apiClient.get(`/api/library/${authStore.user.userId}/book/${props.book.isbn13}`);
-    bookLikeId.value = response.data.data;
-  } catch (error) {
-    console.error("좋아요 상태를 가져오는 중 오류 발생: ", error);
-  }
+const writeReview = () => {
+  emit("openForm");
+  emit("close");
 };
 
+const removeBook = async () => {
+  emit("delete-library", props.book.libraryId);
+  emit("close");
+};
 
-  onMounted(()=> {
-    getBookLikeStatus();
-  })
-  </script>
+const handleClick = () => {
+  gotoDetail(props.book.isbn13);
+};
+
+const closeModal = () => {
+  emit("close");
+};
+
+onMounted(() => {
+  getBookLikeStatus();
+});
+</script>
   
   <style scoped>
   /* 모달 컨테이너 */
