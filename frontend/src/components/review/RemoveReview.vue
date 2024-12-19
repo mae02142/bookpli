@@ -1,14 +1,14 @@
 <template>
-<div class="modal-wrap" v-if="isVisible" @click="closeModal">
-    <div class="modal-content">
-        <div class="modal-item">
+<div class="review-modal-wrap" v-if="isVisible" @click="closeModal">
+    <div class="review-modal-content">
+        <div class="review-modal-item">
             <h3 style="font-weight: 400; font-size: 20px;">리뷰 삭제</h3>
-            <div class="modal-text">
+            <div class="review-modal-text">
                 <hr>
                 <p>리뷰를 삭제하겠습니까?</p>
                 <p>리뷰를 삭제하면 복원할 수 없습니다.</p>
-                <button class="modal-btn" @click="deleteList">삭제</button>
-                <button class="modal-btn" @click="closeModal">취소</button>
+                <button class="review-modal-btn" @click="deleteList">삭제</button>
+                <button class="review-modal-btn" @click="closeModal">취소</button>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@ export default {
 
 </script>
 <style scoped>
-    .modal-wrap {
+    .review-modal-wrap {
         position: fixed;
         left: 0;
         top: 0;
@@ -58,7 +58,7 @@ export default {
         background: rgba(0, 0, 0, 0.4);
     }
 
-    .modal-content {
+    .review-modal-content {
         font-family: "Inter-Regular", sans-serif;
         font-size: 18px;
         position: relative;
@@ -72,11 +72,11 @@ export default {
         padding : 20px;
         box-sizing: border-box;
     }
-    .modal-item {
+    .review-modal-item {
        text-align: center;
     }
 
-    .modal-btn {
+    .review-modal-btn {
         width: 50px;
         height: 35px;
         background-color: #fffdf1;
@@ -84,11 +84,11 @@ export default {
         border: none;
         margin : 20px;
     }
-    .modal-btn:hover{
+    .review-modal-btn:hover{
         cursor: pointer;
         background-color: beige;
     }
-    .modal-text {
+    .review-modal-text {
         color: #909090;
         line-height: 3.5;
     }

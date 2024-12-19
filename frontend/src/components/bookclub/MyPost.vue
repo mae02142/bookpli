@@ -3,10 +3,10 @@
     <article class="post-article" v-for="item, index in posts" :key="item.postId">
       <div class="post-body">   
              <!-- 게시글 내용 -->
-        <div class="post-container"> 
-          <div class="post-article">
-                <!-- 이미지 슬라이드 컨테이너 -->
-                <div class="post-nav">    
+        <div class="post-container">
+            <div class="user-post-image">
+            <!-- 이미지 슬라이드 컨테이너 -->
+            <div class="post-nav">    
                 <div v-if="item.imageUrl.length > 1" class="image-circle"> 
                   <button class="slide-prev" @click="prevSlide(item)"><</button>
                 </div>  
@@ -35,19 +35,21 @@
                       ></div>
                     </div> 
                 </div>
-                      <div v-if="item.imageUrl.length > 1" class="image-circle">
-                        <button class="slide-next" @click="nextSlide(item)">></button>
-                      </div>
-                    </div>
-          </div>
-          <div class="text-box-post">
-            <div class="author-info">
-              <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
-              <h3>{{item.userNickname}}</h3>
+                <div v-if="item.imageUrl.length > 1" class="image-circle">
+                  <button class="slide-next" @click="nextSlide(item)">></button>
+                </div>
+              </div>
+              <div class="post-article-one">
+                <div class="author-info">
+                  <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
+                </div>
+                <div class="text-box-post">
+                  <h3 class="post-userNickname">{{item.userNickname || 'User'}}</h3>
+                      <!-- 본문 글 -->
+                  <p class="mypost-cnt">{{ item.postContent }} </p>                                 
+                </div>
+              </div>
             </div>
-                  <!-- 본문 글 -->
-            <p class="mypost-cnt">{{ item.postContent }} </p>                                 
-          </div>
                       <!-- 아이콘 섹션 -->
                     <div class="post-footer">
                       <div class="footer-icon">
@@ -240,9 +242,6 @@
         }
       };
 
-
-      
-  
           /* 수정 삭제 관련 함수 */
         const showBtn = ref([]);
         const dropdown = (index) => {
@@ -318,9 +317,8 @@
     }
     
     .author-info {
-      font-size: 14px;
       margin-right: 20px;
-      text-align: center;
+      display: flex;
     }
 
     .mypost-cnt {
@@ -335,13 +333,33 @@
     .post-container{
       width: 100%;
     }
+    .post-article-one{
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .user-post-image{
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      padding-top: 10px;
+      gap: 10px;
+    }
+
+    .post-userNickname{
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
 
     .text-box-post{
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       justify-content: flex-start;
       margin-top: 10px;
-      gap:30px;
+      gap: 10px;
     }
     
     /* 아이콘 섹션 */
@@ -411,7 +429,6 @@
   
   .show-btn {
     display: block;
-    width: 100%;
     padding: 10px;
     border: none;
     background: none;
@@ -425,6 +442,9 @@
     }
     .show-btn:hover{
       cursor: pointer;
+      background: #ededed;
+      transition: transform 0.5s ease-in-out ;
+      opacity: 1;
     }
 
   
@@ -436,10 +456,6 @@
       max-width: 300px;
       margin : 0 auto;
       overflow: hidden;
-    }
-
-    .post-article{
-      width: 100%;
     }
 
     .post-nav {
