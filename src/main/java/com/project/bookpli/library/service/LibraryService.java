@@ -98,11 +98,7 @@ public class LibraryService {
         bookLikeRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        List<BookLike> BookLike = bookLikeRepository.findAllByUserId(userId);
-
-        return BookLike.stream()
-                .map(BookLikeDTO::fromEntity)
-                .collect(Collectors.toList());
+        return bookLikeRepository.findAllByUserIdWithBookInfo(userId);
     }
 
     public Long getBookLike(Long userId, String isbn13) {

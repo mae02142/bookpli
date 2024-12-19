@@ -26,7 +26,7 @@
             alt="Like Icon" @click="changeToLike(book)" />
         </div>
         <div class="btn-grid">
-          <p class="btn change-status" @click="openGoalModal(book)">
+          <p class="btn change-status" v-if="props.book.status!=='completed'" @click="openGoalModal(book)">
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
@@ -38,7 +38,7 @@
         </div>
       </div>
     </div>
-    <ReadGoalModal 
+    <ReadGoalModal
             :visible="readGoalToggle"
             :rbook="bookData"
             @close="closeModal"
