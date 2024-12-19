@@ -61,7 +61,7 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
-        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
+        <Recommend v-if="activeTab ==='recommend'" :recommendations="recommendations" @recomBook="recomBookClick" />
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
@@ -92,9 +92,10 @@ const isbn13 = route.params.isbn13;
 const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
-const activeTab= ref("");
+const activeTab= ref("recommend");
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
+const recommendations = ref();
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
@@ -207,6 +208,8 @@ const toggleWishList = async () => {
 
             isInLibrary.value = false;
             libraryId.value = null;
+            // book.value.status = "";
+
         } catch (error) {
             console.error("도서 삭제 오류:", error);
         }
@@ -222,8 +225,18 @@ const toggleWishList = async () => {
     }
 };
 
+// const loadRecommendations = async () => {
+//     try {
+//         const response = await apiClient.get(`/api/recommendations`);
+//         recommendations.value = response.data.data;
+//     } catch (error) {
+//         console.error("추천 도서 로드 중 오류 발생:", error);
+//     }
+// };
+
 onMounted(async() => {
     MusicPlayer;
+    // await loadRecommendations();
     await loadBookDetail();
 
     if(route.query.data){

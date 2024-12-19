@@ -4,10 +4,10 @@
         <div class="goal-modal-content">
             
             <div class="book-section">
-                <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
-                <div class="title">{{rbook.title}}</div>
-                <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
-                <div class="reading-status" v-if="rbook.status === 'reading'">
+                <img class="bookgoal-cover" :src="props.rbook.cover" alt="Book Cover" />
+                <div class="title">{{copyProps.title}}</div>
+                <div class="book-info">{{copyProps.author}}({{copyProps.startindex}}p)</div>
+                <div class="reading-status" v-if="copyProps.status === 'reading'">
                     <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
                     <span class="reading-status-text">읽고 있는 책</span>
             </div>
@@ -17,7 +17,7 @@
         <div class="date-status">독서상태</div>
         <div class="date-row-status">
             <span class="date-label">
-                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
+                <input type="radio" :checked="copyProps.status === 'reading'" value="reading" v-model="radioSelect">
                 독서중
             </span>
             <span class="date-label">
@@ -64,20 +64,20 @@
                 />
                 </span>
             </div>
-            <div class="goal-date-final" v-if="rbook.startDate">
-                <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
+            <div class="goal-date-final" v-if="copyProps.startDate">
+                <p>{{ copyProps.startDate ? copyProps.startDate.split("T")[0] : ''}}</p>
                 <span>~</span>
-                <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
+                <p>{{ copyProps.endDate ? copyProps.endDate.split("T")[0] : '' }}</p>
             </div>
         </div>
     </div>
 
-        <div class="progress-section" v-if="rbook.status === 'reading'">
+        <div class="progress-section" v-if="copyProps.status === 'reading'">
             <div class="progress-header">독서량</div>
             <div class="progress-bar">
-                <div class="progress-bar-fill" :style="{width: `${rbook.progressPercentage || 0}%`}"></div>
+                <div class="progress-bar-fill" :style="{width: `${copyProps.progressPercentage || 0}%`}"></div>
             </div>
-            <p class="progress-percentage">{{ rbook.progressPercentage || 0 }}%</p>
+            <p class="progress-percentage">{{ copyProps.progressPercentage || 0 }}%</p>
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
@@ -109,11 +109,6 @@ const props = defineProps({
 
 const emit= defineEmits(["close","dropReading"]);
 
-const emitClose = () => {
-    emit("close", props.rbook);
-};
-
-
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
 
@@ -121,19 +116,10 @@ const dateFormat = "yyyy-MM-dd";
 const changeDate= async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
 
-    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
-    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
     
     try{
-        const response= await apiClient.put(`/api/goal/reset/${rbook.isbn13}`,null, {
-            headers: {
-                Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
-            },
-            params: {
-                startDate: formatStartDate,
-                endDate: formatEndDate,
-            },
-        });
+        const response= await apiClient.put(`/api/goal/reset`,rbook);
+        console.log(response.data);
         utilModalStore.showModal(
             "독서기간 수정",
             "독서기간이 수정되었습니다.",
@@ -185,39 +171,48 @@ const showEndPicker = ref(false);
 
 const radioSelect= ref("");
 
+// props 변경 시 localRbook 업데이트
+watch(
+    () => props.rbook,
+    (newVal) => {
+        copyProps.value = { ...newVal };
+    }
+);
+
+
+
 const handleAction = async () => {
-    const utilModalStore = useUtilModalStore(); 
+    const utilModalStore = useUtilModalStore();
 
     try {
-        if (props.rbook.status === "reading") {
-
-            if(radioSelect.value !== "dropped"){
-                await changeDate(props.rbook);
+        if (copyProps.status === "reading") {
+            if (radioSelect.value !== "dropped") {
+                await changeDate(copyProps.value);
                 emitClose();
-            }    
-            if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
+            } else if (radioSelect.value === "dropped") {
+                await dropReading(copyProps.value);
                 utilModalStore.showModal(
                     "독서 상태 변경",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
+                    `"${copyProps.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
             }
-        } else if (props.rbook.status === "wished") {
+        }
+        else if (copyProps.status === "wished") {
             if (radioSelect.value === "reading") {
-                await setGoal(props.rbook);
+                await setGoal(copyProps.value);
                 utilModalStore.showModal(
                     "독서 목표 설정",
-                    `"${props.rbook.title}"이 독서 목표로 설정되었습니다.`,
+                    `"${copyProps.title}"이 독서 목표로 설정되었습니다.`,
                     "success"
                 );
                 emitClose();
             } else if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
+                await dropReading(copyProps.value);
                 utilModalStore.showModal(
                     "독서 상태 해제",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
+                    `"${copyProps.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
@@ -229,14 +224,16 @@ const handleAction = async () => {
                 );
                 emitClose();
             }
-        }else{
-            utilModalStore.showModal(
-                "오류 발생",
-                "작업 중 오류가 발생했습니다. 다시 시도해주세요.",
-                "error"
-            );
         }
-
+        else {
+            await setGoal(copyProps.value); // 독서 목표 설정 호출
+            utilModalStore.showModal(
+                "독서 목표 설정",
+                `"${copyProps.title}" 독서 목표가 설정되었습니다.`,
+                "success"
+            );
+            emitClose();
+        }
     } catch (error) {
         console.error("handleAction 실행 중 에러:", error);
         utilModalStore.showModal(
@@ -247,23 +244,25 @@ const handleAction = async () => {
     }
 };
 
+const emitClose = () => {
+    emit("close", copyProps.value); 
+};
 
-const setGoal = async (rbook) => {
+const copyProps = ref({ ...props.rbook });
+
+
+const setGoal = async (book) => {
+    
     const utilModalStore = useUtilModalStore(); 
-    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
-    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
-
+    console.log("책 정보 확인 : ",props.rbook);
     try{
-        const response= await apiClient.put(`/api/goal/register/${rbook.isbn13}`, null, {
-            params: {
-                status: book.value.status,
-                startDate: formatStartDate,
-                endDate: formatEndDate,
-            },
-        });
+      
+        const response= await apiClient.post(`/api/library/${authStore.user.userId}`, props.rbook);
+        console.log("Response from setGoal API:", response.data.data);
+
         utilModalStore.showModal(
             "독서 목표 설정",
-            `"${rbook.title}"의 독서 목표가 설정되었습니다.`,
+            `"${copyProps.title}"의 독서 목표가 설정되었습니다.`,
             "success"
         );
         router.push('/miniroom/minihome');
@@ -323,6 +322,7 @@ watch(
 
 onMounted(() => {
     const savedProgress= progressStore.getProgress(props.rbook.isbn13);
+
     if(savedProgress){
         props.rbook.currentPage=savedProgress.currentPage || 0;
         props.rbook.progressPercentage=savedProgress.progressPercentage || 0;

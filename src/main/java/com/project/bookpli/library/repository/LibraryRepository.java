@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface LibraryRepository extends JpaRepository<Library, Long> {
     
@@ -27,11 +29,11 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("SELECT YEAR(l.endDate) AS year, COUNT(l.libraryId) AS bookCnt FROM Library l WHERE l.status = 'completed' GROUP BY YEAR(l.endDate) ORDER BY year ASC")
     String bookCntOrderByYear();
 
-    //독서 목표설정 status update
+    //독서 목표 수정
     @Transactional
     @Modifying
-    @Query("update Library l set l.status='reading', l.startDate= :startDate, l.endDate= :endDate where l.status='wished'")
-    int setReadGoal(@Param("isbn13") String isbn13, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Query("update Library l set l.status='reading', l.startDate= :startDate, l.endDate= :endDate, l.status= :status where l.status='wished' and l.userId= :userId")
+    int updateGoal(@Param("isbn13") String isbn13, @Param("userId") Long userId,@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("status") String status);
 
     //독서 상태 해제로 변경
     @Transactional
@@ -63,9 +65,5 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("update Library l set l.status='failed' where l.status='reading' and l.book.isbn13= :isbn13")
     int changeFail (@Param("isbn13") String isbn13);
 
-    //도서 기간 수정
-    @Transactional
-    @Modifying
-    @Query("update Library l set l.startDate= :startDate, l.endDate= :endDate where l.book.isbn13= :isbn13")
-    int updateDate (@Param("isbn13") String isbn13, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
 }

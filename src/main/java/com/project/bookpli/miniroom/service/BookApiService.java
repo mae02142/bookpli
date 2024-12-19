@@ -9,6 +9,7 @@ import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookLikeDTO;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
+import com.project.bookpli.miniroom.dto.LibraryDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class BookApiService {
     @Autowired
     private UserRepository userrep;
 
-    public void searchBook(String itemId) {
+    public Book searchBook(String itemId) {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = BASE_URL + "?ttbkey=" + TTB_KEY +
@@ -70,16 +71,20 @@ public class BookApiService {
         String isbn13 = item.get("isbn13") != null ? item.get("isbn13").toString() : null;
 
         // 중복 데이터 방지 및 null 체크
-        if (isbn13 == null || bookrep.existsById(isbn13)) {
-            System.out.println("이미 존재하는 도서이거나 ISBN이 없습니다 :" + isbn13);
-            return;
+        if (isbn13 == null) {
+            throw new IllegalArgumentException("ISBN 정보가 없습니다.");
+        }
+
+        if (bookrep.existsById(isbn13)) {
+            System.out.println("이미 존재하는 도서: " + isbn13);
+            return bookrep.findById(isbn13).orElseThrow(() ->
+                    new IllegalStateException("데이터베이스에서 이미 존재하는 도서를 찾을 수 없습니다."));
         }
 
         // DTO 생성 (빌더 패턴 사용)
         BookDTO dto = BookDTO.builder()
                 .isbn13(isbn13)
                 .title(item.get("title") != null ? item.get("title").toString() : "제목 없음")
-//                .author(item.get("author") != null ? item.get("author").toString() : "저자 없음")
                 .author(item.get("author") != null ?
                         item.get("author").toString().replaceAll("\\s*\\(지은이\\).*", "") :
                         "저자 없음")
@@ -93,8 +98,9 @@ public class BookApiService {
 
         // Entity 변환 및 저장
         Book book = BookDTO.toEntity(dto);
-        bookrep.save(book);
+        return bookrep.save(book);
     }
+
 
     private static LocalDate parsePubDate(String pubDate) {
         return LocalDate.parse(pubDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -129,26 +135,48 @@ public class BookApiService {
     }
 
 //    @Transactional
-    public BookResponseDTO setReadGoal(LocalDate startDate, LocalDate endDate, BookDTO request) {
-        String isbn13= request.getIsbn13();
-        // Book 엔티티 검색 또는 생성
-        Book book = bookrep.findById(isbn13)
-                .orElseGet(() -> {
-                    // 외부 서비스나 DTO로 데이터를 받아와서 저장
-                    Book newbook = BookDTO.toEntity(request);
-                    return bookrep.save(newbook);
-                });
+//    public BookResponseDTO setReadGoal(LocalDate startDate, LocalDate endDate, BookDTO request) {
+//        String isbn13= request.getIsbn13();
+//        // Book 엔티티 검색 또는 생성
+//        Book book = bookrep.findById(isbn13)
+//                .orElseGet(() -> {
+//                    // 외부 서비스나 DTO로 데이터를 받아와서 저장
+//                    Book newbook = BookDTO.toEntity(request);
+//                    return bookrep.save(newbook);
+//                });
+//
+//        // Library 상태 업데이트
+//        int updatedRows = librep.setReadGoal(isbn13, startDate, endDate);
+//
+//        if (updatedRows > 0) {
+//            return BookResponseDTO.fromEntity(book);
+//        } else {
+//            throw new IllegalArgumentException("독서 목표 설정에 실패했습니다.");
+//        }
+//    }
 
-        // Library 상태 업데이트
-        int updatedRows = librep.setReadGoal(isbn13, startDate, endDate);
-
-        if (updatedRows > 0) {
-            return BookResponseDTO.fromEntity(book);
-        } else {
-            throw new IllegalArgumentException("독서 목표 설정에 실패했습니다.");
+    //도서 저장
+    public void saveGoal(LibraryDTO libraryDTO, String isbn13) {
+        // 도서 검색
+        Book book = searchBook(isbn13);
+        if (book == null) {
+            throw new IllegalArgumentException("해당 ISBN의 도서를 찾을 수 없습니다.");
         }
-    }
 
+
+//        // DTO 생성 (빌더 패턴 사용)
+//        Library newDTO = Library.builder()
+//                    .userId(libraryDTO.getUser_id())          // 새 데이터의 사용자 ID
+//                    .book(book) //book 객체
+//                    .status(libraryDTO.getStatus())           // 새 데이터의 상태
+//                    .startDate(libraryDTO.getStartDate())     // 새 데이터의 시작 날짜
+//                    .endDate(libraryDTO.getEndDate())         // 새 데이터의 종료 날짜
+//                    .build();
+
+        Library newLibrary = libraryDTO.toEntity(book); // DTO를 엔티티로 변환
+        librep.save(newLibrary);                             // 새 데이터 저장
+
+        }
 
     //도서완독
     public int clearRead(String isbn13, String status){

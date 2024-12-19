@@ -31,32 +31,32 @@ public class BookResponseDTO {
 
 
     // DTO -> Entity
-    public static Book toEntity(BookResponseDTO dto) {
-        return Book.builder()
-                .isbn13(dto.getIsbn13())
-                .title(dto.getTitle())
-                .author(dto.getAuthor())
-                .description(dto.getDescription())
-                .pubdate(dto.getPubdate())
-                .publisher(dto.getPublisher())
-                .cover(dto.getCover())
-                .startindex(dto.getStartindex())
-                .genre(dto.getGenre())
-                .build();
-    }
-
-    // Entity -> DTO
-    public static BookResponseDTO fromEntity(Book book) {
-        return BookResponseDTO.builder()
-                .title(book.getTitle())
-                .author(book.getAuthor())
-                .description(book.getDescription())
-                .pubdate(book.getPubdate())
-                .publisher(book.getPublisher())
-                .cover(book.getCover())
-                .startindex(book.getStartindex())
-                .genre(book.getGenre())
-                .build();
-    }
+//    public static Book toEntity(BookResponseDTO dto) {
+//        return Book.builder()
+//                .isbn13(dto.getIsbn13())
+//                .title(dto.getTitle())
+//                .author(dto.getAuthor())
+//                .description(dto.getDescription())
+//                .pubdate(dto.getPubdate())
+//                .publisher(dto.getPublisher())
+//                .cover(dto.getCover())
+//                .startindex(dto.getStartindex())
+//                .genre(dto.getGenre())
+//                .build();
+//    }
+//
+//    // Entity -> DTO
+//    public static BookResponseDTO fromEntity(Book book) {
+//        return BookResponseDTO.builder()
+//                .title(book.getTitle())
+//                .author(book.getAuthor())
+//                .description(book.getDescription())
+//                .pubdate(book.getPubdate())
+//                .publisher(book.getPublisher())
+//                .cover(book.getCover())
+//                .startindex(book.getStartindex())
+//                .genre(book.getGenre())
+//                .build();
+//    }
 
 }

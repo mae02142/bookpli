@@ -264,6 +264,7 @@
     }
     
     const openModal = (book) => {
+        console.log("책 확인 : ",book);
       selectBook.value = book;
       showModal.value = true;
     };
