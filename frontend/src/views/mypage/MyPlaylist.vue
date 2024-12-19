@@ -157,14 +157,16 @@
                     <p class="song-title" @click="playSong(song.id)">
                       {{ song.name }}
                     </p>
-                    <p class="song-artist">{{ song.artists }}</p>
+                    <p class="song-artist" @click="openArtistDetail(song)">{{ song.artists }}</p>
                   </div>
                 </div>
               </td>
-              <td class="song-album">{{ song.album }}</td>
+              <td class="song-album" @click="openSongDetail(song)">{{ song.album }}</td>
               <td class="song-duration">{{ handleFormat(song.duration) }}</td>
               <td class="delete-button-container" v-if="selectedPlaylist.owner === authStore.user.spotifyId">
-                <button class="delete-button" @click="removeMusic(selectedPlaylist.id, song.id)">삭제               </button>
+                <button class="delete-button" @click="removeMusic(selectedPlaylist.id, song.id)">
+                  삭제   
+                </button>
               </td>
             </tr>
           </tbody>

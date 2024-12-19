@@ -102,12 +102,14 @@ export const usePlayerStore = defineStore("player", {
       }
     },
 
-    seekTrack(seconds) {
+    seekTrack(time) { // time: seconds
       if (this.player) {
+        const milliseconds = time * 1000; // Convert seconds to milliseconds
         this.player
-          .seek(seconds * 1000)
-          .catch((err) => console.error("Error seeking track:", err));
-        this.currentTime = seconds;
+          .seek(milliseconds)
+          .then(() => {
+            this.currentTime = time; // Update the currentTime in the state
+          })
       }
     },
 

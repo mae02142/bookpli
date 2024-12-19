@@ -157,19 +157,6 @@ const playPlaylist = async (playlistUri) => {
     }
 };
 
-// Artist's 앨범 조회
-const fetchArtistAlbums = async (artistId) => {
-    try {
-        const response = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
-            headers: { Authorization: `Bearer ${userStore.accessToken}` },
-            params: { include_groups: "album", market: "US", limit: 10 },
-        });
-        albums.value = response.data.items;
-    } catch (error) {
-        utilModalStore.showModal("아티스트 정보 보기", `아티스트를 불러오는데 실패하였습니다.`, "warning");
-    }
-};
-
 // 상세 페이지 이동
 const goToDetails = (category) => {
     router.push({ path: `/details/${category}`, query: { q: query } });

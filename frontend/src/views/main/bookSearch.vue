@@ -35,6 +35,9 @@ import { useRouter } from "vue-router";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 export default {
+    components: {
+        MusicPlayer,
+    },
     setup() {
     const route = useRoute();
     const query = ref(route.query.q || "");
@@ -175,7 +178,6 @@ export default {
         totalPages,
         goToPage,
         gotoDetail,
-        MusicPlayer,
     };
     },
 };

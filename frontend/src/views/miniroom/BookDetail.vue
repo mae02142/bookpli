@@ -207,6 +207,7 @@ const toggleWishList = async () => {
 
             isInLibrary.value = false;
             libraryId.value = null;
+            book.value.status = "";
         } catch (error) {
             console.error("도서 삭제 오류:", error);
         }
