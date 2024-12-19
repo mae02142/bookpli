@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
-    <div v-if="visible" class="modal-overlay" @click.self="emitClose">
-        <div class="modal-content">
+    <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
+        <div class="goal-modal-content">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -15,7 +15,7 @@
 
         <div class="date-section">
         <div class="date-status">독서상태</div>
-        <div class="date-row">
+        <div class="date-row-status">
             <span class="date-label">
                 <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
                 독서중
@@ -24,42 +24,53 @@
                 <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
             </span>
         </div>
-        <div class="date-header">독서기간</div>
-        <div class="date-row">
-            <span class="date-label">
-            시작일
-            <img src="../../assets/icons/calendar.png" @click="showStartPicker = !showStartPicker" />
-            <VueDatePicker
-                v-if="showStartPicker"
-                v-model="startDate"
-                :teleport="false"
-                :auto-apply="true"
-                :enable-time-picker="false"
-                placeholder="날짜 선택"
-                :locale="ko"
-                :format="dateFormat"
-                @update:modelValue="updateStartDate"
-            />
-            <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
-            </span>
-            <span class="date-label">
-            종료일
-            <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
-            <VueDatePicker
-                v-if="showEndPicker"
-                v-model="endDate"
-                :teleport="false"
-                :auto-apply="true"
-                :enable-time-picker="false"
-                placeholder="날짜 선택"
-                :locale="ko"
-                :format="dateFormat"
-                @update:modelValue="updateEndDate"
-            />
-            <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
-            </span>
-                </div>
+        <div class="date-header">독서 목표 기간</div>
+        <div class="date-row"
+        :class="{active: showStartPicker === true}"
+        >
+            <div class="goal-start-date">
+                <p class="goal-start-text">시작일</p>
+                <span class="date-label">
+                    <img src="../../assets/icons/calendar.png"
+                     @click="showStartPicker = !showStartPicker"
+                     />
+                    <VueDatePicker
+                    v-if="showStartPicker"
+                    v-model="startDate"
+                    :teleport="false"
+                    :auto-apply="true"
+                    :enable-time-picker="false"
+                    placeholder="날짜 선택"
+                    :locale="ko"
+                    :format="dateFormat"
+                    @update:modelValue="updateStartDate"
+                    />
+                </span>
+            </div>
+            <div class="goal-last-date">
+                <p class="goal-last-text">종료일</p>
+                <span class="date-label">
+                <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
+                <VueDatePicker
+                    v-if="showEndPicker"
+                    v-model="endDate"
+                    :teleport="false"
+                    :auto-apply="true"
+                    :enable-time-picker="false"
+                    placeholder="날짜 선택"
+                    :locale="ko"
+                    :format="dateFormat"
+                    @update:modelValue="updateEndDate"
+                />
+                </span>
+            </div>
+            <div class="goal-date-final" v-if="rbook.startDate">
+                <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
+                <span>~</span>
+                <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
+            </div>
         </div>
+    </div>
 
         <div class="progress-section" v-if="rbook.status === 'reading'">
             <div class="progress-header">독서량</div>
@@ -98,8 +109,8 @@ const props = defineProps({
 
 const emit= defineEmits(["close","dropReading"]);
 
-const emitClose= () => {
-    emit("close");
+const emitClose = () => {
+    emit("close", props.rbook);
 };
 
 
@@ -383,6 +394,17 @@ max-width: 800px;
     
 }
 
+.date-row-status{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: #f0f0f0;
+    border-radius: 15px;
+    padding: 10px 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 .date-header {
     text-align: left; 
     font-size: 16px;
@@ -398,6 +420,7 @@ max-width: 800px;
 }
 
 .date-row {
+    gap: 20px;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -406,6 +429,11 @@ max-width: 800px;
     padding: 10px 15px;
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+.date-row.active {
+    display: flex;
+    flex-direction: column;
 }
 
 .date-label {
@@ -419,6 +447,20 @@ gap: 5px;
 .date-value {
 font-size: 14px;
 color: #000000;
+}
+
+.goal-last-date,
+.goal-start-date{
+    display: flex;
+}
+.goal-last-text,
+.goal-start-text{
+    margin: auto 7px;
+}
+
+.goal-date-final{
+    display: flex;
+    gap: 20px;
 }
 
 .progress-section {
@@ -463,6 +505,10 @@ max-width: 800px;
     cursor: pointer;
 }
 
+.confirm-button:hover{
+    background: beige;
+}
+
 .date-label {
     display: inline-flex;
     align-items: center; 
@@ -483,10 +529,6 @@ max-width: 800px;
     gap: 15px;
 }
 
-.date-row {
-display: flex;
-gap: 20px;
-}
 
 .date-label {
 display: flex;
@@ -516,7 +558,7 @@ font-size: 14px;
     margin-bottom: 10px;
 }
 
-.modal-overlay {
+.goal-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -529,12 +571,12 @@ font-size: 14px;
     z-index: 9999;
 }
 
-.modal-content {
+.goal-modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 10px;
     width: 60%;
-    height: 80%;
+    height: auto;
     max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;

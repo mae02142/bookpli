@@ -1,7 +1,7 @@
 <template>
-  <div class="modal-wrap">
-    <div class="modal-content" @click.stop>
-      <div class="modal-items">
+  <div class="edit-modal-wrap">
+    <div class="edit-modal-content" @click.stop>
+      <div class="edit-modal-items">
         <header class="header">
           <h3>게시글 수정</h3>
           <hr />
@@ -49,8 +49,8 @@
               accept="image/*"
             />
             <div>
-              <button @click="confirmUpdate" class="modal-btn">수정</button>
-              <button @click="closeModal" class="modal-btn">취소</button>
+              <button @click="confirmUpdate" class="edit-modal-btn">수정</button>
+              <button @click="closeModal" class="edit-modal-btn">취소</button>
             </div>
           </div>
         </article>
@@ -237,7 +237,7 @@ export default {
   
   <style scoped>
       /* 모달 전체 스타일 */
-      .modal-wrap {
+      .edit-modal-wrap {
         position: fixed;
         left: 0;
         top : 0;
@@ -246,7 +246,7 @@ export default {
         background: rgb(0, 0, 0, 0.4);
         z-index: 1000;
     }
-    .modal-content {
+    .edit-modal-content {
         font-size: 18px;
         position: relative;
         top : 50%;
@@ -316,7 +316,7 @@ export default {
         flex-direction: row;
     }
 
-    .modal-btn {
+    .edit-modal-btn {
         width: 50px;
         height: 35px;
         background-color: #fffdf1;
@@ -324,7 +324,7 @@ export default {
         border: none;
         margin : 10px;
     }
-    .modal-btn:hover{
+    .edit-modal-btn:hover{
         cursor: pointer;
         background-color: beige;
         }

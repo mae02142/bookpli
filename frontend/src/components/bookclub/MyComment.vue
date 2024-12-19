@@ -54,24 +54,25 @@
                   <button class="slide-next" @click="nextSlide(index)">></button>
                 </div>
              </div>
-          </div>
+         
           <div class="post-items">
             <div class="postContent">
               <p class="post-cnt">{{ item.post?.postContent }}</p>
               <p class="post-date">{{ item.post?.postDate }}</p>
             </div>
           </div>
+        </div>
           
           <!-- 조회 및 수정 -->
           <div class ="cmt-article ">
-           <div class="comment-box"> 
             <div class="author-info">
-              <img class="author-image" src="@/assets/icons/profile.png" alt="Author" />
-              <h3>{{ item.userNickname }}</h3>
             </div>
-  
-            <div class="comment-text">
-              <textarea
+            
+            <div class="comment-box"> 
+              <img class="author-image" :src="item.profilePath" alt="Author" />
+              <div class="comment-text">
+                <h6 class="comment-user-name">{{ item.userNickname || 'Userdfdsfsdfsfsfds' }}</h6>
+                <textarea
                 v-if="editingId === item.commentId"
                 class="edit-comment"
                 @input="adjustHeight"
@@ -391,17 +392,29 @@
       gap:15px;
     }
 
+    .cmt-article{
+      margin-bottom: 20px;
+    }
+
     .author-image {
       width: 40px;
       height: 40px;
       border-radius: 50%;
     }
+
+    .comment-user-name{
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
     
     .author-info {
       font-size: 15px;
       display: flex;
-      flex-direction: column;
-      text-align: center;
+      flex-direction: row;
+      margin-bottom: 20px;
+      align-items: center;
+      gap: 10px;
     }
     .comment-text {
       font-size: 16px;

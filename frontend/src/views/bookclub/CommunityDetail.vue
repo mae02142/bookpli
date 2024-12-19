@@ -5,20 +5,20 @@
       </div>  
     <div class="community-items">
         <!-- 책 이미지 -->
-         <div class="cover-one">
-          <div class="cover-two">
-            <div class="cover-three">
-              <div class="cover-four">
-                <img class="book-cover" :src="community.image" :alt="community.title" />
+         <div class="community-cover-one">
+          <div class="community-cover-two">
+            <div class="community-cover-three">
+              <div class="community-cover-four">
+                <img class="community-book-cover" :src="community.image" :alt="community.title" />
               </div>
             </div>
           </div>
          </div>
        
         <!-- 제목과 저자 -->
-        <div class="content">
-            <h1 class="title">{{ community.title.replace(/\(.*?\)/g, '').trim() }}</h1>
-            <p class="author">{{ community.author.replace(/\(.*?\)/g, '').trim() }}</p>
+        <div class="bookclub-content">
+            <h1 class="bookclub-title">{{ community.title.replace(/\(.*?\)/g, '').trim() }}</h1>
+            <p class="bookclub-author">{{ community.author.replace(/\(.*?\)/g, '').trim() }}</p>
             <p class="description">{{ community.description }}</p>
         </div>
       </div>
@@ -119,10 +119,12 @@
                 <div class="text-box-bookclub">
                   <div class="post-header">
                     <img class="post-profile" :src="post.profilePath || profile" alt="커뮤니티 이미지" />
-                    <p class="username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
-                </div>
-                <!-- 본문 글 -->
-                <p class="post-cnt">{{ post.postContent }} </p>                        
+                  </div>
+                  <!-- 본문 글 -->
+                   <div class="post-user-cnt">
+                     <p class="post-username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
+                     <p class="post-cnt">{{ post.postContent }} </p>                        
+                   </div>
                 </div>
                  
                       <!-- 아이콘 섹션 -->
@@ -337,33 +339,25 @@
     gap : 60px;
     padding : 30px;
   }
-  .book-cover {
-    width: 180px;
-    height: 200px;
+  .community-book-cover {
+    width: 170px;
+    height: 199px;
     border: 1px double #c0c0c0;
     margin-right: 1px;
     border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
-    transform-style: preserve-3d; /* 3D 변환 활성화 */
     transition: transform 0.5s ease;
   }
 
-  .cover-one{
-  border: 1px double gainsboro;
-  border-left: none;
-  border-top: none;
-  border-radius: 4px;
-  margin: 10px;
+  .community-cover-one{
+    width: 180px;
+    height: 200px;
+    border-right: 1px double gainsboro;
+    border: none;
+    border-radius: 4px;
 }
-.cover-two{
-  border: 1px double gainsboro;
-  border-left: none;
-  border-top: none;
-  border-radius: 4px;
-  margin-right: 1px;
-  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
-}
-.cover-three{
+.community-cover-two{
+  width: 99%;
+  height: 100%;
   border: 1px double gainsboro;
   border-left: none;
   border-top: none;
@@ -371,7 +365,18 @@
   margin-right: 1px;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
 }
-.cover-four{
+.community-cover-three{
+  width: 98%;
+  height: 100%;
+  border: 1px double gainsboro;
+  border-left: none;
+  border-top: none;
+  border-radius: 4px;
+  margin-right: 1px;
+}
+.community-cover-four{
+  width: 100%;
+  height: 100%;
   border: 1px double gainsboro;
   border-left: none;
   border-top: none;
@@ -380,17 +385,17 @@
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
 }
  
-  .content {
+  .bookclub-content {
     margin-top: 10px;
     line-height: 2;
   }
   
-  .title {
+  .bookclub-title {
     font-size: 24px;
     font-weight: bold;
   }
   
-  .author {
+  .bookclub-author {
     font-size: 18px;
     color: #666;
   }
@@ -529,12 +534,17 @@
     width: 50px;
     height: 50px;
     border-radius: 10px;
-    margin-top: 10px;
   }
-  .username {
-    font-size: 13px;
-    font-weight: 400;
-    margin-top: 10px;
+  .post-user-cnt{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+    
+  }
+  .post-username {
+    font-size: 15px;
+    font-weight: 700;
   }
   .post-cnt {
     line-height: 1.6;
@@ -546,11 +556,11 @@
   }
 
   .text-box-bookclub{
-    display: flex;
+      display: flex;
       flex-direction: row;
       justify-content: flex-start;
-      margin-top: 10px;
-      gap:30px;
+      margin: 10px auto;
+      gap:10px;
   }
   
   .post-footer {
