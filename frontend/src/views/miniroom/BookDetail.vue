@@ -46,7 +46,7 @@
         <ReadGoalModal 
             :visible="showModal"
             :rbook="selectBook"
-            @close="closeModal"
+            @close="handleModalClose"
         />
     </div>
 </div> 
@@ -93,7 +93,6 @@ const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
 const activeTab= ref("");
-const recomBook= ref(null);
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
 
@@ -156,11 +155,17 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
+const handleModalClose = (updatedBook) => {
+    if (updatedBook) {
+        Object.assign(book.value, updatedBook);
+    }
+    closeModal();
+};
+
 const loadBookDetail = async () => {
     try {
         const response = await apiClient.get(`/api/book/${isbn13}`)
         book.value = response.data.data;
-        // 도서 상세를 로드한 후 상태 확인
         await checkLibraryStatus();
     } catch (error) {
         console.log(error);

@@ -79,7 +79,6 @@
       @delete-library="deleteLibrary"
       @book-like-status="handleBookLikeStatus"
     />
-
     <musicPlayer />
   </div>
 </template>
@@ -137,7 +136,9 @@ const filteredBooks = computed(() => {
   if (selectedStatus.value === 'liked') {
     return books.value.filter((book) => isBookLiked(book.isbn13));
   }
-  return groupedData.value[selectedStatus.value] || [];
+  return groupedData.value[selectedStatus.value]?.filter(
+    (book) => book.status === 'reading'
+  ) || [];
 });
 
 // 선택된 상태 변경
@@ -169,19 +170,24 @@ const showTooltip = (event) => {
   tooltip.x = event.pageX + 10; // 마우스 위치 오른쪽으로 10px
   tooltip.y = event.pageY + 10; // 마우스 위치 아래로 10px
 };
+
 // 툴팁 숨김 함수
 const hideTooltip = () => {
   tooltip.show = false;
 };
+
 // 모달 열기
 const openModal = (book) => {
   selectedBook.value = book; // 선택된 책 데이터 설정
   isModalVisible.value = true; // 모달 표시
 };
+
 // 모달 닫기
 const closeModal = () => {
-  isModalVisible.value = false; // 모달 숨김
+  isModalVisible.value = false;
+  getMyLibrary(); 
 };
+
 // books 데이터에 progress와 remainingDays 추가
 const prepareBooksData = (books) => {
   return books.map((book) => {

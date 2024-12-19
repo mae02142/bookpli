@@ -7,7 +7,7 @@
         </div>
         <div class="modal-content-grid">
           <div class="album-grid">
-            <img :src="songData.image" class="album-img" alt="Album Cover" />
+            <img :src="songData.albumCover || songData.image" class="album-img" alt="Album Cover" />
               <div class="album-grid-right">
               <p class="album-grid-title">{{ songData.name }}</p>
               <p class="album-grid-artist">{{ songData.artists }}</p>
@@ -134,6 +134,7 @@ const selectSong = (track) => {
     albumId: songData.value.albumId, // 기존 앨범 ID 유지
     artists: track.artists, // 트랙의 아티스트 정보
   };
+  console.log("확인 : ",songData.value);
 };
 
 const displayNotification = (message) => {

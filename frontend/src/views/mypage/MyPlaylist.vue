@@ -125,14 +125,14 @@
           </thead>
           <tbody>
             <tr v-for="(song, index) in songs" :key="song.id">
-              <td class="song-index">
+              <td class="song-index" @click="playSong(song.id)">
                 <img
                   v-if="hoveredIndex === index"
                   src="@/assets/icons/play.png"
                   alt="Play Icon"
-                  class="play-icon"
+                  class="play-icon" @click="playSong(song.id)"
                 />
-                <span v-else>{{ index + 1 }}</span>
+                <span v-else @click="playSong(song.id)">{{ index + 1 }}</span>
               </td>
               <td
                 @mouseover="hoveredIndex = index"
@@ -142,7 +142,7 @@
                   <img
                     :src="song.albumCover"
                     alt="Album Cover"
-                    class="album-cover"
+                    class="album-cover" @click="playSong(song.id)"
                   />
                   <div class="song-details">
                     <p class="song-title" @click="openSongDetail(song)">
@@ -152,8 +152,8 @@
                   </div>
                 </div>
               </td>
-              <td class="song-album">{{ song.album }}</td>
-              <td class="song-duration">{{ handleFormat(song.duration) }}</td>
+              <td class="song-album" @click="playSong(song.id)">{{ song.album }}</td>
+              <td class="song-duration" @click="playSong(song.id)">{{ handleFormat(song.duration) }}</td>
               <td class="delete-button-container" v-if="selectedPlaylist.owner === authStore.user.spotifyId">
                 <button class="delete-button" @click="removeMusic(selectedPlaylist.id, song.id)">삭제               </button>
               </td>
@@ -179,8 +179,10 @@ import { ref, onMounted } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
+import { useUserStore } from "@/stores/user";
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
+import axios from "axios";
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUtilModalStore } from '@/stores/utilModalStore';
 import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
@@ -189,6 +191,8 @@ import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 // 상태 관리
 const authStore = useAuthStore();
 const modalStore = useModalStore();
+const userStore = useUserStore();
+const utilModalStore = useUtilModalStore();
 const hoveredIndex = ref(null);
 const playlists = ref([]); // 플레이리스트 목록
 const myPlaylists = ref([]);
@@ -200,7 +204,7 @@ const selectedSong = ref(null); // 선택된 노래
 const songs = ref([]); // 선택된 플레이리스트의 곡
 const addMode = ref(false); // 입력창 표시 여부
 const newPlaylistName = ref(""); // 새 플레이리스트 이름
-
+const token = userStore.accessToken;
 
 // 옵션 메뉴 상태
 const showOptionMenu = ref(false);
@@ -332,6 +336,50 @@ const getUserPlaylist = async () => {
   } catch (error) {
     console.error("플레이리스트 가져오기 실패:", error);
   }
+};
+
+const getActiveDevices = async () => {
+  try {
+    const response = await axios.get("https://api.spotify.com/v1/me/player/devices", {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data.devices;
+  } catch (error) {
+    console.error(
+        "Error fetching active devices:",
+        error.response ? error.response.data : error.message
+    );
+    return [];
+  }
+};
+
+//노래 재생
+const playSong = async (uri) => {
+    const playUrl = "https://api.spotify.com/v1/me/player/play";
+    uri = "spotify:track:" + uri;
+    try {
+      const devices = await getActiveDevices();
+      await axios.put(
+          playUrl,
+          {
+              uris: [uri],
+          },
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+              },
+          }
+      );
+    } catch (error) {
+      console.error(
+          "Error playing song:",
+          error.response ? error.response.data : error.message
+      );
+      utilModalStore.showModal("트랙 재생", `트랙 재생에 실패하였습니다.`, "warnig");
+    }
 };
 
 // 노래 삭제
