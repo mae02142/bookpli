@@ -27,8 +27,8 @@
         <h2 class="booklist-title"> {{ menuItems.find(item => item.route === selectedStatus)?.title || '전체 도서 목록' }}</h2>
       </header>
       <section class="book-list">
-         <!-- 선택된 상태에 맞는 도서 목록 렌더링 -->
-         <article
+          <!-- 선택된 상태에 맞는 도서 목록 렌더링 -->
+          <article
           class="book-item"
           v-for="(book) in filteredBooks"
           :key="book.isbn13"

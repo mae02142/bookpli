@@ -137,7 +137,7 @@
         />
     </div>
 </template>
-<script scoped>
+<script>
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
