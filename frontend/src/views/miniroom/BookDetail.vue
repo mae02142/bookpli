@@ -61,7 +61,7 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
-        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
+        <Recommend @recomBook="recomBookClick" /> <!--  v-if="activeTab ==='recommend'" -->
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
@@ -92,7 +92,7 @@ const isbn13 = route.params.isbn13;
 const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
-const activeTab= ref("");
+const activeTab= ref("recommend");
 const recomBook= ref(null);
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
@@ -100,6 +100,11 @@ const isLiked = ref(false); // 좋아요 여부 상태
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
 }
+
+const setActiveTab = (tab) => {
+    activeTab.value = tab; 
+};
+
 
 // 찜한 도서인지 확인하는 함수
 const likeordislike = async () => {
@@ -137,10 +142,6 @@ const likeAndToggle = async (book) => {
   } catch (error) {
     console.error("좋아요 토글 중 오류 발생:", error.message || error);
   }
-};
-
-const setActiveTab= (tab) => {
-    activeTab.value= tab;
 };
 
 //모달 

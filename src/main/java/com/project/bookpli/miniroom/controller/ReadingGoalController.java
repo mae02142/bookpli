@@ -1,6 +1,8 @@
 package com.project.bookpli.miniroom.controller;
 
+import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
+import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.service.BookApiService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,7 @@ public class ReadingGoalController {
     private BookApiService service;
 
     //독서목표 설정 status 변경
-    @PutMapping("register/{isbn13}")
+    @PutMapping("/register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
@@ -41,6 +43,20 @@ public class ReadingGoalController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
         }
     }
+
+//    @PutMapping("register/{userId}/{isbn13}")
+//    public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
+//                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+//
+//        int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
+//
+//        if(update > 0){
+//            return ResponseEntity.ok("독서목표가 설정되었습니다.");
+//        }else{
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
+//        }
+//    }
 
     //독서 목표 해제
     @DeleteMapping("/{isbn13}")

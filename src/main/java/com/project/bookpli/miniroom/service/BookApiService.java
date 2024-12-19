@@ -4,6 +4,7 @@ import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookLike;
+import com.project.bookpli.entity.Library;
 import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookLikeDTO;
@@ -11,6 +12,7 @@ import com.project.bookpli.miniroom.dto.BookResponseDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
@@ -125,6 +127,28 @@ public class BookApiService {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
     }
+
+//    @Transactional
+    public BookResponseDTO setReadGoal(LocalDate startDate, LocalDate endDate, BookDTO request) {
+        String isbn13= request.getIsbn13();
+        // Book 엔티티 검색 또는 생성
+        Book book = bookrep.findById(isbn13)
+                .orElseGet(() -> {
+                    // 외부 서비스나 DTO로 데이터를 받아와서 저장
+                    Book newbook = BookDTO.toEntity(request);
+                    return bookrep.save(newbook);
+                });
+
+        // Library 상태 업데이트
+        int updatedRows = librep.setReadGoal(isbn13, startDate, endDate);
+
+        if (updatedRows > 0) {
+            return BookResponseDTO.fromEntity(book);
+        } else {
+            throw new IllegalArgumentException("독서 목표 설정에 실패했습니다.");
+        }
+    }
+
 
     //도서완독
     public int clearRead(String isbn13, String status){

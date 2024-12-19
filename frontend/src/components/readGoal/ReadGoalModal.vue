@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="modal-overlay" @click.self="emitClose">
-        <div class="modal-content">
+        <div class="readGoal-modal-content">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -257,7 +257,7 @@ const setGoal = async (rbook) => {
         );
         router.push('/miniroom/minihome');
     }catch(error){
-        console.error(error.response?.data || error.message);
+        console.error(error);
         utilModalStore.showModal(
             "오류 발생",
             "작업 중 문제가 발생했습니다. 다시 시도해주세요.",
@@ -529,7 +529,7 @@ font-size: 14px;
     z-index: 9999;
 }
 
-.modal-content {
+.readGoal-modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 10px;
