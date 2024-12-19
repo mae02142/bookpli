@@ -4,7 +4,7 @@
     <div class="sidebar2">
       <div class="sidebar2-item">
         <img src="@/assets/icons/search.png" class="search-icon" />
-        <input type="text" placeholder="검색" class="search-bar" />
+        <input type="text" placeholder="검색" class="search-bar" v-model="searchPli"/>
         <img src="@/assets/icons/add_pli.png" class="add-icon" @click="toggleAddMode"/>
       </div>
       <div class="playlist-list">
@@ -34,7 +34,7 @@
         <div v-if="myPlaylistOpen">
           <div
             class="playlist-item"
-            v-for="(playlist, index) in myPlaylists"
+            v-for="(playlist, index) in filteredMyPlaylists"
             :key="playlist.id"
             @click="loadTracks(playlist.id)"
           >
@@ -56,7 +56,7 @@
         <div v-if="recommendedPlaylistOpen">
           <div
             class="playlist-item"
-            v-for="(playlist, index) in recommendedPlaylists"
+            v-for="(playlist, index) in filteredRecommendedPlaylists"
             :key="playlist.id"
             @click="loadTracks(playlist.id)"
           >
@@ -141,16 +141,7 @@
                     alt="Album Cover"
                     class="album-cover"
                      @click="openSongDetail(song)"
-                     @mouseover="showTooltip($event)"
-                     @mouseleave="hideTooltip"
                   />
-                  <div
-                    v-if="tooltip.visible"
-                    class="tooltip"
-                    :style="{ top: `${tooltip.y}px`, left: `${tooltip.x}px` }"
-                  >
-                    상세보기
-                  </div>
                   <div class="song-details"
                       @mouseover="hoveredIndex = index"
                       @mouseleave="hoveredIndex = null">
@@ -184,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive  } from 'vue';
+import { ref, onMounted, computed  } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
@@ -214,6 +205,7 @@ const songs = ref([]); // 선택된 플레이리스트의 곡
 const addMode = ref(false); // 입력창 표시 여부
 const newPlaylistName = ref(""); // 새 플레이리스트 이름
 const token = userStore.accessToken;
+const searchPli = ref("");
 
 // 옵션 메뉴 상태
 const showOptionMenu = ref(false);
@@ -293,6 +285,23 @@ const getActiveDevices = async () => {
     return [];
   }
 };
+
+// 필터링된 내 플레이리스트
+const filteredMyPlaylists = computed(() => {
+  if (!searchPli.value.trim()) return myPlaylists.value; // 검색어 없으면 전체 반환
+  return myPlaylists.value.filter((playlist) =>
+    playlist.name.toLowerCase().includes(searchPli.value.toLowerCase())
+  );
+});
+
+// 필터링된 추천 플레이리스트
+const filteredRecommendedPlaylists = computed(() => {
+  if (!searchPli.value.trim()) return recommendedPlaylists.value; // 검색어 없으면 전체 반환
+  return recommendedPlaylists.value.filter((playlist) =>
+    playlist.name.toLowerCase().includes(searchPli.value.toLowerCase())
+  );
+});
+
 
 const playSong = async (uri) => {
     const playUrl = "https://api.spotify.com/v1/me/player/play";
@@ -441,25 +450,6 @@ const refreshPlaylistTracks = async () => {
   } else {
     console.error("선택된 플레이리스트가 없습니다.");
   }
-};
-
-// 툴팁 상태 관리
-const tooltip = reactive({
-  visible: false,
-  x: 0,
-  y: 0,
-});
-
-// 툴팁 표시
-const showTooltip = (event) => {
-  tooltip.visible = true;
-  tooltip.x = event.pageX + 10; // 마우스 위치 기준 10px 오른쪽
-  tooltip.y = event.pageY + 10; // 마우스 위치 기준 10px 아래
-};
-
-// 툴팁 숨김
-const hideTooltip = () => {
-  tooltip.visible = false;
 };
 
 // 페이지 로드 시 실행
@@ -861,18 +851,5 @@ text-align: center;
   display: flex;
   justify-content: center;
   margin-top: 50px;
-}
-
-.tooltip {
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  z-index: 10;
-  pointer-events: none; /* 마우스 이벤트 무시 */
-  white-space: nowrap; /* 한 줄로 표시 */
-  transform: translate(-50%, -100%); /* 이미지 위에 위치하도록 조정 */
 }
 </style>

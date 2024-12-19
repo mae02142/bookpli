@@ -1,5 +1,7 @@
 package com.project.bookpli.library.dto;
 
+import com.project.bookpli.book.dto.BookDTO;
+import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookLike;
 import lombok.*;
 
@@ -11,18 +13,15 @@ import lombok.*;
 public class BookLikeDTO {
     private Long bookLikeId;
     private Long userId;
-    private String isbn13;
-    private String title;
-    private String author;
-    private String cover;
+    private BookDTO bookDTO;
 
 
     // Entity -> DTO
-    public static BookLikeDTO fromEntity(BookLike bookLike) {
+    public static BookLikeDTO fromEntity(BookLike bookLike, Book book) {
         return BookLikeDTO.builder()
                 .bookLikeId(bookLike.getBookLikeId())
                 .userId(bookLike.getUserId())
-                .isbn13(bookLike.getIsbn13())
+                .bookDTO(BookDTO.fromEntity(book))
                 .build();
     }
 }

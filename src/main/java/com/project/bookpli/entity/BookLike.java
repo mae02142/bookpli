@@ -1,9 +1,6 @@
 package com.project.bookpli.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -14,13 +11,14 @@ public class BookLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookLikeId;
     private Long userId;
-    private String isbn13;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "isbn13")
+    private Book book;
 
     @Builder
-    public BookLike(Long bookLikeId, Long userId, String isbn13) {
+    public BookLike(Long bookLikeId, Long userId, Book book) {
         this.bookLikeId = bookLikeId;
         this.userId = userId;
-        this.isbn13 = isbn13;
+        this.book = book;
     }
-
 }
