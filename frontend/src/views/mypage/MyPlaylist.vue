@@ -154,7 +154,7 @@
                   <div class="song-details"
                       @mouseover="hoveredIndex = index"
                       @mouseleave="hoveredIndex = null">
-                    <p class="song-title">
+                    <p class="song-title" @click="playSong(song.id)">
                       {{ song.name }}
                     </p>
                     <p class="song-artist">{{ song.artists }}</p>
@@ -188,8 +188,10 @@ import { ref, onMounted, reactive  } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
+import { useUserStore } from "@/stores/user";
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
+import axios from "axios";
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUtilModalStore } from '@/stores/utilModalStore';
 import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
@@ -198,6 +200,8 @@ import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 // 상태 관리
 const authStore = useAuthStore();
 const modalStore = useModalStore();
+const userStore = useUserStore();
+const utilModalStore = useUtilModalStore();
 const hoveredIndex = ref(null);
 const playlists = ref([]); // 플레이리스트 목록
 const myPlaylists = ref([]);
@@ -209,7 +213,7 @@ const selectedSong = ref(null); // 선택된 노래
 const songs = ref([]); // 선택된 플레이리스트의 곡
 const addMode = ref(false); // 입력창 표시 여부
 const newPlaylistName = ref(""); // 새 플레이리스트 이름
-
+const token = userStore.accessToken;
 
 // 옵션 메뉴 상태
 const showOptionMenu = ref(false);
@@ -272,6 +276,49 @@ const cancelTitle = () => {
   editedTitle.value = selectedPlaylist.value.name;
   isEditingTitle.value = false;
 }
+
+const getActiveDevices = async () => {
+  try {
+    const response = await axios.get("https://api.spotify.com/v1/me/player/devices", {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data.devices;
+  } catch (error) {
+    console.error(
+        "Error fetching active devices:",
+        error.response ? error.response.data : error.message
+    );
+    return [];
+  }
+};
+
+const playSong = async (uri) => {
+    const playUrl = "https://api.spotify.com/v1/me/player/play";
+    uri = "spotify:track:" + uri;
+    try {
+      const devices = await getActiveDevices();
+      await axios.put(
+          playUrl,
+          {
+              uris: [uri],
+          },
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+              },
+          }
+      );
+    } catch (error) {
+      console.error(
+          "Error playing song:",
+          error.response ? error.response.data : error.message
+      );
+      utilModalStore.showModal("트랙 재생", `트랙 재생에 실패하였습니다.`, "warnig");
+    }
+};
 
 // 플레이리스트 삭제
 const confirmDeletePlaylist = (playlistId) => {
