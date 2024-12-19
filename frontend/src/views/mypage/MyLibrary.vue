@@ -109,10 +109,10 @@
   try {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
     books.value = prepareBooksData(response.data.data); // books 데이터를 가공
-    console.log("확인 >>>>>>>>>", books.value);
+    console.log("내 서재 데이터:", books.value);
     updateMenuItems();
   } catch (error) {
-    console.error('Error loading library:', error);
+    console.error("내 서재 데이터 불러오기 오류:", error);
   }
 };
 //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
@@ -149,13 +149,20 @@ const selectStatus = (status) => {
 };
 
 // 좋아요 상태
-const handleBookLikeStatus = (isbn13) => {
-  if (likedBooks.value.includes(isbn13)) {
-    likedBooks.value = likedBooks.value.filter((isbn) => isbn !== isbn13);
-  } else {
-    likedBooks.value.push(isbn13);
+const handleBookLikeStatus = async (isbn13) => {
+  try {
+    // 좋아요 상태를 다시 불러오기
+    await getBookLikeStatus();
+    updateMenuItems(); // 메뉴 카운트 업데이트
+
+    // 좋아요 상태가 "liked"일 때 화면 즉시 새로고침
+    if (selectedStatus.value === "liked") {
+      await getMyLibrary(); // 전체 도서 목록 새로고침
+    }
+    console.log(`좋아요 상태 변경된 책 ISBN: ${isbn13}`);
+  } catch (error) {
+    console.error("좋아요 상태 변경 처리 오류:", error);
   }
-  updateMenuItems(); // 메뉴 카운트 업데이트
 };
 
 // 모달 열기
