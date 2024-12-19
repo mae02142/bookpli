@@ -27,8 +27,8 @@
         <h2 class="booklist-title"> {{ menuItems.find(item => item.route === selectedStatus)?.title || '전체 도서 목록' }}</h2>
       </header>
       <section class="book-list">
-         <!-- 선택된 상태에 맞는 도서 목록 렌더링 -->
-         <article
+          <!-- 선택된 상태에 맞는 도서 목록 렌더링 -->
+          <article
           class="book-item"
           v-for="(book) in filteredBooks"
           :key="book.isbn13"
@@ -166,6 +166,7 @@ const openModal = (book) => {
 // 모달 닫기
 const closeModal = () => {
   isModalVisible.value = false; // 모달 숨김
+  getMyLibrary(); 
 };
 // books 데이터에 progress와 remainingDays 추가
 const prepareBooksData = (books) => {
