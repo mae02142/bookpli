@@ -98,8 +98,8 @@ const props = defineProps({
 
 const emit= defineEmits(["close","dropReading"]);
 
-const emitClose= () => {
-    emit("close");
+const emitClose = () => {
+    emit("close", props.rbook);
 };
 
 
