@@ -109,7 +109,6 @@
   try {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
     books.value = prepareBooksData(response.data.data); // books 데이터를 가공
-    console.log("내 서재 데이터:", books.value);
     updateMenuItems();
   } catch (error) {
     console.error("내 서재 데이터 불러오기 오류:", error);
@@ -159,7 +158,6 @@ const handleBookLikeStatus = async (isbn13) => {
     if (selectedStatus.value === "liked") {
       await getMyLibrary(); // 전체 도서 목록 새로고침
     }
-    console.log(`좋아요 상태 변경된 책 ISBN: ${isbn13}`);
   } catch (error) {
     console.error("좋아요 상태 변경 처리 오류:", error);
   }
@@ -216,7 +214,6 @@ const getBookLikeStatus = async () => {
   try {
     const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
     likedBooks.value = response.data.data;
-    console.log("좋아요 데이터:", likedBooks.value);
   } catch (error) {
     console.error("좋아요 상태 불러오기 오류:", error);
     likedBooks.value = [];

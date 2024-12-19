@@ -26,7 +26,8 @@
             alt="Like Icon" @click="changeToLike(book)" />
         </div>
         <div class="btn-grid">
-          <p class="btn change-status" v-if="props.book.status!=='completed'" @click="openGoalModal(book)">
+          <p v-if="!isInLibrary" class="btn add-to-library" @click="handleAddToLibrary">서재에 담기</p>
+          <p v-else class="btn change-status" v-if="props.book.status!=='completed'" @click="openGoalModal(book)">
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
@@ -58,8 +59,13 @@ const { gotoDetail } = useRouterUtils();
 const bookLikeId = ref(null);
 const readGoalToggle = ref(false);
 const bookData= ref({});
+const isInLibrary = ref(false); // 서재 포함 여부
 
 const openGoalModal = (book) => {
+  if (!isInLibrary.value) {
+    alert('먼저 서재에 담아주세요!');
+    return;
+  }
   bookData.value = book;
   readGoalToggle.value = true;
 };
@@ -97,11 +103,6 @@ const isLiked = computed(() => bookLikeId.value !== null);
   }
   }
   
-  // 이벤트 핸들러
-  const changeStatus = () => {
-    alert('독서 상태를 변경합니다!');
-  };
-
   const writeReview = () => {
     emit('openForm'); //이벤트 전달
     emit('close');
@@ -130,9 +131,31 @@ const isLiked = computed(() => bookLikeId.value !== null);
   }
 };
 
+// 서재에 책 추가
+const addBookToLibrary = async (book) => {
+  try {
+    await apiClient.post('/api/library', { // API 경로 확인 필요
+      bookId: book.id,
+      title: book.title,
+      author: book.author,
+      cover: book.cover,
+    });
+    isInLibrary.value = true; // 서재에 담김 표시
+  } catch (error) {
+    console.error('책 추가 실패:', error);
+  }
+};
+
+// 서재에 담기 버튼 로직
+const handleAddToLibrary = async () => {
+  if (!isInLibrary.value) {
+    await addBookToLibrary(book.value);
+  }
+};
 
   onMounted(()=> {
     getBookLikeStatus();
+    console.log("::::::::::::;",props.book);
   })
   </script>
   
