@@ -148,6 +148,7 @@
     import { ref, computed, onMounted } from "vue";
     import { useRouter } from "vue-router";
     import { useAuthStore } from "@/stores/auth";
+    import { useUserStore } from "@/stores/user.js";
     import { useProgressStore } from "@/stores/readingProgressbar";
     import MusicPlayer from '@/components/layouts/musicPlayer.vue';
     import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
@@ -159,6 +160,7 @@
     const router = useRouter();
     const authStore = useAuthStore();
     const progressStore = useProgressStore();
+    const userStore = useUserStore(); 
     
     const userData = ref({});
     const addList = ref([]);
@@ -195,6 +197,28 @@
         return addList.value.slice(startIndex, endIndex);
     });
     
+    const getToken = async () => {
+        try {
+            if (authStore.isAuthenticated) {
+                const spotifyId = authStore.user.spotifyId;
+                const response = await fetch(`http://localhost:8081/tokens/accessToken?spotifyId=${spotifyId}`, {
+                    credentials: "include",
+            });
+    
+            if (!response.ok) {
+                throw new Error("Failed to fetch access token");
+            }
+    
+            const data = await response.json();
+            const accessToken = data.access_token;
+            userStore.setAccessToken(accessToken);
+            } else {
+                console.log("확인할 수 없는 회원입니다."); 
+            }
+        } catch (error) {
+            console.error(error.message);
+        }
+    };
     
     const loadReadList = () => {
         const utilModalStore = useUtilModalStore();
@@ -214,9 +238,9 @@
     
     const gotoLibrary= () =>{
         router.push({
-            path: `/mypage/mylibrary`,
-
-        });
+                path: `/mypage/mylibrary`,
+    
+            });
     }
     
     
@@ -517,6 +541,7 @@
     
       calculateCompletedStats();
       calculateMonthStats();
+      getToken()
     });
     </script>
     
@@ -615,7 +640,7 @@
     .right-section{
         margin : 10px;
         width: 80%;
-        padding: 30px 60px;
+        padding: 30px;
     }
     
     .reading-status-box {
@@ -635,7 +660,7 @@
     min-width: 250px;
     
     width: 80%;
-    margin: 10px auto;
+    margin: auto;
     }
     
     .user-profile {
@@ -691,7 +716,7 @@
     
     .book-covers {
         display: flex; 
-        gap: 40px; 
+        gap: 20px; 
     }
     
     
@@ -802,18 +827,9 @@
     }
     
     .progress-percentage {
-    /* font-size: 16px;
-    font-weight: bold;
-    color: #666; */
-
-    position: absolute;
-    top: -25px; /* 프로그래스 바 위의 위치 */
-    left: calc(100% - 40px); /* 기본 위치를 프로그래스 바 끝으로 설정 */
-    transform: translateX(0%);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     color: #666;
-    transition: left 0.3s ease, transform 0.3s ease;
     }
     
     .full-progress{
@@ -836,7 +852,7 @@
     
     .title-header {
         margin-bottom: 20px;
-        margin-top: 25px;
+        margin-top: 20px;
         font-size: x-large;
     }
     
@@ -946,7 +962,6 @@
     
     .book-icon {
         cursor: pointer;
-        font-size: 18px;
     }
     
     .reading-book-grid {
@@ -1011,7 +1026,20 @@
         height: 10px;
         background-color: rgb(2, 77, 42);
     }
-
+    /* .goal{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 15px;
+        background-color: rgb(2, 77, 42);
+        border-radius: 6px;
+        z-index: 1;
+    }
+    .current{
+        height: 15px;
+        background-color: rgb(171, 235, 171);
+        border-radius: 6px;
+    }*/
     .progress-legend {
         display: flex;
         justify-content: flex-end;

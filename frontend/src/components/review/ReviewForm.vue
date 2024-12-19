@@ -1,7 +1,7 @@
 <template>
     <!-- 모달 배경 -->
-    <section v-if="isVisible" class="modal-overlay" @click="cancelForm">
-      <div class="modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
+    <section v-if="isVisible" class="review-modal-overlay" @click="cancelForm">
+      <div class="review-modal-content" @click.stop> <!-- 이벤트 버블링 막기 -->
         <!-- 모달 내용 -->
       <div class="review-form">
         <div class="date-rating">
@@ -147,7 +147,7 @@
   
   <style scoped>
   /* 모달 오버레이 */
-  .modal-overlay {
+  .review-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -161,7 +161,7 @@
   }
   
   /* 모달 콘텐츠 */
-   .modal-content {
+   .review-modal-content {
     background: white;
     padding: 40px;
     border-radius: 10px;

@@ -26,7 +26,7 @@
             alt="Like Icon" @click="changeToLike(book)" />
         </div>
         <div class="btn-grid">
-          <p class="btn change-status" @click="changeStatus">
+          <p class="btn change-status" v-if="props.book.status!=='completed'" @click="openGoalModal(book)">
             독서상태 변경
           </p>
           <p class="btn write-review" @click="writeReview">리뷰 작성</p>
@@ -38,6 +38,11 @@
         </div>
       </div>
     </div>
+    <ReadGoalModal
+            :visible="readGoalToggle"
+            :rbook="bookData"
+            @close="closeModal"
+        />
   </template>
   
   <script setup>
@@ -46,13 +51,24 @@ import { useRouterUtils } from '@/router/routerUtils';
 import apiClient from '@/api/axiosInstance';
 import { addBookLike, removeBookLike } from '@/utils/likeUtils';
 import { useAuthStore } from '@/stores/auth';
+import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 
 const authStore = useAuthStore();
 const { gotoDetail } = useRouterUtils();
 const bookLikeId = ref(null);
+const readGoalToggle = ref(false);
+const bookData= ref({});
+
+const openGoalModal = (book) => {
+  bookData.value = book;
+  readGoalToggle.value = true;
+};
+
+const closeGoalModal = () => {
+  readGoalToggle.value = false;
+};
 
 const isLiked = computed(() => bookLikeId.value !== null);
-
 
   // 부모로부터 전달받은 책 데이터
   const props = defineProps({
@@ -68,13 +84,13 @@ const isLiked = computed(() => bookLikeId.value !== null);
 
   // 좋아요 상태 관리
   const changeToLike = async (book) => {
-    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, book);
+    bookLikeId.value = await addBookLike(authStore.user.userId, book);
     emit('book-like-status', book.isbn13);
     
   };
 
   const changeToDislike = async () => {
-    const result = await removeBookLike(apiClient, bookLikeId.value);
+    const result = await removeBookLike(bookLikeId.value);
     if (result) {
       bookLikeId.value = null;
       emit('book-like-status', props.book.isbn13);

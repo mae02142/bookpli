@@ -106,15 +106,15 @@
                         </tr>
                     </table>
                     <!-- 플레이리스트 추가 모달 -->
-                    <div v-if="showPlaylistModal" class="modal-overlay" @click.self="closeModal">
-                        <div class="modal-content">
-                            <h3 class="modal-title">내 플레이리스트에 추가</h3>
+                    <div v-if="showPlaylistModal" class="musicSection-modal-overlay" @click.self="closeModal">
+                        <div class="musicSection-modal-content">
+                            <h3 class="musicSection-modal-title">내 플레이리스트에 추가</h3>
                             <ul>
                                 <li 
                                     v-for="playlist in playlists" 
                                     :key="playlist.id" 
                                     @click="addToPlaylist(playlist.id)"
-                                    class="playlist-item"
+                                    class="musicSection-modal-item"
                                 >
                                     {{ playlist.name }}
                                 </li>
@@ -805,7 +805,7 @@ body {
     transform: scale(1.05);
 }
 
-.modal-overlay {
+.musicSection-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -818,7 +818,7 @@ body {
     z-index: 1000;
 }
 
-.modal-content {
+.musicSection-modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -826,20 +826,20 @@ body {
     text-align: center;
 }
 
-.modal-title {
+.musicSection-modal-title {
     padding-bottom: 20px;
     font-size: 1.5rem;
     font-weight: bolder;
 }
 
-.playlist-item {
+.musicSection-modal-item {
     list-style: none;
     padding: 10px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
 }
 
-.playlist-item:hover {
+.musicSection-modal-item:hover {
     background-color: #f0f0f0;
 }
 
