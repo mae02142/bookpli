@@ -122,14 +122,14 @@ const likeAndToggle = async (book) => {
   try {
     if (isLiked.value) {
       // 이미 좋아요 상태면 삭제
-      const isRemoved = await removeBookLike(apiClient, bookLikedId.value);
+      const isRemoved = await removeBookLike(bookLikedId.value);
       if (isRemoved) {
         bookLikedId.value = null; // 좋아요 ID 초기화
         isLiked.value = false; // 빈 하트 상태로 변경
       }
     } else {
       // 좋아요 추가
-      const likedId = await addBookLike(apiClient, authStore.user.userId, book);
+      const likedId = await addBookLike(authStore.user.userId, book);
       bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
       isLiked.value = true; // 꽉 찬 하트 상태로 변경
     }

@@ -311,7 +311,7 @@ const openSongDetail = (song) => {
 // 플레이리스트 로드
 const loadTracks = async (playlistId) => {
   try {
-    songs.value = await getPlaylistTracks(apiClient, playlistId) // 트랙 가져오기
+    songs.value = await getPlaylistTracks(playlistId) // 트랙 가져오기
     selectedPlaylist.value = playlists.value.find(
       (playlist) => playlist.id === playlistId
     );
@@ -346,7 +346,7 @@ const getUserPlaylist = async () => {
 // 노래 삭제
 const removeMusic = async (playlistId, songId) => {
   try {
-    await deleteSongFromPlaylist(apiClient, playlistId, songId);
+    await deleteSongFromPlaylist(playlistId, songId);
     songs.value = songs.value.filter((song) => song.id !== songId);
   } catch (error) {
     console.error("노래 삭제 중 오류:", error);

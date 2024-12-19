@@ -84,13 +84,13 @@ const isLiked = computed(() => bookLikeId.value !== null);
 
   // 좋아요 상태 관리
   const changeToLike = async (book) => {
-    bookLikeId.value = await addBookLike(apiClient, authStore.user.userId, book);
+    bookLikeId.value = await addBookLike(authStore.user.userId, book);
     emit('book-like-status', book.isbn13);
     
   };
 
   const changeToDislike = async () => {
-    const result = await removeBookLike(apiClient, bookLikeId.value);
+    const result = await removeBookLike(bookLikeId.value);
     if (result) {
       bookLikeId.value = null;
       emit('book-like-status', props.book.isbn13);
