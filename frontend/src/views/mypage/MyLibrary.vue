@@ -166,6 +166,7 @@ const openModal = (book) => {
 // 모달 닫기
 const closeModal = () => {
   isModalVisible.value = false; // 모달 숨김
+  getMyLibrary(); 
 };
 // books 데이터에 progress와 remainingDays 추가
 const prepareBooksData = (books) => {
