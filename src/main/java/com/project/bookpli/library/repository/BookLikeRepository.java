@@ -13,14 +13,9 @@ import java.util.Optional;
 @Repository
 public interface BookLikeRepository extends JpaRepository<BookLike, Long> {
 
-    @Query("SELECT new com.project.bookpli.library.dto.BookLikeDTO(" +
-            "bl.bookLikeId, bl.userId, bl.isbn13, b.title, b.author, b.cover) " +
-            "FROM BookLike bl " +
-            "JOIN Book b ON bl.isbn13 = b.isbn13 " +
-            "WHERE bl.userId = :userId")
-    List<BookLikeDTO> findAllByUserIdWithBookInfo(@Param("userId") Long userId);
+    List<BookLike> findAllByUserId(Long userId);
 
-    Optional<BookLike> findByUserIdAndIsbn13(Long userId, String isbn13);
+    Optional<BookLike> findByUserIdAndBook_Isbn13(Long userId, String isbn13);
 
-    boolean existsByUserIdAndIsbn13(Long userId, String isbn13);
+    boolean existsByUserIdAndBook_Isbn13(Long userId, String isbn13);
 }

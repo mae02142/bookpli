@@ -76,6 +76,7 @@
       @openForm="showForm=true"
       @delete-library="deleteLibrary"
       @book-like-status="handleBookLikeStatus"
+      @update-book-status="updateBookStatus"
     />
     <musicPlayer />
   </div>
@@ -109,10 +110,9 @@
   try {
     const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
     books.value = prepareBooksData(response.data.data); // books 데이터를 가공
-    console.log("확인 >>>>>>>>>", books.value);
     updateMenuItems();
   } catch (error) {
-    console.error('Error loading library:', error);
+    console.error("내 서재 데이터 불러오기 오류:", error);
   }
 };
 //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
@@ -132,9 +132,29 @@ const updateMenuItems = () => {
       ];
     };
 
+// 모달에서 받은 업데이트된 데이터 처리
+const updateBookStatus = (updatedBook) => {
+  // 서재 데이터 업데이트
+  const bookIndex = books.value.findIndex((book) => book.isbn13 === updatedBook.isbn13);
+  if (bookIndex !== -1) {
+    books.value[bookIndex] = { ...updatedBook }; // 서재 데이터 업데이트
+  } else {
+    books.value.push(updatedBook); // 새로운 도서 추가
+  }
+
+  // 좋아요 데이터가 필요한 경우 새로고침
+  if (selectedStatus.value === "liked") {
+    getBookLikeStatus(); // 좋아요 데이터를 새로 가져옴
+  }
+};
+
+
+
+
 // 현재 선택된 상태에 따른 책 필터링
 const filteredBooks = computed(() => {
   if (selectedStatus.value === "liked") {
+    console.log
     return likedBooks.value; // 좋아요 데이터만 사용
   }
   return (groupedData.value[selectedStatus.value] || []).map((book) => ({
@@ -149,25 +169,37 @@ const selectStatus = (status) => {
 };
 
 // 좋아요 상태
-const handleBookLikeStatus = (isbn13) => {
-  if (likedBooks.value.includes(isbn13)) {
-    likedBooks.value = likedBooks.value.filter((isbn) => isbn !== isbn13);
-  } else {
-    likedBooks.value.push(isbn13);
+const handleBookLikeStatus = async () => {
+  try {
+    // 좋아요 상태를 다시 불러오기
+    await getBookLikeStatus();
+    updateMenuItems(); // 메뉴 카운트 업데이트
+
+    // 좋아요 상태가 "liked"일 때 화면 즉시 새로고침
+    if (selectedStatus.value === "liked") {
+      await getMyLibrary(); // 전체 도서 목록 새로고침
+    }
+  } catch (error) {
+    console.error("좋아요 상태 변경 처리 오류:", error);
   }
-  updateMenuItems(); // 메뉴 카운트 업데이트
 };
 
 // 모달 열기
 const openModal = (book) => {
-  selectedBook.value = book; // 선택된 책 데이터 설정
-  isModalVisible.value = true; // 모달 표시
+  selectedBook.value = { ...book }; // 최신 데이터 설정
+  isModalVisible.value = true;
 };
-// 모달 닫기
+
 const closeModal = () => {
-  isModalVisible.value = false; // 모달 숨김
-  getMyLibrary(); 
+  isModalVisible.value = false;
+  // 선택된 책의 상태를 업데이트
+  if (selectedBook.value.libraryId || selectedBook.value.status) {
+    updateBookStatus(selectedBook.value); 
+  }
+  getMyLibrary();
 };
+
+
 // books 데이터에 progress와 remainingDays 추가
 const prepareBooksData = (books) => {
   return books.map((book) => {
@@ -191,30 +223,72 @@ const calculateRemainingDays = (endDate) => {
   return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
 };
 const deleteLibrary = async (libraryId) => {
-   // 삭제된 항목을 로컬 리스트에서 제거
-   try {
-      await apiClient.delete(`/api/library`, {
+  try {
+    await apiClient.delete(`/api/library`, {
       data: {
         userId: authStore.user.userId,
         libraryId: libraryId,
       },
     });
-    getMyLibrary();
-    } catch (error) {
-      console.log(error);
+
+    // 서재 데이터에서 제거
+    books.value = books.value.filter((book) => book.libraryId !== libraryId);
+
+    // 좋아요 데이터 업데이트
+    const likedIndex = likedBooks.value.findIndex((book) => book.libraryId === libraryId);
+    if (likedIndex !== -1) {
+      likedBooks.value[likedIndex] = {
+        ...likedBooks.value[likedIndex],
+        libraryId: null,
+        status: null,
+      };
     }
-}
+    getMyLibrary();
+  } catch (error) {
+    console.error("서재 삭제 실패:", error);
+  }
+};
 // 좋아요 상태 확인
 const getBookLikeStatus = async () => {
   try {
     const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
-    likedBooks.value = response.data.data;
-    console.log("좋아요 데이터:", likedBooks.value);
+    const likedData = response.data.data.map((item) => ({
+      author: item.bookDTO.author,
+      cover: item.bookDTO.cover,
+      bookLikeId: item.bookLikeId,
+      userId: item.userId,
+      isbn13: item.bookDTO.isbn13,
+      title: item.bookDTO.title,
+      description: item.bookDTO.description,
+      pubdate: item.bookDTO.pubdate,
+      startindex: item.bookDTO.startindex,
+      libraryId: null,
+      status: null,
+      isLiked: true,
+    }));
+
+    // 서재 데이터와 병합
+    likedBooks.value = likedData.map((likedBook) => {
+      // 서재 데이터에서 동일한 ISBN을 가진 책을 찾음
+      const libraryBook = books.value.find((book) => book.isbn13 === likedBook.isbn13);
+
+      if (libraryBook) {
+        // 서재에 존재하면 libraryId와 status를 업데이트
+        return {
+          ...likedBook,
+          libraryId: libraryBook.libraryId,
+          status: libraryBook.status,
+        };
+      }
+      // 서재에 없으면 그대로 반환
+      return likedBook;
+    });
   } catch (error) {
     console.error("좋아요 상태 불러오기 오류:", error);
     likedBooks.value = [];
   }
 };
+
 
 onMounted(async() => {
   await getMyLibrary();

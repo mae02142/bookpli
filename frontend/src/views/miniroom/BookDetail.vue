@@ -61,7 +61,7 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
-        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
+        <Recommend v-if="activeTab ==='recommend'" :recommendations="recommendations" @recomBook="recomBookClick" />
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
@@ -92,9 +92,10 @@ const isbn13 = route.params.isbn13;
 const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
-const activeTab= ref("");
+const activeTab= ref("recommend");
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
+const recommendations = ref();
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
@@ -122,14 +123,14 @@ const likeAndToggle = async (book) => {
   try {
     if (isLiked.value) {
       // 이미 좋아요 상태면 삭제
-      const isRemoved = await removeBookLike(apiClient, bookLikedId.value);
+      const isRemoved = await removeBookLike(bookLikedId.value);
       if (isRemoved) {
         bookLikedId.value = null; // 좋아요 ID 초기화
         isLiked.value = false; // 빈 하트 상태로 변경
       }
     } else {
       // 좋아요 추가
-      const likedId = await addBookLike(apiClient, authStore.user.userId, book);
+      const likedId = await addBookLike(authStore.user.userId, book);
       bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
       isLiked.value = true; // 꽉 찬 하트 상태로 변경
     }
