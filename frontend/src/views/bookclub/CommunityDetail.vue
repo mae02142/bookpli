@@ -231,8 +231,6 @@
         /* 이미지 슬라이더 처리 */
 
         const nextSlide = async(post) => {
-          console.log("!@@@@@@@#!@#!#@!");        
-            console.log(post.curpos);
           if (post.curpos < post.imageUrl.length - 1) {
             post.curpos++;
           } else {

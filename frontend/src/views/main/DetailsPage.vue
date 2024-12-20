@@ -80,7 +80,6 @@ const fetchUserProfile = async () => {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
         });
         userProfile.value = response.data;
-        console.log("User Profile:", userProfile.value);
     } catch (error) {
         console.error("Error fetching user profile:", error);
     }
@@ -162,7 +161,6 @@ const playTrack = async (trackUri) => {
                 },
             }
         );
-        console.log("트랙 재생 시작:", trackUri);
     } catch (error) {
         console.error("트랙 재생 중 오류:", error.response?.data || error.message);
         utilModalStore.showModal("트랙 재생하기", `트랙을 재생하는데 오류가 발생하였습니다.`, "warning");
@@ -186,7 +184,6 @@ const playAlbum = async (albumId) => {
                 },
             }
         );
-        console.log("앨범 재생 시작:", albumId);
     } catch (error) {
         if (error.response?.status === 403) {
             if (error.response.data.error.reason === "PREMIUM_REQUIRED") {
@@ -222,7 +219,6 @@ const fetchArtistAlbums = async (artistId) => {
         );
 
         items.value = response.data.items || [];
-        console.log("Fetched albums:", items.value);
     } catch (error) {
         console.error("Error fetching artist's albums:", error.response?.data || error.message);
         error.value = "아티스트의 앨범을 불러오는 중 오류가 발생했습니다.";
