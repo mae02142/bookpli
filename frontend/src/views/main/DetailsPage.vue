@@ -245,7 +245,6 @@ const fetchUserPlaylists = async () => {
 };
 
 // 트랙을 플레이리스트에 추가하기
-// 트랙을 플레이리스트에 추가하기
 const addToPlaylist = async (playlistId) => {
     try {
         // 1. 선택된 플레이리스트의 트랙 목록 가져오기
@@ -288,7 +287,6 @@ const addToPlaylist = async (playlistId) => {
         );
     }
 };
-
 
 // 플레이리스트 팔로우하기
 const followPlaylist = async (playlistId) => {
