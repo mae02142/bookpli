@@ -11,12 +11,14 @@
         <img :src="playerStore.currentTrack.albumCover" alt="Album Cover" class="cover-image" />
         <p class="track-title">{{ playerStore.currentTrack.title }}</p>
         <p class="track-artist">{{ playerStore.currentTrack.artist }}</p>
-        <input 
-          type="range" 
-          class="music-progress-bar" 
-          min="0" 
-          :max="playerStore.currentTrack.duration" 
-          v-model="playerStore.currentTime" 
+        <input
+          type="range"
+          class="music-progress-bar"
+          :min="0"
+          :max="playerStore.currentTrack?.duration || 0"
+          :value="playerStore.currentTime"
+          @input="onSeekInput"
+          @change="onSeekChange" 
         />
         <div class="time-info">
           <span>{{ formatTime(playerStore.currentTime) }}</span> /
@@ -86,6 +88,17 @@ const onVolumeChange = () => {
 
 const toggleFold = () => {
   fold.value = !fold.value; // 상태 토글
+};
+
+const onSeekInput = (event) => {
+  const newTime = parseInt(event.target.value, 10); // Get new time in seconds
+  playerStore.currentTime = newTime; // Update UI in real-time
+};
+
+// Called when the slider movement ends
+const onSeekChange = (event) => {
+  const newTime = parseInt(event.target.value, 10); // Get new time in seconds
+  playerStore.seekTrack(newTime); // Call the store's seek method
 };
 
 onMounted(() => {

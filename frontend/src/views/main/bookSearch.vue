@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="search-results" v-else="searchBooks.legnth = 0">
-        <p class="no-results">검색 결과가 없습니다</p>
+        <p class="no-results">검색 중 ...</p>
     </div>
 
     <!-- Pagination Controls -->
@@ -35,6 +35,9 @@ import { useRouter } from "vue-router";
 import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 
 export default {
+    components: {
+        MusicPlayer,
+    },
     setup() {
     const route = useRoute();
     const query = ref(route.query.q || "");
@@ -170,7 +173,6 @@ export default {
         totalPages,
         goToPage,
         gotoDetail,
-        MusicPlayer,
     };
     },
 };

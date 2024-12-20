@@ -24,17 +24,17 @@
       </nav>
     </div>
     <div class="search-bar">
-        <select v-model="searchType" class="search-type-selector">
-          <option value="book">도서</option>
-          <option value="music">음악</option>
-        </select>
-        <input
+      <select v-model="searchType" class="search-type-selector">
+        <option value="book">도서</option>
+        <option value="music">음악</option>
+      </select>
+      <input
         type="text"
         class="search-input"
         placeholder="Search.."
         v-model="query"
-        @keyup.enter="submitSearch"
-        />
+        @keyup.enter="handleEnterKey"
+      />
       <div class="search-icon-grid">
         <img
           class="search-icon"
@@ -58,10 +58,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useUserStore } from "@/stores/user";
+import { useUtilModalStore } from "@/stores/utilModalStore";
 
 const query = ref("");
 const searchType = ref("book");
@@ -70,7 +71,19 @@ const authStore = useAuthStore();
 const router = useRouter();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const userStore = useUserStore();
-const token = userStore.accessToken;
+const utilModalStore = useUtilModalStore();
+
+defineProps({
+  query: {
+    type: String,
+    required: false,
+    default: "",
+  },
+});
+
+watch(() => query, (newQuery) => {
+  console.log("Query updated:", newQuery);
+});
 
 function goHome() {
   router.push({ path: "/main" });
@@ -82,17 +95,25 @@ const handleLogout = () => {
   router.push({ path: "/main" });
 };
 
+const resetSearch = () => {
+  query.value = ""; // 검색창 초기화
+};
+
 const submitSearch = () => {
   const searchQuery = query.value.trim();
   if (searchQuery) {
-    if (searchType.value === "book") {
-      router.push({ path: "/search-book", query: { q: searchQuery, type: "book" } });
-    } else if (searchType.value === "music") {
-      router.push({ path: "/search-music", query: { q: searchQuery, type: "music" } });
-    }
-  } else {
-    alert("검색어를 입력하세요.");
+    const routePath = searchType.value === "book" ? "/search-book" : "/search-music";
+    router.replace({ path: routePath, query: { q: searchQuery, type: searchType.value } });
+    resetSearch();
   }
+};
+
+const handleEnterKey = () => {
+  const searchQuery = query.value.trim();
+  if (!searchQuery) {
+    return;
+  }
+  submitSearch(); // 검색 실행
 };
 </script>
 
@@ -127,7 +148,6 @@ const submitSearch = () => {
   margin-left: 60px;
   margin-top: 12px;
   align-items: center;
-  
 }
 
 .nav-item {
@@ -144,9 +164,9 @@ const submitSearch = () => {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  display: flex; /* 검색창과 돋보기를 나란히 배치 */
+  display: flex;
   align-items: center;
-  gap: 10px; /* 검색창과 돋보기 사이 간격 */
+  gap: 10px;
 }
 
 .search-icon {
@@ -155,15 +175,15 @@ const submitSearch = () => {
 }
 
 .search-input {
-  flex: 1; /* 검색창이 남은 공간을 차지 */
-  height: 40px; /* 검색창 높이 */
+  flex: 1;
+  height: 40px;
   border: 1px solid #ccc;
-  border-radius: 20px; /* 둥근 모서리 */
-  padding: 0 15px; /* 텍스트 좌우 패딩 */
+  border-radius: 20px;
+  padding: 0 15px;
   font-size: 16px;
   outline: none;
   width: 230px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .search-type-selector {
@@ -186,40 +206,13 @@ const submitSearch = () => {
 .search-icon-grid {
   width: 40px;
   height: 40px;
-  background-color: #3a3a3a; /* 돋보기 버튼 배경색 */
+  background-color: #3a3a3a;
   border: none;
-  border-radius: 50%; /* 동그란 모양 */
+  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
-}
-
-.error {
-  color: red;
-}
-
-h2 {
-  margin-top: 20px;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  margin: 5px 0;
-}
-
-.header-grid {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.header-grid img{
-  width: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 </style>
