@@ -219,7 +219,6 @@ const fetchUserProfile = async () => {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
         });
         userStore.userProfile = response.data; // 사용자 정보 저장
-        console.log("사용자 프로필:", userStore.userProfile);
     } catch (error) {
         console.error("사용자 정보를 가져오는 중 오류 발생:", error);
         utilModalStore.showModal(

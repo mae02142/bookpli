@@ -41,7 +41,7 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="ko"
+                    :locale="'ko'"
                     :format="dateFormat"
                     @update:modelValue="updateStartDate"
                     />
@@ -58,7 +58,7 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="ko"
+                    :locale="'ko'"
                     :format="dateFormat"
                     @update:modelValue="updateEndDate"
                 />
@@ -93,7 +93,6 @@ import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
-import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
@@ -101,6 +100,7 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
+
 
 const props = defineProps({
     visible: Boolean,

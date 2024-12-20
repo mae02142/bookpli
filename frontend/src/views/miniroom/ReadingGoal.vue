@@ -33,7 +33,7 @@
             :teleport="false"
             placeholder="날짜 선택"
             :format="dateFormat"
-            locale="ko"
+            locale="'ko'"
             @update:model-value="updateStartDate"
             />
         </span>
@@ -46,7 +46,7 @@
             :teleport="false"
             placeholder="날짜 선택"
             :format="dateFormat"
-            locale="ko"
+            locale="'ko'"
             @update:model-value="updateEndDate"
         />
         </span>

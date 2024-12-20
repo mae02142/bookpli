@@ -108,7 +108,6 @@ const likeordislike = async () => {
       `/api/library/${authStore.user.userId}/book/${isbn13}`
     );
     const likedId = response.data.data;
-    console.log(response.data.data);
 
     // likedId 값에 따라 상태 업데이트
     bookLikedId.value = likedId;

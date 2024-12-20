@@ -101,7 +101,7 @@
                     <div class="book-section">
                         <div v-if="readList.length > 0" class="book-covers">
                             <div class="book-item" v-for="rbook in pageinationRead.slice(0,5)" :key="rbook.isbn13">
-                                <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook)"/> 
+                                <img class="book-cover" :src="rbook.cover" @click="gotoDetail(rbook.isbn13)"/> 
                                 <div class="book-info">
                                     <div>
                                         <span class="book-icon" @click="openModal(rbook)">📖</span>
@@ -127,7 +127,7 @@
                 <div class="book-section">
                     <div v-if="addList.length > 0" class="book-covers">
                         <div class="book-item" v-for="wbook in pageinationWish.slice(0,5)" :key="wbook.isbn13">
-                            <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook)"/>
+                            <img class="book-cover" :src="wbook.cover" @click="gotoDetail(wbook.isbn13)"/>
                         </div>
                     </div>
                     <p v-else class="empty">담은 도서가 존재하지 않습니다.</p>      
@@ -156,6 +156,9 @@
     import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
     import { useUtilModalStore } from "@/stores/utilModalStore";
     import { useConfirmModalStore } from "@/stores/utilModalStore";
+    import { useRouterUtils } from "@/router/routerUtils";
+    
+    const { gotoDetail } = useRouterUtils();
     
     const router = useRouter();
     const authStore = useAuthStore();
@@ -470,22 +473,6 @@
             console.log(error);
         }
     }
-    
-    // 페이지 이동
-    const gotoDetail = async(book) => {
-        try{
-            const response= await apiClient.get(`/api/book/${authStore.user.userId}/${book.isbn13}`);
-            liked.value=response.data;
-            
-            // console.log(book);
-            router.push({
-                path: `/main/book/${book.isbn13}`,
-                query: { data: JSON.stringify(book) },  
-            });
-        }catch(error){
-            console.log(error);
-        }
-    };
     
     const gotoPlaylist= () => {
         router.push({
