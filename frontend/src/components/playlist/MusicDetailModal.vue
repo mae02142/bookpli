@@ -134,7 +134,6 @@ const selectSong = (track) => {
     albumId: songData.value.albumId, // 기존 앨범 ID 유지
     artists: track.artists, // 트랙의 아티스트 정보
   };
-  console.log(songData.value);
 };
 
 const displayNotification = (message) => {
@@ -204,7 +203,6 @@ const playAlbum = async (albumId) => {
     });
 
     const albumUri = albumResponse.data.uri; // Album URI
-    console.log(`Album URI fetched: ${albumUri}`);
 
     // Get active devices
     const devices = await getActiveDevices();
@@ -212,7 +210,6 @@ const playAlbum = async (albumId) => {
       alert("활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요.");
       return;
     }
-    console.log(devices);
 
     // Play the album using its URI
     await axios.put(

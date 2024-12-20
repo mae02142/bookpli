@@ -37,7 +37,6 @@ export default {
             document.body.removeChild(script);
             };
             window[callbackName] = (response) => {
-            console.log("API Response:", response); // 추가된 로그
             resolve(response);
             delete window[callbackName];
             document.body.removeChild(script);

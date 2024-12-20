@@ -72,7 +72,6 @@ export default {
         errorMessage.value = "";
 
         try {
-        console.log(`Fetching books for query: "${searchQuery}", page: ${page}`);
         const url = `${apiUrl}?query=${encodeURIComponent(searchQuery)}&sort=accuracy&page=${page}&size=10&target=title`;
 
         const response = await fetch(url, {
@@ -111,8 +110,6 @@ export default {
             totalPages.value = Math.ceil(totalCount.value / 10);
             currentPage.value = page;
 
-            console.log("Search Books:", searchBooks.value);
-            console.log(`Total Count: ${totalCount.value}, Total Pages: ${totalPages.value}`);
         } else {
             searchBooks.value = [];
             console.warn("No books found in the response:", data);
@@ -133,7 +130,6 @@ export default {
     };
 
     const gotoDetail = (isbn) => {
-    console.log("Navigating to detail page with ISBN:", isbn); // 디버깅 로그 추가
     router.push({
         path: `/main/book/${isbn}`,
     }).catch((err) => {
@@ -148,7 +144,6 @@ export default {
         (newQuery) => {
         if (newQuery) {
             fetchSearchBooks(newQuery, 1); // 새로운 검색 시 첫 페이지로 설정
-            console.log(`New Query: "${newQuery}"`);
         } else {
             searchBooks.value = [];
             searchPerformed.value = false;
