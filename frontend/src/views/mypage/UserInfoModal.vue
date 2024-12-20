@@ -146,7 +146,6 @@ const loadUserInfo = async () => {
 const duplicateCheckNickname = async () => {
   try {
     const response = await apiClient.get(`/api/mypage/nickname/${user.userNickname}`);
-    console.log(response.data.data);
     if (response.data.data) {
       nicknameError.value = true;
       nicknameCheck.value = false;

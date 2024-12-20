@@ -48,7 +48,7 @@
         </p>
         <p class="btn write-review" @click="writeReview">리뷰 작성</p>
         <p class="btn" @click="handleClick">도서 상세 보기</p>
-        <p class="btn remove-book" @click="removeBook">내 서재에서 삭제</p>
+        <p class="btn remove-book" @click="removeBook" v-if="localBook.status === 'wished' || localBook.status === 'reading' || localBook.status === 'completed'">내 서재에서 삭제</p>
         <p class="btn confirm" @click="closeModal">확인</p>
       </div>
     </div>

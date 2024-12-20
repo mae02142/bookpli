@@ -182,7 +182,6 @@ export default {
                     },
                 });
                 userProfile.value = response.data;
-                console.log("User Profile:", userProfile.value);
             } catch (error) {
                 console.error(
                     "Error fetching user profile:",
@@ -201,7 +200,6 @@ export default {
                     id: item.id,
                     name: item.name,
                 }));
-                console.log(playlists.value);
             } catch (error) {
                 console.log(error);
             }
@@ -283,7 +281,6 @@ export default {
 
         const openSongDetail = (song) => {
             selectedSong.value = song;
-            console.log(selectedSong.value);
             modalStore.openModal("SongDetailModal");
         };
 
@@ -374,7 +371,6 @@ export default {
                     albumId: track.track.album.id || "",
                 }));
 
-                console.log("Top 10 Songs for Domestic Rankings:", domesticRankingPli.value);
             } catch (error) {
                 console.error(
                     "Error fetching domestic playlist or songs:",
@@ -425,10 +421,6 @@ export default {
                     albumId: track.track.album.id || "",
                 }));
 
-                console.log(
-                    "Top 10 Songs for International Rankings:",
-                    internationalRankingPli.value
-                );
             } catch (error) {
                 console.error(
                     "Error fetching international playlist or songs:",
@@ -474,8 +466,6 @@ export default {
                         },
                     }
                 );
-
-                console.log(`Playing song: ${uri}`);
             } catch (error) {
                 console.error(
                     "Error playing song:",
@@ -516,8 +506,6 @@ export default {
 
         // Function to add a song to the user's playlist
         const addToPlaylist = async (playlistId) => {
-            console.log(token)
-            console.log(selectedTrack.value)
             if (!selectedTrack.value) {
                 utilModalStore.showModal("플리에 추가하기", `플레이리스트를 선택하세요.`, "double-check");
                 return;

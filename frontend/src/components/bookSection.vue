@@ -252,7 +252,6 @@ export default {
     for (let i = 0; i < newBooks.value.length; i += 5) {
         groups.push(newBooks.value.slice(i, i + 5)); // 5권씩 묶기
     }
-    console.log("Grouped Books:", groups); // 디버깅용 출력
     return groups;
     });
 

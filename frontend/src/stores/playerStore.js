@@ -30,12 +30,11 @@ export const usePlayerStore = defineStore("player", {
           volume: this.volume,
         });
 
-                this.player.addListener('ready', ({ device_id }) => {
-                    this.deviceId = device_id;
-                    this.transferPlayback(device_id);
-                    console.log("Device ID : " + this.deviceId);
-                    console.log("connected to device")
-                });
+        this.player.addListener("ready", ({ device_id }) => {
+          this.deviceId = device_id;
+          this.transferPlayback(device_id);
+          console.log("Device ID : " + this.deviceId);
+        });
 
         this.player.addListener("player_state_changed", (state) => {
           this.updateStateFromPlayerState(state);
