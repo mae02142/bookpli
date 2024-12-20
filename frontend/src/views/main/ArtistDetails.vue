@@ -41,27 +41,27 @@
                 @click="playTrack(track.uri)">
                     <!-- 이미지 -->
                     <img :src="track.album.images?.[0]?.url || placeholderImage" alt="앨범 커버" class="track-image" />
-                    <!-- 곡 정보 -->
-                    <p class="track-name">{{ track.name }}</p>
-                    <p class="track-artist">{{ track.artists.map(artist => artist.name).join(", ") }}</p>
-                    <!-- 앨범 -->
-                    <p class="track-album">{{ track.album.name }}</p>
-                    <p class="track-options" @click.stop="openPlaylistModal(track.uri)">⋮</p>
+                        <!-- 곡 정보 -->
+                        <p class="track-name">{{ track.name }}</p>
+                        <p class="track-artist">{{ track.artists.map(artist => artist.name).join(", ") }}</p>
+                        <!-- 앨범 -->
+                        <p class="track-album">{{ track.album.name }}</p>
+                        <p class="track-options" @click.stop="openPlaylistModal(track.uri)">⋮</p>
                 </div>
-                <div v-if="showPlaylistModal" class="modal-overlay" @click.self="closeModal">
-                    <div class="modal-content">
-                        <h3 class="modal-title">내 플레이리스트에 추가</h3>
+                <div v-if="showPlaylistModal" class="artist-modal-overlay" @click.self="closeModal">
+                    <div class="artist-modal-content">
+                        <h3 class="artist-modal-title">내 플레이리스트에 추가</h3>
                         <ul>
                             <li 
                                 v-for="playlist in playlists" 
                                 :key="playlist.id" 
                                 @click="addToPlaylist(playlist.id)"
-                                class="playlist-item"
+                                class="artist-playlist-item"
                             >
                                 {{ playlist.name }}
                             </li>
                         </ul>
-                        <button class="close-button" @click="closeModal">닫기</button>
+                        <button class="artist-close-button" @click="closeModal">닫기</button>
                     </div>
                 </div>
             </div>
@@ -219,7 +219,6 @@ const fetchUserProfile = async () => {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
         });
         userStore.userProfile = response.data; // 사용자 정보 저장
-        console.log("사용자 프로필:", userStore.userProfile);
     } catch (error) {
         console.error("사용자 정보를 가져오는 중 오류 발생:", error);
         utilModalStore.showModal(
@@ -284,6 +283,12 @@ onMounted(async () => {
 .track-name {
     width:33%;
     vertical-align: middle;
+}
+
+.track-item:hover{
+    transition: 0.15s;
+    color: #1db954;
+    cursor: pointer;
 }
 
 .track-artist {
@@ -357,7 +362,7 @@ onMounted(async () => {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    justify-content: center;
+    padding-left:20px;
 }
 
 .album-item img {
@@ -388,7 +393,7 @@ onMounted(async () => {
     background-color: #1ed760;
 }
 
-.modal-overlay {
+.artist-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -401,7 +406,7 @@ onMounted(async () => {
     z-index: 1000;
 }
 
-.modal-content {
+.artist-modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -409,24 +414,24 @@ onMounted(async () => {
     text-align: center;
 }
 
-.modal-title {
+.artist-modal-title {
     padding-bottom: 20px;
     font-size: 1.5rem;
     font-weight: bolder;
 }
 
-.playlist-item {
+.artist-playlist-item {
     list-style: none;
     padding: 10px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
 }
 
-.playlist-item:hover {
+.artist-playlist-item:hover {
     background-color: #f0f0f0;
 }
 
-.close-button {
+.artist-close-button {
     margin-top: 10px;
     padding: 5px 10px;
     background-color: #1db954;
@@ -434,5 +439,9 @@ onMounted(async () => {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+}
+
+.artist-close-button:hover {
+    background-color: #1ed760;
 }
 </style>

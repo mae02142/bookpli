@@ -44,7 +44,6 @@ public class LibraryController {
     @PostMapping("{userId}/book")
     public BaseResponse<Long> addBookLike(@PathVariable Long userId, @RequestBody BookDTO book){
         Long response = libraryService.addBookLike(userId, book);
-        System.out.println("check>>>>>>>>>>>>>>>"+ book);
         return new BaseResponse<>(response);
     }
 
@@ -55,8 +54,9 @@ public class LibraryController {
     }
 
     @GetMapping("/book-like/{userId}")
-    public BaseResponse<List<BookLikeDTO>> getUserBookLike(@PathVariable Long userId){
-        List<BookLikeDTO> response = libraryService.getUserBookLike(userId);
+    public BaseResponse<List<BookLikeDTO>> getBookLikesByUserId(@PathVariable Long userId){
+        List<BookLikeDTO> response = libraryService.getBookLikesByUserId(userId);
         return new BaseResponse<>(response);
     }
+
 }

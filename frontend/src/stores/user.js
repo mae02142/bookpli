@@ -12,4 +12,14 @@ export const useUserStore = defineStore("user", {
       this.accessToken = null;
     },
   },
+  persist: {
+    enabled: true,
+    strategies: [
+      {
+        key: "token",
+        storage: localStorage,
+        paths: ["token"],
+      },
+    ],
+  },
 });

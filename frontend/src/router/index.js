@@ -107,8 +107,9 @@ const router = createRouter({
       props: (route) => ({ query: route.query.q }),
     },
 
-    { path: "/artist/:id",
-      component: () => import("@/views/main/ArtistDetails.vue")
+    {
+      path: "/artist/:id",
+      component: () => import("@/views/main/ArtistDetails.vue"),
     },
 
     {
@@ -116,6 +117,20 @@ const router = createRouter({
       component: () => import("@/views/main/DetailsPage.vue"),
     },
   ],
+});
+
+// 전역 가드 추가
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore(); // Pinia 스토어에서 인증 상태 가져오기
+
+  // `requiresAuth`가 true인 경우 인증 여부 확인
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+    next({ path: "/login" });
+  } else {
+    // 인증된 경우 또는 인증 불필요한 경로로 이동
+    next();
+  }
 });
 
 export default router;

@@ -1,13 +1,13 @@
 <template>
-  <div v-if="isActive" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
+  <div v-if="isActive" class="music-detail-modal-overlay" @click.self="closeModal">
+    <div class="music-detail-modal-content">
       <div>
-        <div class="modal-header">
+        <div class="music-detail-modal-header">
           <img src="@/assets/icons/close.png" class="close-button" alt="Close" @click="closeModal" />
         </div>
-        <div class="modal-content-grid">
+        <div class="music-detail-modal-content-grid">
           <div class="album-grid">
-            <img :src="songData.image" class="album-img" alt="Album Cover" />
+            <img :src="songData.albumCover|| songData.image " class="album-img" alt="Album Cover" />
               <div class="album-grid-right">
               <p class="album-grid-title">{{ songData.name }}</p>
               <p class="album-grid-artist">{{ songData.artists }}</p>
@@ -94,13 +94,13 @@ import axios from "axios";
 
 // Pinia store
 const modalStore = useModalStore();
+const utilModalStore = useUtilModalStore();
 
 // 현재 모달이 활성화 상태인지 확인
 const isActive = computed(() => modalStore.activeModal === "SongDetailModal");
 
 const userStore = useUserStore();
 const token = userStore.accessToken;
-console.log(token)
 
 // 부모에서 전달받는 `props`
 const props = defineProps({
@@ -203,7 +203,6 @@ const playAlbum = async (albumId) => {
     });
 
     const albumUri = albumResponse.data.uri; // Album URI
-    console.log(`Album URI fetched: ${albumUri}`);
 
     // Get active devices
     const devices = await getActiveDevices();
@@ -211,7 +210,6 @@ const playAlbum = async (albumId) => {
       alert("활성화된 Spotify 기기가 없습니다. Spotify 앱을 열어 활성화된 기기를 만드세요.");
       return;
     }
-    console.log(devices);
 
     // Play the album using its URI
     await axios.put(
@@ -311,7 +309,7 @@ onMounted(() => {
 </script>
 
   <style scoped>
-  .modal-overlay {
+  .music-detail-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -324,7 +322,7 @@ onMounted(() => {
     z-index: 1000;
   }
   
-  .modal-content {
+  .music-detail-modal-content {
     background: white;
     border-radius: 10px;
     width: 450px;
@@ -334,7 +332,7 @@ onMounted(() => {
     position: relative;
   }
   
-  .modal-header {
+  .music-detail-modal-header {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 20px;
@@ -452,13 +450,14 @@ onMounted(() => {
 
   .album-grid-artist {
     font-size: 13px;
+    text-align: start;
   }
 
   .album-img {
     width: 180px;
   }
 
-  .music-modal-contents {
+  .music-detail-music-modal-contents {
     display: grid;
     justify-content: center;
   }
@@ -492,7 +491,7 @@ onMounted(() => {
     height: 18px;
   }
 
-  .modal-content-grid {
+  .music-detail-modal-content-grid {
     width: 380px;
     display: grid;
     place-self: center;

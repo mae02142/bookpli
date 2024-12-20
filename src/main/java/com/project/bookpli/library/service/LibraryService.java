@@ -65,7 +65,7 @@ public class LibraryService {
     @Transactional
     public Long addBookLike(Long userId, BookDTO request) {
         // 이미 좋아요한 기록이 있는지 확인
-        Optional<BookLike> existingLike = bookLikeRepository.findByUserIdAndIsbn13(userId, request.getIsbn13());
+        Optional<BookLike> existingLike = bookLikeRepository.findByUserIdAndBook_Isbn13(userId, request.getIsbn13());
         if (existingLike.isPresent()) {
             // 중복된 요청이 있을 경우 기존 bookLikeId를 반환
             return existingLike.get().getBookLikeId();
@@ -81,7 +81,7 @@ public class LibraryService {
         // BookLike 엔티티 생성 및 저장
         BookLike bookLike = BookLike.builder()
                 .userId(userId)
-                .isbn13(book.getIsbn13())
+                .book(BookDTO.toEntity(request))
                 .build();
 
         return bookLikeRepository.save(bookLike).getBookLikeId();
@@ -94,19 +94,19 @@ public class LibraryService {
         bookLikeRepository.deleteById(bookLikeId);
     }
 
-    public List<BookLikeDTO> getUserBookLike(Long userId) {
+    public List<BookLikeDTO> getBookLikesByUserId(Long userId) {
         bookLikeRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
 
-        List<BookLike> BookLike = bookLikeRepository.findAllByUserId(userId);
+        List<BookLike> bookLikes = bookLikeRepository.findAllByUserId(userId);
 
-        return BookLike.stream()
-                .map(BookLikeDTO::fromEntity)
+        return bookLikes.stream()
+                .map(bookLike -> BookLikeDTO.fromEntity(bookLike, bookLike.getBook()))
                 .collect(Collectors.toList());
     }
 
     public Long getBookLike(Long userId, String isbn13) {
-        Optional<BookLike> response = bookLikeRepository.findByUserIdAndIsbn13(userId, isbn13);
+        Optional<BookLike> response = bookLikeRepository.findByUserIdAndBook_Isbn13(userId, isbn13);
         return response.map(BookLike::getBookLikeId).orElse(null);
     }
 }

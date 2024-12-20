@@ -4,7 +4,7 @@
     <div class="sidebar2">
       <div class="sidebar2-item">
         <img src="@/assets/icons/search.png" class="search-icon" />
-        <input type="text" placeholder="검색" class="search-bar" />
+        <input type="text" placeholder="검색" class="search-bar" v-model="searchPli"/>
         <img src="@/assets/icons/add_pli.png" class="add-icon" @click="toggleAddMode"/>
       </div>
       <div class="playlist-list">
@@ -34,7 +34,7 @@
         <div v-if="myPlaylistOpen">
           <div
             class="playlist-item"
-            v-for="(playlist, index) in myPlaylists"
+            v-for="(playlist, index) in filteredMyPlaylists"
             :key="playlist.id"
             @click="loadTracks(playlist.id)"
           >
@@ -56,7 +56,7 @@
         <div v-if="recommendedPlaylistOpen">
           <div
             class="playlist-item"
-            v-for="(playlist, index) in recommendedPlaylists"
+            v-for="(playlist, index) in filteredRecommendedPlaylists"
             :key="playlist.id"
             @click="loadTracks(playlist.id)"
           >
@@ -134,18 +134,18 @@
                 />
                 <span v-else>{{ index + 1 }}</span>
               </td>
-              <td
-                @mouseover="hoveredIndex = index"
-                @mouseleave="hoveredIndex = null"
-              >
+              <td>
                 <div class="song-info">
                   <img
                     :src="song.albumCover"
                     alt="Album Cover"
                     class="album-cover"
+                     @click="openSongDetail(song)"
                   />
-                  <div class="song-details">
-                    <p class="song-title" @click="openSongDetail(song)">
+                  <div class="song-details"
+                      @mouseover="hoveredIndex = index"
+                      @mouseleave="hoveredIndex = null">
+                    <p class="song-title" @click="playSong(song.id)">
                       {{ song.name }}
                     </p>
                     <p class="song-artist">{{ song.artists }}</p>
@@ -175,12 +175,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed  } from 'vue';
 import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useModalStore } from '@/stores/modalState';
+import { useUserStore } from "@/stores/user";
 import SongDetailModal from "@/components/playlist/MusicDetailModal.vue"
 import apiClient from '@/api/axiosInstance';
+import axios from "axios";
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUtilModalStore } from '@/stores/utilModalStore';
 import { getPlaylistTracks, deleteSongFromPlaylist, formatDuration } from "@/utils/spotifyUtils";
@@ -189,6 +191,8 @@ import MusicPlayer from "@/components/layouts/musicPlayer.vue";
 // 상태 관리
 const authStore = useAuthStore();
 const modalStore = useModalStore();
+const userStore = useUserStore();
+const utilModalStore = useUtilModalStore();
 const hoveredIndex = ref(null);
 const playlists = ref([]); // 플레이리스트 목록
 const myPlaylists = ref([]);
@@ -200,7 +204,8 @@ const selectedSong = ref(null); // 선택된 노래
 const songs = ref([]); // 선택된 플레이리스트의 곡
 const addMode = ref(false); // 입력창 표시 여부
 const newPlaylistName = ref(""); // 새 플레이리스트 이름
-
+const token = userStore.accessToken;
+const searchPli = ref("");
 
 // 옵션 메뉴 상태
 const showOptionMenu = ref(false);
@@ -264,6 +269,66 @@ const cancelTitle = () => {
   isEditingTitle.value = false;
 }
 
+const getActiveDevices = async () => {
+  try {
+    const response = await axios.get("https://api.spotify.com/v1/me/player/devices", {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data.devices;
+  } catch (error) {
+    console.error(
+        "Error fetching active devices:",
+        error.response ? error.response.data : error.message
+    );
+    return [];
+  }
+};
+
+// 필터링된 내 플레이리스트
+const filteredMyPlaylists = computed(() => {
+  if (!searchPli.value.trim()) return myPlaylists.value; // 검색어 없으면 전체 반환
+  return myPlaylists.value.filter((playlist) =>
+    playlist.name.toLowerCase().includes(searchPli.value.toLowerCase())
+  );
+});
+
+// 필터링된 추천 플레이리스트
+const filteredRecommendedPlaylists = computed(() => {
+  if (!searchPli.value.trim()) return recommendedPlaylists.value; // 검색어 없으면 전체 반환
+  return recommendedPlaylists.value.filter((playlist) =>
+    playlist.name.toLowerCase().includes(searchPli.value.toLowerCase())
+  );
+});
+
+
+const playSong = async (uri) => {
+    const playUrl = "https://api.spotify.com/v1/me/player/play";
+    uri = "spotify:track:" + uri;
+    try {
+      const devices = await getActiveDevices();
+      await axios.put(
+          playUrl,
+          {
+              uris: [uri],
+          },
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+              },
+          }
+      );
+    } catch (error) {
+      console.error(
+          "Error playing song:",
+          error.response ? error.response.data : error.message
+      );
+      utilModalStore.showModal("트랙 재생", `트랙 재생에 실패하였습니다.`, "warnig");
+    }
+};
+
 // 플레이리스트 삭제
 const confirmDeletePlaylist = (playlistId) => {
     const confirmModalStore = useConfirmModalStore();
@@ -302,7 +367,7 @@ const openSongDetail = (song) => {
 // 플레이리스트 로드
 const loadTracks = async (playlistId) => {
   try {
-    songs.value = await getPlaylistTracks(apiClient, playlistId) // 트랙 가져오기
+    songs.value = await getPlaylistTracks(playlistId) // 트랙 가져오기
     selectedPlaylist.value = playlists.value.find(
       (playlist) => playlist.id === playlistId
     );
@@ -337,7 +402,7 @@ const getUserPlaylist = async () => {
 // 노래 삭제
 const removeMusic = async (playlistId, songId) => {
   try {
-    await deleteSongFromPlaylist(apiClient, playlistId, songId);
+    await deleteSongFromPlaylist(playlistId, songId);
     songs.value = songs.value.filter((song) => song.id !== songId);
   } catch (error) {
     console.error("노래 삭제 중 오류:", error);
@@ -434,7 +499,7 @@ onMounted(() => {
 }
 
 .playlist-item:hover{
-  color: #218838;
+  color: #1db954;
   }
 
 .note-icon {
@@ -453,6 +518,10 @@ onMounted(() => {
 .playlist-name {
   font-size: 16px;
   font-weight: bold;
+  max-width: 170px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-count {
@@ -562,11 +631,19 @@ text-align: center;
 .song-title {
   font-size: 14px;
   font-weight: bold;
+  white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.song-details:hover {
+    transform: scale(1.02);
+    color: #1db954;
 }
 
 .song-artist {
   font-size: 13px;
-  color: #4c4c4c;
 }
 
 .delete-button {

@@ -1,5 +1,7 @@
+import apiClient from "@/api/axiosInstance";
+
 // 책 좋아요 기능
-export const addBookLike = async (apiClient, userId, book) => {
+export const addBookLike = async (userId, book) => {
   try {
     const response = await apiClient.post(`/api/library/${userId}/book`, book);
     return response.data.data;
@@ -10,7 +12,7 @@ export const addBookLike = async (apiClient, userId, book) => {
 };
 
 // 책 좋아요 해제 기능
-export const removeBookLike = async (apiClient, bookLikeId) => {
+export const removeBookLike = async (bookLikeId) => {
   try {
     await apiClient.delete(`/api/library/book-like/${bookLikeId}`);
     return true; // 성공 시 true 반환

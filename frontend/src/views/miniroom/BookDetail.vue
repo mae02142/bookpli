@@ -46,7 +46,7 @@
         <ReadGoalModal 
             :visible="showModal"
             :rbook="selectBook"
-            @close="closeModal"
+            @close="handleModalClose"
         />
     </div>
 </div> 
@@ -61,7 +61,7 @@
 
     <!-- 추천도서 표시 -->
     <div class="recommendation-covers" v-if="activeTab ==='recommend'">
-        <Recommend v-if="activeTab ==='recommend'" @recomBook="recomBookClick" />
+        <Recommend v-if="activeTab ==='recommend'" :recommendations="recommendations" @recomBook="recomBookClick" />
     </div>
     <BookReview v-if="activeTab==='review'" :isbn13="book.isbn13"/>
 </div>
@@ -92,10 +92,10 @@ const isbn13 = route.params.isbn13;
 const utilModalStore = useUtilModalStore();
 const isInLibrary = ref(false); // 내 서재 상태 관리
 const libraryId = ref("");
-const activeTab= ref("");
-const recomBook= ref(null);
+const activeTab= ref("recommend");
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
+const recommendations = ref();
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
@@ -108,7 +108,6 @@ const likeordislike = async () => {
       `/api/library/${authStore.user.userId}/book/${isbn13}`
     );
     const likedId = response.data.data;
-    console.log(response.data.data);
 
     // likedId 값에 따라 상태 업데이트
     bookLikedId.value = likedId;
@@ -123,14 +122,14 @@ const likeAndToggle = async (book) => {
   try {
     if (isLiked.value) {
       // 이미 좋아요 상태면 삭제
-      const isRemoved = await removeBookLike(apiClient, bookLikedId.value);
+      const isRemoved = await removeBookLike(bookLikedId.value);
       if (isRemoved) {
         bookLikedId.value = null; // 좋아요 ID 초기화
         isLiked.value = false; // 빈 하트 상태로 변경
       }
     } else {
       // 좋아요 추가
-      const likedId = await addBookLike(apiClient, authStore.user.userId, book);
+      const likedId = await addBookLike(authStore.user.userId, book);
       bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
       isLiked.value = true; // 꽉 찬 하트 상태로 변경
     }
@@ -156,11 +155,17 @@ const closeModal= () =>{
     showModal.value=false;
 };
 
+const handleModalClose = (updatedBook) => {
+    if (updatedBook) {
+        Object.assign(book.value, updatedBook);
+    }
+    closeModal();
+};
+
 const loadBookDetail = async () => {
     try {
         const response = await apiClient.get(`/api/book/${isbn13}`)
         book.value = response.data.data;
-        // 도서 상세를 로드한 후 상태 확인
         await checkLibraryStatus();
     } catch (error) {
         console.log(error);
@@ -202,6 +207,7 @@ const toggleWishList = async () => {
 
             isInLibrary.value = false;
             libraryId.value = null;
+            book.value.status = "";
         } catch (error) {
             console.error("도서 삭제 오류:", error);
         }
