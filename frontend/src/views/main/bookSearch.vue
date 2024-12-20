@@ -11,7 +11,7 @@
         </div>
     </div>
     <div class="search-results" v-else="searchBooks.legnth = 0">
-        <p class="no-results">검색 결과가 없습니다</p>
+        <p class="no-results">검색 중 ...</p>
     </div>
 
     <!-- Pagination Controls -->

@@ -304,6 +304,37 @@ const filteredRecommendedPlaylists = computed(() => {
   );
 });
 
+// 플레이리스트 전체 재생
+const playPlaylist = async (playlistId) => {
+  try {
+    // 먼저 해당 플레이리스트의 곡을 로드
+    const tracks = await getPlaylistTracks(playlistId);
+    const trackUris = tracks.map((track) => `spotify:track:${track.id}`); // 모든 곡의 URI 생성
+
+    if (trackUris.length === 0) {
+      utilModalStore.showModal("플레이리스트 재생", "재생할 곡이 없습니다.", "warning");
+      return;
+    }
+
+    const devices = await getActiveDevices(); // 활성화된 디바이스 확인
+
+    await axios.put(
+      "https://api.spotify.com/v1/me/player/play",
+      {
+        uris: trackUris, // URI 배열 전송
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("플레이리스트 전체 재생 중 오류:", error.response?.data || error.message);
+    utilModalStore.showModal("플레이리스트 재생", "플레이리스트 재생에 실패하였습니다.", "warning");
+  }
+};
 
 const playSong = async (uri) => {
     const playUrl = "https://api.spotify.com/v1/me/player/play";
@@ -366,13 +397,16 @@ const openSongDetail = (song) => {
   modalStore.openModal("SongDetailModal");
 };
 
-// 플레이리스트 로드
+// 기존 loadTracks에서 playPlaylist와 연계
 const loadTracks = async (playlistId) => {
   try {
-    songs.value = await getPlaylistTracks(playlistId) // 트랙 가져오기
+    songs.value = await getPlaylistTracks(playlistId); // 트랙 가져오기
     selectedPlaylist.value = playlists.value.find(
       (playlist) => playlist.id === playlistId
     );
+
+    // 선택된 플레이리스트가 있으면 자동 재생
+    playPlaylist(playlistId);
   } catch (error) {
     console.error("플레이리스트 로드 실패:", error);
   }

@@ -104,7 +104,6 @@ const router = createRouter({
     {
       path: "/search-music",
       component: () => import("@/views/main/MusicSearch.vue"),
-      props: (route) => ({ query: route.query.q }),
     },
 
     {

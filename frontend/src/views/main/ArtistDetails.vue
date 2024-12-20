@@ -140,17 +140,48 @@ const fetchUserPlaylists = async () => {
 // 선택된 플레이리스트에 트랙 추가
 const addToPlaylist = async (playlistId) => {
     try {
+        // 1. 선택된 플레이리스트의 트랙 목록 가져오기
+        const response = await axios.get(
+            `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+            {
+                headers: { Authorization: `Bearer ${userStore.accessToken}` },
+            }
+        );
+
+        // 2. 중복 확인
+        const existingTracks = response.data.items.map((item) => item.track.uri);
+        if (existingTracks.includes(selectedTrackUri.value)) {
+            utilModalStore.showModal(
+                "플리에 추가하기",
+                "이미 플레이리스트에 추가된 곡입니다.",
+                "already-exist"
+            );
+            closeModal();
+            return;
+        }
+
+        // 3. 중복이 아니라면 추가
         await axios.post(
             `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
             { uris: [selectedTrackUri.value] },
             { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
         );
-        utilModalStore.showModal("플리에 추가하기", `내 플리에 추가하였습니다.`, "add-pli");
+
+        utilModalStore.showModal(
+            "플리에 추가하기",
+            "내 플레이리스트에 성공적으로 추가되었습니다.",
+            "add-pli"
+        );
         closeModal();
     } catch (error) {
-        utilModalStore.showModal("플리에 추가하기", `내 플리에 추가하는데 실패했습니다.`, "warning");
+        utilModalStore.showModal(
+            "플리에 추가하기",
+            "플레이리스트에 추가하는 중 오류가 발생했습니다.",
+            "warning"
+        );
     }
 };
+
 
 // 아티스트 정보, 앨범, 인기 트랙 가져오기
 const fetchArtistDetails = async () => {

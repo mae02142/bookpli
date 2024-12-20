@@ -259,6 +259,7 @@
               ()=> deleteList(postId)
             )
         };
+        
         // 서버로 삭제 요청
         const deleteList = async(postId) => {
             try{
@@ -267,7 +268,6 @@
                 });
                 if(response.data.data == true){
                   posts.value = posts.value.filter(post => post.postId !== postId); 
-                  closeModal();
                 } 
             }catch(error){
                 console.error(error +'에러발생 !');
