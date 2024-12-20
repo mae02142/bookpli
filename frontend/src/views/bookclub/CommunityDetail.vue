@@ -122,7 +122,7 @@
                   </div>
                   <!-- 본문 글 -->
                    <div class="post-user-cnt">
-                     <p class="post-username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
+                     <p class="post-username">{{post.userNickname}}</p>
                      <p class="post-cnt">{{ post.postContent }} </p>                        
                    </div>
                 </div>

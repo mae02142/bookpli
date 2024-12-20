@@ -44,7 +44,7 @@
                   <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
                 </div>
                 <div class="text-box-post">
-                  <h3 class="post-userNickname">{{item.userNickname || 'User'}}</h3>
+                  <h3 class="post-userNickname">{{item.userNickname}}</h3>
                       <!-- 본문 글 -->
                   <p class="mypost-cnt">{{ item.postContent }} </p>                                 
                 </div>
@@ -259,6 +259,7 @@
               ()=> deleteList(postId)
             )
         };
+        
         // 서버로 삭제 요청
         const deleteList = async(postId) => {
             try{
@@ -267,7 +268,6 @@
                 });
                 if(response.data.data == true){
                   posts.value = posts.value.filter(post => post.postId !== postId); 
-                  closeModal();
                 } 
             }catch(error){
                 console.error(error +'에러발생 !');

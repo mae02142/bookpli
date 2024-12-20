@@ -9,8 +9,8 @@
       <article class="user-comment">
         <div class="comment-form">
         <div class="user-comment-info">
-            <img class="user-profile" src="@/assets/icons/profile.png" alt="댓글작성자">
-            <p class="user-name">{{userName}}</p>
+            <img class="user-profile" :src="userInfo.profilePath" alt="댓글작성자">
+            <p class="user-name">{{userInfo.userNickname}}</p>
         </div>
         <textarea class="comment-box" v-model="userComment" @input="adjustHeight" rows =1 placeholder="댓글을 입력하세요"></textarea>
       </div>
@@ -21,8 +21,8 @@
       <!-- 댓글 목록 -->
       <article v-show="isExisting"  v-for="(comment, index) in comments" :key="comment.commentId" class="comment">
         <div class="user-comment-info">
-            <img class="user-profile" src="@/assets/icons/profile.png" alt="댓글작성자">
-            <p class="user-name">{{ comment.userNickname || 'USER' }}</p>
+            <img class="user-profile" :src="comment.profilePath || Profile" alt="댓글작성자">
+            <p class="user-name">{{ comment.userNickname }}</p>
         </div>
         <div class="comment-cnt">{{ comment.commentContent }}</div>
         <div class="like-box">
@@ -44,7 +44,7 @@ import dislike from "@/assets/icons/dislike.png";
 import like from "@/assets/icons/like.png";
 import { useAuthStore } from "@/stores/auth";
 import { useUtilModalStore } from "@/stores/utilModalStore";
-  
+import Profile from "@/assets/icons/profile.png"
   export default {
  
     props: {
@@ -64,8 +64,10 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
       const authStore = useAuthStore();
 
       onMounted(()=>{
+        getInfo();
         if(props.postId){
           getComments();
+
         }
       });
       
@@ -97,7 +99,7 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
           )
           emit('update:commentCount', comments.value.length);
         } else {
-            console.error('serverComments는 배열이 아닙니다.');
+            console.error('serverComments는 배열이 아닙니다.');2
         }
       };  
 
@@ -128,7 +130,15 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
       }
           /*  댓글 등록  */
       const userComment = ref('');
-      const userName = authStore.user.userNickname || 'USER'; // 댓글 작성 시 작성자명
+      const userInfo = ref({}); // 댓글 작성 시 작성자명
+
+      // 유저 정보 가져오기 
+      const getInfo = async() => {
+        const response = await apiClient.get(`/api/mypage/${authStore.user.userId}`);
+        userInfo.value = response.data.data;
+      }
+
+
       const utilModalStore = useUtilModalStore();
 
       const postComment =async() => {
@@ -208,8 +218,8 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
         checkLike,
         showBtn,
         dropdown,
-        userName,
-  
+        userInfo,
+        Profile,
       };
     },
   };
@@ -251,9 +261,10 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
     display: flex;
     flex-direction: row;
     border-radius: 7px;
-    border : 1px solid #cdcdcd;
-    width: 100%;
+    border: 1px solid #cdcdcd;
+    width: 90%;
     height: auto;
+    margin: auto;
     padding: 10px;
   }
   .comment-form{
@@ -272,14 +283,14 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
     width: 30px;
   }
   .user-name {
-    font-size: 11px;
+    font-size: 15px;
     margin-top: auto;
     margin-bottom: auto;
   }
   
   .comment-box {
     padding: 10px;
-    font-size: 13px;
+    font-size: 15px;
     resize: none;
     border: none;
     height: 100%;
@@ -290,17 +301,19 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
   }
 
   .post-btn {
-    width: 45px;
-    height: 30px;
-    background-color: #FFFDF1;
+    width: 30px;
+    height: 20px;
+    background-color: #343434;
+    color: white;
     border: none;
     cursor: pointer;
     border-radius: 5px;
     margin-top: auto;
+    font-size: 13px;
   }
   .post-btn:hover {
     cursor: pointer;
-    background-color: beige;
+    background-color: black
   }
   /* 좋아요  */
   .like-box{

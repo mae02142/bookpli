@@ -29,9 +29,9 @@
 
         </div>
         <div class="book-status-grid">
-            <div class="book-status-goal" @click="openModal(book)">
+            <div class="book-status-goal" @click="openModal">
                 <img src="@/assets/icons/book_option.png" class="register-status-icon">
-                <span v-if="book.status === 'reading'">독서 설정 변경</span>
+                <span v-if="bookInLibrary.status === 'reading'">독서 설정 변경</span>
                 <span v-else>바로 독서 설정</span>
             </div>
             <div class="book-status-wish" @click="toggleWishList">
@@ -45,7 +45,7 @@
         </div>
         <ReadGoalModal 
             :visible="showModal"
-            :rbook="selectBook"
+            :rbook="bookInLibrary"
             @close="handleModalClose"
         />
     </div>
@@ -96,6 +96,7 @@ const activeTab= ref("recommend");
 const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
 const recommendations = ref();
+const bookInLibrary = ref({});
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
@@ -144,19 +145,9 @@ const setActiveTab= (tab) => {
 
 //모달 
 const showModal = ref(false);
-const selectBook= ref({});
 
-// const openModal= (readList) => {
-//     selectBook.value=readList;
-//     showModal.value=true;
-// };
-
-const openModal = (readList) => {
-    selectBook.value = {
-        ...readList,
-        status: readList.status || "wished", // 기본값 추가
-    };
-    showModal.value = true;
+const openModal= () => {
+    showModal.value=true;
 };
 
 
@@ -228,9 +219,17 @@ const toggleWishList = async () => {
             utilModalStore.showModal("도서 담기", `내 서재에 ${book.value.title}<br>도서가 저장되었습니다.`, "add-book");
         } catch (error) {
             console.error("도서 추가 오류:", error);
+            alert("이미 담은 책입니다");
         }
     }
 };
+
+const loadUserGoalExist = async () => {
+    console.log(book.value);
+    const response = await apiClient.get(`/api/library/${authStore.user.userId}/${book.value.isbn13}`);
+    console.log("goal 존재함??? : ", response.data.data);
+    bookInLibrary.value = response.data.data;
+}
 
 onMounted(async() => {
     MusicPlayer;
@@ -253,6 +252,7 @@ onMounted(async() => {
     }
 
     await likeordislike();
+    await loadUserGoalExist();
 });
 
 </script>

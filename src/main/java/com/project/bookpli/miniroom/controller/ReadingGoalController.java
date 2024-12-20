@@ -68,6 +68,7 @@ public class ReadingGoalController {
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
 
+        System.out.println(startDate + " >>>>>>>>>>> " + endDate);
         int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
 
 
@@ -91,8 +92,6 @@ public class ReadingGoalController {
         }
     }
 
-
-    //독서 기간 수정
     //독서 기간 수정
     @PutMapping("/reset/{isbn13}")
     public ResponseEntity<Integer> resetDate(@PathVariable String isbn13,

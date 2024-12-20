@@ -198,35 +198,6 @@ const playAlbum = async (albumId) => {
     }
 };
 
-// Fetch the artist's albums
-const fetchArtistAlbums = async (artistId) => {
-    loading.value = true;
-    error.value = null;
-
-    try {
-        const response = await axios.get(
-            `https://api.spotify.com/v1/artists/${artistId}/albums`,
-            {
-                headers: {
-                    Authorization: `Bearer ${userStore.accessToken}`,
-                },
-                params: {
-                    include_groups: "album",
-                    market: "US",
-                    limit: 50,
-                },
-            }
-        );
-
-        items.value = response.data.items || [];
-    } catch (error) {
-        console.error("Error fetching artist's albums:", error.response?.data || error.message);
-        error.value = "아티스트의 앨범을 불러오는 중 오류가 발생했습니다.";
-    } finally {
-        loading.value = false;
-    }
-};
-
 const getArtists = (artists) => artists.map((artist) => artist.name).join(", ");
 
 const getImage = (item) => {
@@ -271,33 +242,92 @@ const fetchUserPlaylists = async () => {
 };
 
 // 트랙을 플레이리스트에 추가하기
+// 트랙을 플레이리스트에 추가하기
 const addToPlaylist = async (playlistId) => {
     try {
+        // 1. 선택된 플레이리스트의 트랙 목록 가져오기
+        const response = await axios.get(
+            `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+            {
+                headers: { Authorization: `Bearer ${userStore.accessToken}` },
+            }
+        );
+
+        // 2. 플레이리스트에 존재하는 트랙 URI 확인
+        const existingTrackUris = response.data.items.map((item) => item.track.uri);
+
+        // 3. 중복 확인
+        if (existingTrackUris.includes(selectedTrackUri.value)) {
+            utilModalStore.showModal(
+                "플리에 추가하기",
+                "이미 플레이리스트에 추가된 곡입니다.",
+                "already-exist"
+            );
+            closeModal();
+            return; // 추가 작업 중단
+        }
+
+        // 4. 중복이 아니면 추가
         await axios.post(
             `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
             { uris: [selectedTrackUri.value] },
             { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
         );
-        utilModalStore.showModal("플리에 추가하기", `내 플리에 추가되었습니다.`, "warning");
+
+        utilModalStore.showModal("플리에 추가하기", `내 플리에 성공적으로 추가되었습니다.`, "success");
         closeModal();
     } catch (error) {
         console.error("트랙 추가 오류:", error);
-        utilModalStore.showModal("플리에 추가하기", `플리에 추가하는데 오류가 발생하였습니다.`, "warning");
+        utilModalStore.showModal(
+            "플리에 추가하기",
+            `플리에 추가하는 중 오류가 발생했습니다.`,
+            "warning"
+        );
     }
 };
+
 
 // 플레이리스트 팔로우하기
 const followPlaylist = async (playlistId) => {
     try {
+        // 1. 현재 팔로우 여부 확인
+        const response = await axios.get(
+            `https://api.spotify.com/v1/playlists/${playlistId}/followers/contains`,
+            {
+                headers: { Authorization: `Bearer ${userStore.accessToken}` },
+                params: { ids: userStore.userProfile.id }, // 현재 사용자 ID
+            }
+        );
+
+        const isFollowing = response.data[0]; // 첫 번째 결과값이 true/false
+        if (isFollowing) {
+            utilModalStore.showModal(
+                "플리 팔로우하기",
+                "이미 이 플레이리스트를 팔로우 중입니다.",
+                "already-exist"
+            );
+            return; // 중복 확인 후 작업 중단
+        }
+
+        // 2. 팔로우 작업
         await axios.put(
             `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
             {},
             { headers: { Authorization: `Bearer ${userStore.accessToken}` } }
         );
-        utilModalStore.showModal("플리 팔로우하기", `플리를 팔로우합니다.`, "warning");
+
+        utilModalStore.showModal(
+            "플리 팔로우하기",
+            "플리를 성공적으로 팔로우했습니다.",
+            "success"
+        );
     } catch (error) {
         console.error("플레이리스트 팔로우 오류:", error);
-        utilModalStore.showModal("플리 팔로우하기", `플리에 팔로우하는데 오류가 발생하였습니다.`, "warning");
+        utilModalStore.showModal(
+            "플리 팔로우하기",
+            "플리에 팔로우하는 중 오류가 발생했습니다.",
+            "warning"
+        );
     }
 };
 

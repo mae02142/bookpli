@@ -50,9 +50,9 @@
         <div class="content-icon" style="display: flex;">
           <p class="summary">
           <div v-if="editingId === review.reviewId">
-            <textarea v-model="editingReview.reviewContent" class="textbox"></textarea>
+            <textarea v-model="editingReview.reviewContent" class="review-textbox-edit"></textarea>
           </div>
-          <div v-else>{{ review.reviewContent }}</div>
+          <div v-else class="review-textbox">{{ review.reviewContent }}</div>
         </p>
         <div v-if="editingId === review.reviewId">
           <img src="@/assets/icons/task-line.png" 
@@ -127,6 +127,7 @@ export default {
       // 리뷰의 데이터를 복사하여 편집용 데이터로 설정
       editingReview.value = { ...reviews.value.find(review => 
         review.reviewId === reviewId) }; 
+        console.log(editingReview.value);
     };
       //별점 변경
     const ratingStar = (starIndex) => {  
@@ -140,6 +141,8 @@ export default {
         reviewId : editingId.value,
         reviewContent: editingReview.value.reviewContent,
         rating: editingReview.value.rating,
+        isbn13 : editingReview.value.isbn13,
+        userId : editingReview.value.userId,
       };
 
      const response = await apiClient.put(`/api/review/update`, review);
@@ -367,7 +370,12 @@ export default {
     
   }
 
-  .textbox {
+  .review-textbox{
+    line-height: 1.5;
+    white-space : pre-wrap;
+  }
+
+  .review-textbox-edit {
     resize: none;
     width: 400px;
     height: auto;
