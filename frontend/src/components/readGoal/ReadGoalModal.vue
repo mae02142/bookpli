@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content">
+        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -32,8 +32,8 @@
                 <p class="goal-start-text">시작일</p>
                 <span class="date-label">
                     <img src="../../assets/icons/calendar.png"
-                     @click="showStartPicker = !showStartPicker"
-                     />
+                    @click="showStartPicker = !showStartPicker"
+                    />
                     <VueDatePicker
                     v-if="showStartPicker"
                     v-model="startDate"
@@ -41,7 +41,7 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="'ko'"
+                    :locale="ko"
                     :format="dateFormat"
                     @update:modelValue="updateStartDate"
                     />
@@ -96,13 +96,11 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
-
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 const library = ref({});
 const authStore = useAuthStore();
-
 
 const props = defineProps({
     visible: Boolean,
@@ -111,19 +109,14 @@ const props = defineProps({
 const { rbook } = toRefs(props);
 
 const emit= defineEmits(["close","dropReading"]);
-
-const emitClose = () => {
-    emit("close", props.rbook);
+const emitClose= () => {
+    emit("close");
 };
-
-
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
-
 //독서기간 변경
 const changeDate= async (rbook) => {
-    const utilModalStore = useUtilModalStore(); 
-
+    const utilModalStore = useUtilModalStore();
     const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
     
@@ -133,6 +126,7 @@ const changeDate= async (rbook) => {
                 Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
             },
             params: {
+                status: props.rbook.status,
                 startDate: formatStartDate,
                 endDate: formatEndDate,
             },
@@ -153,7 +147,6 @@ const changeDate= async (rbook) => {
         } else {
             console.error("에러 설정 문제:", error.message);
         }
-
         // 에러 알림
         utilModalStore.showModal(
             "독서기간 수정 실패", 
@@ -162,34 +155,28 @@ const changeDate= async (rbook) => {
         );
     }
 }
-
-
 const book =ref(
     route.query.data ? JSON.parse(route.query.data): {}
 );
-
 const updateStartDate = (value) => {
     startDate.value = value; 
     props.rbook.startDate= format(new Date(value),'yyyy-MM-dd');
 };
-
 const updateEndDate = (value) => {
     endDate.value = value;
     props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
+const authStore= useAuthStore();
 const startDate = ref(null);
 const endDate = ref(null);
 const showStartPicker = ref(false);
 const showEndPicker = ref(false);
-
 const radioSelect= ref("");
 
 const handleAction = async () => {
-    const utilModalStore = useUtilModalStore(); 
-
+    const utilModalStore = useUtilModalStore();
     try {
         if (props.rbook.status === "reading") {
-
             if(radioSelect.value !== "dropped"){
                 await changeDate(props.rbook);
                 emitClose();
@@ -235,7 +222,6 @@ const handleAction = async () => {
                 "error"
             );
         }
-
     } catch (error) {
         console.error("handleAction 실행 중 에러:", error);
         utilModalStore.showModal(
@@ -245,17 +231,14 @@ const handleAction = async () => {
         );
     }
 };
-
-
 const setGoal = async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
     const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
     const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
-
     try{
         const response= await apiClient.put(`/api/goal/register/${rbook.isbn13}`, null, {
             params: {
-                status: book.value.status,
+                status: rbook.status,
                 startDate: formatStartDate,
                 endDate: formatEndDate,
             },
@@ -275,8 +258,6 @@ const setGoal = async (rbook) => {
         );
     }
 }
-
-
 const dropReading = async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
     try{
@@ -299,14 +280,10 @@ const dropReading = async (rbook) => {
         );
     }
 }
-
-
 const progressPercentage = computed(() => {
 const progress = progressStore.getProgress(props.rbook.isbn13);
     return progress?.progressPercentage || 0;     
 });
-
-
 // Pinia 상태 감지 및 업데이트
 watch(
     () => progressStore.progressData[props.rbook.isbn13],
@@ -318,8 +295,7 @@ watch(
     },
     { deep: true, immediate: true }
 );
-
-onMounted(async() => {
+onMounted(() => {
     const savedProgress= progressStore.getProgress(props.rbook.isbn13);
     if(savedProgress){
         props.rbook.currentPage=savedProgress.currentPage || 0;
