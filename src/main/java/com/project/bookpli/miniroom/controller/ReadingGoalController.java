@@ -31,6 +31,8 @@ public class ReadingGoalController {
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
 
+        System.out.println("isbn : " + isbn13);
+
         System.out.println(startDate + " >>>>>>>>>>> " + endDate);
         int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
 

@@ -6,7 +6,7 @@
         <div class="title-icon">
             <div class="post-header">
                 <div class="post-title">{{ bookInfo.title.replace(/\(.*?\)/g, '').trim()}}</div>
-                <div class="title">{{ userInfo.userNickname || 'USER' }} 님의 활동</div> 
+                <div class="title">{{ userInfo.userNickname}} 님의 활동</div> 
             </div>
           </div>
                 <nav class="nav-container">
@@ -26,6 +26,7 @@
                           xmlns="http://www.w3.org/2000/svg"
                           v-html="item.icon"
                         ></svg>
+                        <span class="nav-name">{{item.name}}</span>
                       </RouterLink>
                        <!-- 두 번째와 세 번째 항목은 컴포넌트를 표시 -->
                  <div v-else> 
@@ -37,6 +38,7 @@
                     v-html="item.icon"
                     @click="handleItemClick(index)"
                   ></svg>
+                  <span class="nav-name">{{item.name}}</span>
                 </div>
               </li>
             </ul>
@@ -100,15 +102,18 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
 
       const navItems = ref([
       { 
+        name : '북클럽 홈',
         link: '/bookclub/community',
         icon: '<path d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor"></path>' },
       {
+        name : '내가 쓴 게시글',
         link : '',
         icon: `
         <path d="M17.5556 18.2H18.0556V17.7V7.3V6.8H17.5556H7.44444H6.94444V7.3V17.7V18.2H7.44444H17.5556ZM18.2778 18.5H6.72222C6.64439 18.5 6.58348 18.4717 6.54602 18.438C6.50939 18.405 6.5 18.3733 6.5 18.35V6.65C6.5 6.62676 6.50939 6.59499 6.54602 6.56203C6.58349 6.52831 6.64439 6.5 6.72222 6.5H18.2778C18.3556 6.5 18.4165 6.52831 18.454 6.56203C18.4906 6.59499 18.5 6.62675 18.5 6.65V18.35C18.5 18.3733 18.4906 18.405 18.454 18.438C18.4165 18.4717 18.3556 18.5 18.2778 18.5ZM9.38889 9.1H11.2778V10.7H9.38889V9.1ZM9.38889 13H15.6111V13.3H9.38889V13ZM9.38889 15.6H15.6111V15.9H9.38889V15.6ZM13.7222 9.75H15.6111V10.05H13.7222V9.75Z" stroke="currentColor"/>
         `,
       },
       {
+        name : '내가 쓴 댓글',
         link : '',
         icon: `
         <path d="M9.67505 17.7948L9.51166 17.7074L9.3308 17.7476L6.65854 18.3415L7.25237 15.6692L7.29256 15.4883L7.20519 15.3249C6.75529 14.4836 6.5 13.5224 6.5 12.5C6.5 9.18629 9.18629 6.5 12.5 6.5C15.8137 6.5 18.5 9.18629 18.5 12.5C18.5 15.8137 15.8137 18.5 12.5 18.5C11.4776 18.5 10.5164 18.2447 9.67505 17.7948ZM9.81649 17.5302L9.8165 17.5302C10.6354 17.9681 11.5503 18.2 12.5 18.2C15.648 18.2 18.2 15.648 18.2 12.5C18.2 9.35198 15.648 6.8 12.5 6.8C9.35198 6.8 6.8 9.35198 6.8 12.5C6.8 13.4497 7.03185 14.3646 7.46975 15.1835L7.88033 14.9639L7.46975 15.1835L7.60954 15.4449L7.22411 17.1793L7.05366 17.9463L7.82067 17.7759L9.55508 17.3904L9.81649 17.5302Z" stroke="currentColor"/>
@@ -186,6 +191,10 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
     align-items: center;
     margin-left: auto;
     margin-top: auto;
+}
+
+.nav-name{
+  
 }
 
 .nav-list {

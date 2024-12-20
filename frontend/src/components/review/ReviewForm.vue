@@ -229,15 +229,17 @@
     font-size: 16px;
     border-radius: 5px;
     cursor: pointer;
-  }
-  
-  .cancel-btn {
     background-color:#FFFDF1;
     border: none;
   }
   
-  .submit-btn {
-    background-color: #FFFDF1;
+  .cancel-btn:hover {
+    background-color: beige;
+    border: none;
+  }
+  
+  .submit-btn:hover {
+    background-color:  beige;
     border: none;
   }
   

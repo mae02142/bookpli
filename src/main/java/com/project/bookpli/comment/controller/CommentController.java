@@ -2,8 +2,13 @@ package com.project.bookpli.comment.controller;
 
 import com.project.bookpli.comment.dto.CommentDTO;
 import com.project.bookpli.comment.service.CommentService;
+import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponse;
+import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.Comment;
+import com.project.bookpli.entity.User;
+import com.project.bookpli.mypage.dto.UserDTO;
+import com.project.bookpli.mypage.service.MypageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +22,16 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
+    private final MypageService mypageService;
+
+    // 유저 정보 가져오기
+    @GetMapping("/info/{spotifyId}")
+    public BaseResponse<UserDTO> getInfoForComment(@PathVariable String spotifyId){
+        User info = mypageService.findBySpotifyId(spotifyId)
+                .orElseThrow(()-> new BaseException(BaseResponseStatus.USER_NOT_FOUND));
+        UserDTO userInfo = UserDTO.fromEntity(info);
+        return new BaseResponse<>(userInfo);
+    }
 
     // 게시글 댓글 조회
     @GetMapping("/post/{postId}")

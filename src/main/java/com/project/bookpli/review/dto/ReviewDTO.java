@@ -76,8 +76,6 @@ public class ReviewDTO {
                 .isbn13(review.getIsbn13())
                 .reviewContent(review.getReviewContent())
                 .rating(review.getRating())
-//                .cover(userNickname)
-//                .title(profilePath)
                 .userNickname(userNickname)
                 .profilePath(profilePath)
                 .build();
