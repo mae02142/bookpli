@@ -3,11 +3,11 @@ package com.project.bookpli.miniroom.service;
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.entity.Book;
-import com.project.bookpli.entity.BookLike;
-import com.project.bookpli.library.dto.BookLikeDTO;
+import com.project.bookpli.entity.Library;
 import com.project.bookpli.library.repository.BookLikeRepository;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.BookResponseDTO;
+import com.project.bookpli.miniroom.dto.LibraryDTO;
 import com.project.bookpli.mypage.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class BookApiService {
@@ -37,7 +36,7 @@ public class BookApiService {
     @Autowired
     private UserRepository userrep;
 
-    public void searchBook(String itemId) {
+    public Book searchBook(String itemId) {
         RestTemplate restTemplate = new RestTemplate();
 
         String url = BASE_URL + "?ttbkey=" + TTB_KEY +
@@ -68,9 +67,14 @@ public class BookApiService {
         String isbn13 = item.get("isbn13") != null ? item.get("isbn13").toString() : null;
 
         // 중복 데이터 방지 및 null 체크
-        if (isbn13 == null || bookrep.existsById(isbn13)) {
-            System.out.println("이미 존재하는 도서이거나 ISBN이 없습니다 :" + isbn13);
-            return;
+        if (isbn13 == null) {
+            throw new IllegalArgumentException("ISBN 정보가 없습니다.");
+        }
+
+        if (bookrep.existsById(isbn13)) {
+            System.out.println("이미 존재하는 도서: " + isbn13);
+            return bookrep.findById(isbn13).orElseThrow(() ->
+                    new IllegalStateException("데이터베이스에서 이미 존재하는 도서를 찾을 수 없습니다."));
         }
 
         // DTO 생성 (빌더 패턴 사용)
@@ -91,8 +95,9 @@ public class BookApiService {
 
         // Entity 변환 및 저장
         Book book = BookDTO.toEntity(dto);
-        bookrep.save(book);
+        return bookrep.save(book);
     }
+
 
     private static LocalDate parsePubDate(String pubDate) {
         return LocalDate.parse(pubDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -126,6 +131,19 @@ public class BookApiService {
         }
     }
 
+    //도서 저장
+//    public void saveGoal(LibraryDTO libraryDTO, String isbn13) {
+//        // 도서 검색
+//        Book book = searchBook(isbn13);
+//        if (book == null) {
+//            throw new IllegalArgumentException("해당 ISBN의 도서를 찾을 수 없습니다.");
+//        }
+//
+//        Library newLibrary = libraryDTO.toEntity(book); // DTO를 엔티티로 변환
+//        librep.save(newLibrary);                             // 새 데이터 저장
+//
+//        }
+
     //도서완독
     public int clearRead(String isbn13, String status){
         return librep.completeBook(isbn13, status);
@@ -135,38 +153,4 @@ public class BookApiService {
     public int failReading(String isbn13){
         return librep.changeFail(isbn13);
     }
-
-    //찜하기
-//    public BookLike likeBook(Long userId, String isbn13){
-//
-//        BookLikeDTO dto= BookLikeDTO.builder()
-//                        .user_id(userId)
-//                        .isbn13(isbn13)
-//                        .build();
-//
-//        BookLike bookLike=dto.toEntity(null);
-//
-//        // 중복 여부 확인
-//        if (blrep.existsByUserIdAndIsbn13(userId,isbn13)) {
-//            throw new IllegalArgumentException("이미 찜한 도서입니다.");
-//        }
-//
-//        return blrep.save(bookLike);
-//    }
-
-    //찜하기 해제
-//    public void  dislike(Long userId, String isbn13){
-//        Optional<BookLike> dislike=blrep.findByUserIdAndIsbn13(userId, isbn13);
-//
-//        if(dislike.isPresent()){
-//            blrep.delete(dislike.get());
-//        }else {
-//            throw new IllegalArgumentException("해당 도서가 찜 목록에 없습니다.");
-//        }
-//    }
-//
-//    //찜한 도서?
-//    public boolean isLiked(Long userId, String isbn13){
-//        return blrep.existsByUserIdAndIsbn13(userId, isbn13);
-//    }
 }

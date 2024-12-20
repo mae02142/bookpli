@@ -29,6 +29,7 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Query("SELECT YEAR(l.endDate) AS year, COUNT(l.libraryId) AS bookCnt FROM Library l WHERE l.status = 'completed' GROUP BY YEAR(l.endDate) ORDER BY year ASC")
     String bookCntOrderByYear();
 
+    //독서 목표 수정
     //독서 목표설정 status update
     @Transactional
     @Modifying
@@ -40,6 +41,7 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Modifying
     @Query("update Library l set l.status='dropped', l.startDate=null, l.endDate=null where l.status='reading' AND l.book.isbn13 = :isbn13")
     int changeStatus(@Param("isbn13") String isbn13, @Param("status") String status);
+
 
     //도서완독 처리
     @Transactional
