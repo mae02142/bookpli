@@ -9,6 +9,7 @@
                 <div class="title">{{ userInfo.userNickname}} 님의 활동</div> 
             </div>
           </div>
+              <div class="nav-with-name">
                 <nav class="nav-container">
                   <ul class="nav-list">
                     <li v-for="(item, index) in navItems" :key="index" class="nav-item">
@@ -26,7 +27,7 @@
                           xmlns="http://www.w3.org/2000/svg"
                           v-html="item.icon"
                         ></svg>
-                        <span class="nav-name">{{item.name}}</span>
+      
                       </RouterLink>
                        <!-- 두 번째와 세 번째 항목은 컴포넌트를 표시 -->
                  <div v-else> 
@@ -38,11 +39,19 @@
                     v-html="item.icon"
                     @click="handleItemClick(index)"
                   ></svg>
-                  <span class="nav-name">{{item.name}}</span>
                 </div>
               </li>
             </ul>
           </nav>
+          <div class="nav-names">
+            <div class="nav-name"
+             v-for="item , index in navItems" 
+             :key="index"
+             
+             >
+            {{item.name}}</div>
+          </div>
+        </div>
       </header>
       <hr class="divider" />
           <!-- 게시글 추가 -->
@@ -193,8 +202,10 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
     margin-top: auto;
 }
 
-.nav-name{
-  
+.nav-names{
+  visibility: visible;
+  display: flex;
+  flex-direction: row;
 }
 
 .nav-list {
@@ -216,16 +227,13 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
   display: none;
 }
 
-.nav-label {
-  cursor: pointer;
-}
-
 .nav-icon {
   width: 24px;
   height: 24px;
   opacity: 0.8;
   padding: 13px 20px;
   transition: 0.2s;
+  cursor: pointer;
 }
 
 .nav-icon:hover {
@@ -237,6 +245,7 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
 .nav-icon--active {
   color: rgb(235, 40, 176);
 }
+  
   
     /*  헤 더  */
   .header {
