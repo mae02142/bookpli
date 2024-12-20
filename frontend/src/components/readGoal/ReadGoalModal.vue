@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
+        <div class="goal-modal-content">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -21,7 +21,7 @@
                 독서중
             </span>
             <span class="date-label">
-                <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
+                <input type="radio" value="wished" v-model="radioSelect">독서 중 해제
             </span>
         </div>
         <div class="date-header">독서 목표 기간</div>
@@ -87,7 +87,7 @@
 </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, toRefs } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
@@ -100,12 +100,15 @@ import { useUtilModalStore } from "@/stores/utilModalStore";
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
+const library = ref({});
+const authStore = useAuthStore();
 
 
 const props = defineProps({
     visible: Boolean,
     rbook: Object,
 });
+const { rbook } = toRefs(props);
 
 const emit= defineEmits(["close","dropReading"]);
 
@@ -174,10 +177,6 @@ const updateEndDate = (value) => {
     endDate.value = value;
     props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
-
-
-const authStore= useAuthStore();
-
 const startDate = ref(null);
 const endDate = ref(null);
 const showStartPicker = ref(false);
@@ -209,7 +208,7 @@ const handleAction = async () => {
                 await setGoal(props.rbook);
                 utilModalStore.showModal(
                     "독서 목표 설정",
-                    `"${props.rbook.title}"이 독서 목표로 설정되었습니다.`,
+                    `"${props.rbook.title}"도서가<br>독서 목표로 설정되었습니다.`,
                     "success"
                 );
                 emitClose();
@@ -320,14 +319,13 @@ watch(
     { deep: true, immediate: true }
 );
 
-
-onMounted(() => {
+onMounted(async() => {
     const savedProgress= progressStore.getProgress(props.rbook.isbn13);
     if(savedProgress){
         props.rbook.currentPage=savedProgress.currentPage || 0;
         props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
-    console.log("check!!!!!!",JSON.stringify(props.rbook));
+    console.log("rbook : ", rbook.value);
 });
 </script>
 
@@ -344,8 +342,7 @@ margin-top: 10px;
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 30px;
-height: auto;
+margin-top: 10px;
 }
 
 .bookgoal-cover {
@@ -436,7 +433,6 @@ max-width: 800px;
 .date-row.active {
     display: flex;
     flex-direction: column;
-    height: auto;
 }
 
 .date-label {
@@ -580,22 +576,12 @@ font-size: 14px;
     border-radius: 10px;
     width: 60%;
     height: auto;
-    max-height: 85%;
-    overflow: auto;
     max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
     justify-content: center;
     display: flex;
     flex-direction: column;
-}
-
-.goal-modal-content::-webkit-scrollbar{
-    display: none;
-}
-
-.goal-modal-content.active {
-    height: 85%;
 }
 </style>
 

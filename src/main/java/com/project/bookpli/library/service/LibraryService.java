@@ -3,6 +3,7 @@ package com.project.bookpli.library.service;
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.common.exception.BaseException;
+import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookLike;
@@ -51,6 +52,12 @@ public class LibraryService {
                     return bookRepository.save(newBook);
                 });
 
+        // 이미 담은 책인지 확인
+        Optional<Library> existingWishBook = libraryRepository.findByUserIdAndBook_Isbn13(userId, request.getIsbn13());
+        if (existingWishBook.isPresent()) {
+            // 중복된 요청이 있을 경우 기존 bookLikeId를 반환
+            throw new BaseException(BaseResponseStatus.LIBRARY_ALREADY_EXIST);
+        }
         // Library 저장
         Library library = Library.builder()
                 .userId(userId)
@@ -62,6 +69,14 @@ public class LibraryService {
         return savedLibrary.getLibraryId();
     }
 
+
+    public LibraryResponseDTO getMyOneLibrary(Long userId, String isbn13) {
+        LibraryResponseDTO libraryResponseDTO = libraryRepository.getMyOneLibrary(userId, isbn13);
+        return libraryResponseDTO;
+    }
+
+
+
     @Transactional
     public Long addBookLike(Long userId, BookDTO request) {
         // 이미 좋아요한 기록이 있는지 확인
@@ -72,11 +87,11 @@ public class LibraryService {
         }
 
         // 책이 존재하는지 확인 후 없으면 저장
-        Book book = bookRepository.findById(request.getIsbn13())
-                .orElseGet(() -> {
-                    Book newBook = BookDTO.toEntity(request);
-                    return bookRepository.saveAndFlush(newBook); // 즉시 저장 및 플러시
-                });
+        bookRepository.findById(request.getIsbn13())
+        .orElseGet(() -> {
+            Book newBook = BookDTO.toEntity(request);
+            return bookRepository.saveAndFlush(newBook); // 즉시 저장 및 플러시
+        });
 
         // BookLike 엔티티 생성 및 저장
         BookLike bookLike = BookLike.builder()
@@ -109,4 +124,5 @@ public class LibraryService {
         Optional<BookLike> response = bookLikeRepository.findByUserIdAndBook_Isbn13(userId, isbn13);
         return response.map(BookLike::getBookLikeId).orElse(null);
     }
+
 }

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface LibraryRepository extends JpaRepository<Library, Long> {
     
@@ -68,4 +70,13 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
     @Modifying
     @Query("update Library l set l.startDate= :startDate, l.endDate= :endDate where l.book.isbn13= :isbn13")
     int updateDate (@Param("isbn13") String isbn13, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    Optional<Library> findByUserIdAndBook_Isbn13(Long userId, String isbn13);
+
+    @Query("SELECT new com.project.bookpli.library.dto.LibraryResponseDTO(l.libraryId, l.userId, l.status, l.startDate, l.endDate, b.isbn13, b.title, b.author, b.cover, b.startindex) " +
+            "FROM Library l " +
+            "JOIN l.book b " +
+            "WHERE l.userId = :userId " +
+            "AND b.isbn13 = :isbn13")
+    LibraryResponseDTO getMyOneLibrary(Long userId, String isbn13);
 }
