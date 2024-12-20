@@ -44,7 +44,7 @@
                   <img class="author-image" :src="item.profilePath || profile" alt="user profile" />
                 </div>
                 <div class="text-box-post">
-                  <h3 class="post-userNickname">{{item.userNickname || 'User'}}</h3>
+                  <h3 class="post-userNickname">{{item.userNickname}}</h3>
                       <!-- 본문 글 -->
                   <p class="mypost-cnt">{{ item.postContent }} </p>                                 
                 </div>
