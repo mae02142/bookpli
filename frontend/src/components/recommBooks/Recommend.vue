@@ -6,11 +6,11 @@
                     v-for="book in newBooks" 
                     :key="book.id" class="book-item" 
                     @click="bookclick(book)">
-                    <div class="image-container">
-                        <img :src="book.cover" :alt="book.title" class="book-image" />
+                    <div class="recommend-image-container">
+                        <img :src="book.cover" :alt="book.title" class="recommend-book-image" />
                     </div>
-                    <p class="book-title">{{ book.title }}</p>
-                    <p class="book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
+                    <p class="recommend-book-title">{{ book.title }}</p>
+                    <p class="recommend-book-author">{{ book.author.replace(/\(.*\)/, '') }}</p>
                 </div>
             </div>
         </section>
@@ -37,7 +37,6 @@ export default {
             document.body.removeChild(script);
             };
             window[callbackName] = (response) => {
-            console.log("API Response:", response); // 추가된 로그
             resolve(response);
             delete window[callbackName];
             document.body.removeChild(script);
@@ -81,7 +80,8 @@ body {
     font-family: Arial, sans-serif;
     background-color: #ffff;
 }
-.book-app {
+
+.rec-app {
     max-width: 1200px;
     margin: auto;
     padding: 0.5rem;
@@ -93,32 +93,31 @@ body {
 }
 .book-item{
     width: 150px;
-    text-align: center;
-    padding-top: 50px
+    padding-top: 50px;
 }
-.image-container{
+.recommend-image-container{
     width: 100%;
     padding-bottom: 10px;
+    cursor: pointer;
 }
-.book-image{
-    object-fit: cover;
-}    
-.book-image {
-    width: 100%;
-    height: auto;
+    
+.recommend-book-image {
+    width: 130px;
+    height: 180px;
+    border: 0.1px solid #EAEAE1;
     object-fit: cover;
     border-radius: 8px;
 }
 
-.book-title {
-    font-size: 16px;
-    font-weight: bold;
+.recommend-book-title {
+    font-size: 15px;
+    font-weight: 600;
     margin: 10px 0 5px;
-    font-size: 20px; 
     padding-bottom: 5px;
+    line-height: 1.1;
 }
 
-.book-author {
+.recommend-book-author {
     font-size: 14px;
     color: gray;
 }

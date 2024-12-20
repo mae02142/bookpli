@@ -493,7 +493,6 @@ body {
   gap: 20px;
   padding: 10px;
   background-color: #fff;
-  width: 125px;
 }
 
 .item-details {

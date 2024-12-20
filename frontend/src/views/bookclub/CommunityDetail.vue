@@ -122,7 +122,7 @@
                   </div>
                   <!-- 본문 글 -->
                    <div class="post-user-cnt">
-                     <p class="post-username">{{post.userNickname == null ? 'USER' : post.userNickname}}</p>
+                     <p class="post-username">{{post.userNickname}}</p>
                      <p class="post-cnt">{{ post.postContent }} </p>                        
                    </div>
                 </div>
@@ -231,8 +231,6 @@
         /* 이미지 슬라이더 처리 */
 
         const nextSlide = async(post) => {
-          console.log("!@@@@@@@#!@#!#@!");        
-            console.log(post.curpos);
           if (post.curpos < post.imageUrl.length - 1) {
             post.curpos++;
           } else {
