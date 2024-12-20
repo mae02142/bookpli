@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content">
+        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -327,6 +327,7 @@ onMounted(() => {
         props.rbook.currentPage=savedProgress.currentPage || 0;
         props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
+    console.log("check!!!!!!",JSON.stringify(props.rbook));
 });
 </script>
 
@@ -343,7 +344,8 @@ margin-top: 10px;
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 10px;
+margin-top: 30px;
+height: auto;
 }
 
 .bookgoal-cover {
@@ -434,6 +436,7 @@ max-width: 800px;
 .date-row.active {
     display: flex;
     flex-direction: column;
+    height: auto;
 }
 
 .date-label {
@@ -577,12 +580,22 @@ font-size: 14px;
     border-radius: 10px;
     width: 60%;
     height: auto;
+    max-height: 85%;
+    overflow: auto;
     max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
     justify-content: center;
     display: flex;
     flex-direction: column;
+}
+
+.goal-modal-content::-webkit-scrollbar{
+    display: none;
+}
+
+.goal-modal-content.active {
+    height: 85%;
 }
 </style>
 
