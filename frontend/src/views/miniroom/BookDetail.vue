@@ -146,10 +146,19 @@ const setActiveTab= (tab) => {
 const showModal = ref(false);
 const selectBook= ref({});
 
-const openModal= (readList) => {
-    selectBook.value=readList;
-    showModal.value=true;
+// const openModal= (readList) => {
+//     selectBook.value=readList;
+//     showModal.value=true;
+// };
+
+const openModal = (readList) => {
+    selectBook.value = {
+        ...readList,
+        status: readList.status || "wished", // 기본값 추가
+    };
+    showModal.value = true;
 };
+
 
 const closeModal= () =>{
     showModal.value=false;

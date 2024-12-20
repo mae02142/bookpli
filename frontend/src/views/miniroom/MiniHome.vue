@@ -399,6 +399,12 @@
     
     // ReadGoalModal에서 삭제된 도서를 readList에서 제거
     const updateReadList = (isbn13) => {
+        const bookToUpdate = addList.value.find((book) => book.isbn13 === isbn13);
+        if (bookToUpdate) {
+            bookToUpdate.status = "reading";
+            readList.value.push(bookToUpdate);
+        }
+        
         const index = readList.value.findIndex(book => book.isbn13 === isbn13);
         if (index !== -1) {
             readList.value.splice(index, 1);
@@ -450,7 +456,6 @@
             try {
             const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
             if (status === 200) {
-                alert("완독 처리되었습니다.");
                 await loadBooks("reading", readList);
                 await loadBooks("completed", completedBooks);
                 calculateCompletedStats();
@@ -1006,13 +1011,13 @@
     .goal-bar{
         width: 30px;
         height: 10px;
-        background-color: rgb(171, 235, 171);   
+        background-color: rgb(2, 77, 42); 
     }
     
     .current-bar{
         width: 30px;
         height: 10px;
-        background-color: rgb(2, 77, 42);
+        background-color: rgb(171, 235, 171);  
     }
     /* .goal{
         position: absolute;

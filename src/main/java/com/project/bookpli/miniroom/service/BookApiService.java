@@ -132,17 +132,17 @@ public class BookApiService {
     }
 
     //도서 저장
-    public void saveGoal(LibraryDTO libraryDTO, String isbn13) {
-        // 도서 검색
-        Book book = searchBook(isbn13);
-        if (book == null) {
-            throw new IllegalArgumentException("해당 ISBN의 도서를 찾을 수 없습니다.");
-        }
-
-        Library newLibrary = libraryDTO.toEntity(book); // DTO를 엔티티로 변환
-        librep.save(newLibrary);                             // 새 데이터 저장
-
-        }
+//    public void saveGoal(LibraryDTO libraryDTO, String isbn13) {
+//        // 도서 검색
+//        Book book = searchBook(isbn13);
+//        if (book == null) {
+//            throw new IllegalArgumentException("해당 ISBN의 도서를 찾을 수 없습니다.");
+//        }
+//
+//        Library newLibrary = libraryDTO.toEntity(book); // DTO를 엔티티로 변환
+//        librep.save(newLibrary);                             // 새 데이터 저장
+//
+//        }
 
     //도서완독
     public int clearRead(String isbn13, String status){

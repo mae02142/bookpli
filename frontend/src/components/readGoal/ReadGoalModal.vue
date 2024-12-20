@@ -1,23 +1,22 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content">
+        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
             
             <div class="book-section">
-                <img class="bookgoal-cover" :src="props.rbook.cover" alt="Book Cover" />
-                <div class="title">{{copyProps.title}}</div>
-                <div class="book-info">{{copyProps.author}}({{copyProps.startindex}}p)</div>
-                <div class="reading-status" v-if="copyProps.status === 'reading'">
+                <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
+                <div class="title">{{rbook.title}}</div>
+                <div class="book-info">{{rbook.author}}({{rbook.startindex}}p)</div>
+                <div class="reading-status" v-if="rbook.status === 'reading'">
                     <img class="bookmark" src="../../assets/icons/bookmark2.png" alt="Bookmark" />
                     <span class="reading-status-text">읽고 있는 책</span>
             </div>
         </div>
-
         <div class="date-section">
         <div class="date-status">독서상태</div>
         <div class="date-row-status">
             <span class="date-label">
-                <input type="radio" :checked="copyProps.status === 'reading'" value="reading" v-model="radioSelect">
+                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
                 독서중
             </span>
             <span class="date-label">
@@ -32,8 +31,8 @@
                 <p class="goal-start-text">시작일</p>
                 <span class="date-label">
                     <img src="../../assets/icons/calendar.png"
-                     @click="showStartPicker = !showStartPicker"
-                     />
+                    @click="showStartPicker = !showStartPicker"
+                    />
                     <VueDatePicker
                     v-if="showStartPicker"
                     v-model="startDate"
@@ -41,7 +40,7 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="'ko'"
+                    :locale="ko"
                     :format="dateFormat"
                     @update:modelValue="updateStartDate"
                     />
@@ -58,26 +57,25 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="'ko'"
+                    :locale="ko"
                     :format="dateFormat"
                     @update:modelValue="updateEndDate"
                 />
                 </span>
             </div>
-            <div class="goal-date-final" v-if="copyProps.startDate">
-                <p>{{ copyProps.startDate ? copyProps.startDate.split("T")[0] : ''}}</p>
+            <div class="goal-date-final" v-if="rbook.startDate">
+                <p>{{ rbook.startDate ? rbook.startDate.split("T")[0] : ''}}</p>
                 <span>~</span>
-                <p>{{ copyProps.endDate ? copyProps.endDate.split("T")[0] : '' }}</p>
+                <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
             </div>
         </div>
     </div>
-
-        <div class="progress-section" v-if="copyProps.status === 'reading'">
+        <div class="progress-section" v-if="rbook.status === 'reading'">
             <div class="progress-header">독서량</div>
             <div class="progress-bar">
-                <div class="progress-bar-fill" :style="{width: `${copyProps.progressPercentage || 0}%`}"></div>
+                <div class="progress-bar-fill" :style="{width: `${rbook.progressPercentage || 0}%`}"></div>
             </div>
-            <p class="progress-percentage">{{ copyProps.progressPercentage || 0 }}%</p>
+            <p class="progress-percentage">{{ rbook.progressPercentage || 0 }}%</p>
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
@@ -93,33 +91,41 @@ import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
-
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
-
 
 const props = defineProps({
     visible: Boolean,
     rbook: Object,
 });
-
 const emit= defineEmits(["close","dropReading"]);
-
+const emitClose= () => {
+    emit("close");
+};
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
-
 //독서기간 변경
 const changeDate= async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
-
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
     
     try{
-        const response= await apiClient.put(`/api/goal/reset`,rbook);
-        console.log(response.data);
+        const response= await apiClient.put(`/api/goal/reset/${rbook.isbn13}`,null, {
+            headers: {
+                Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
+            },
+            params: {
+                status: props.rbook.status,
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
         utilModalStore.showModal(
             "독서기간 수정",
             "독서기간이 수정되었습니다.",
@@ -136,7 +142,6 @@ const changeDate= async (rbook) => {
         } else {
             console.error("에러 설정 문제:", error.message);
         }
-
         // 에러 알림
         utilModalStore.showModal(
             "독서기간 수정 실패", 
@@ -145,74 +150,55 @@ const changeDate= async (rbook) => {
         );
     }
 }
-
-
 const book =ref(
     route.query.data ? JSON.parse(route.query.data): {}
 );
-
 const updateStartDate = (value) => {
     startDate.value = value; 
     props.rbook.startDate= format(new Date(value),'yyyy-MM-dd');
 };
-
 const updateEndDate = (value) => {
     endDate.value = value;
     props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
-
-
 const authStore= useAuthStore();
-
 const startDate = ref(null);
 const endDate = ref(null);
 const showStartPicker = ref(false);
 const showEndPicker = ref(false);
-
 const radioSelect= ref("");
 
-// props 변경 시 localRbook 업데이트
-watch(
-    () => props.rbook,
-    (newVal) => {
-        copyProps.value = { ...newVal };
-    }
-);
-
-
-
 const handleAction = async () => {
-    const utilModalStore = useUtilModalStore();
-
+    const utilModalStore = useUtilModalStore(); 
     try {
-        if (copyProps.status === "reading") {
-            if (radioSelect.value !== "dropped") {
-                await changeDate(copyProps.value);
+        if (props.rbook.status === "reading") {
+            if(radioSelect.value !== "dropped"){
+                await changeDate(props.rbook);
                 emitClose();
-            } else if (radioSelect.value === "dropped") {
-                await dropReading(copyProps.value);
+            }    
+            if (radioSelect.value === "dropped") {
+                await dropReading(props.rbook);
                 utilModalStore.showModal(
                     "독서 상태 변경",
-                    `"${copyProps.title}" 독서 상태가 해제되었습니다.`,
+                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
             }
-        }
-        else if (copyProps.status === "wished") {
+        } else if (props.rbook.status === "wished") {
             if (radioSelect.value === "reading") {
-                await setGoal(copyProps.value);
+                await setGoal(props.rbook);
                 utilModalStore.showModal(
                     "독서 목표 설정",
-                    `"${copyProps.title}"이 독서 목표로 설정되었습니다.`,
+                    `"${props.rbook.title}"이 독서 목표로 설정되었습니다.`,
                     "success"
                 );
                 emitClose();
             } else if (radioSelect.value === "dropped") {
-                await dropReading(copyProps.value);
+                await dropReading(props.rbook);
                 utilModalStore.showModal(
                     "독서 상태 해제",
-                    `"${copyProps.title}" 독서 상태가 해제되었습니다.`,
+                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
@@ -224,15 +210,12 @@ const handleAction = async () => {
                 );
                 emitClose();
             }
-        }
-        else {
-            await setGoal(copyProps.value); // 독서 목표 설정 호출
+        }else{
             utilModalStore.showModal(
-                "독서 목표 설정",
-                `"${copyProps.title}" 독서 목표가 설정되었습니다.`,
-                "success"
+                "오류 발생",
+                "작업 중 오류가 발생했습니다. 다시 시도해주세요.",
+                "error"
             );
-            emitClose();
         }
     } catch (error) {
         console.error("handleAction 실행 중 에러:", error);
@@ -243,26 +226,21 @@ const handleAction = async () => {
         );
     }
 };
-
-const emitClose = () => {
-    emit("close", copyProps.value); 
-};
-
-const copyProps = ref({ ...props.rbook });
-
-
-const setGoal = async (book) => {
-    
+const setGoal = async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
-    console.log("책 정보 확인 : ",props.rbook);
+    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
+    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
     try{
-      
-        const response= await apiClient.post(`/api/library/${authStore.user.userId}`, props.rbook);
-        console.log("Response from setGoal API:", response.data.data);
-
+        const response= await apiClient.put(`/api/goal/register/${rbook.isbn13}`, null, {
+            params: {
+                status: rbook.status,
+                startDate: formatStartDate,
+                endDate: formatEndDate,
+            },
+        });
         utilModalStore.showModal(
             "독서 목표 설정",
-            `"${copyProps.title}"의 독서 목표가 설정되었습니다.`,
+            `"${rbook.title}"의 독서 목표가 설정되었습니다.`,
             "success"
         );
         router.push('/miniroom/minihome');
@@ -275,13 +253,11 @@ const setGoal = async (book) => {
         );
     }
 }
-
-
 const dropReading = async (rbook) => {
     const utilModalStore = useUtilModalStore(); 
     try{
         const response= await apiClient.delete(`/api/goal/${rbook.isbn13}`,{
-            params: { status: "wished" },
+            params: { status: "dropped" },
         });
         emit("dropReading",rbook.isbn13);
         utilModalStore.showModal(
@@ -299,14 +275,10 @@ const dropReading = async (rbook) => {
         );
     }
 }
-
-
 const progressPercentage = computed(() => {
 const progress = progressStore.getProgress(props.rbook.isbn13);
     return progress?.progressPercentage || 0;     
 });
-
-
 // Pinia 상태 감지 및 업데이트
 watch(
     () => progressStore.progressData[props.rbook.isbn13],
@@ -318,18 +290,15 @@ watch(
     },
     { deep: true, immediate: true }
 );
-
-
 onMounted(() => {
     const savedProgress= progressStore.getProgress(props.rbook.isbn13);
-
     if(savedProgress){
         props.rbook.currentPage=savedProgress.currentPage || 0;
         props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
+    console.log("check!!!!!!",JSON.stringify(props.rbook));
 });
 </script>
-
 <style>
 .title {
 font-size: 16px;
@@ -338,26 +307,23 @@ color: #000000;
 text-align: center;
 margin-top: 10px;
 }
-
 .book-section {
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 10px;
+margin-top: 30px;
+height: auto;
 }
-
 .bookgoal-cover {
 width: 150px;
 height: 200px;
 object-fit: cover;
 }
-
 .book-info {
 font-size: 13px;
 color: #757575;
 margin-top: 7px;
 }
-
 .reading-status {
 display: flex;
 align-items: center;
@@ -368,24 +334,20 @@ width: 190px;
 height: 40px;
 margin-top: 15px;
 }
-
 .reading-status-text {
 font-size: 16px;
 color: #000000;
 }
-
 .bookmark {
     width: 23px;
     height: 25px;
     margin-right: 10px;
 }
-
 .date-section {
 margin: 15px auto;
 width: 80%;
 max-width: 800px;
 }
-
 .date-status{
     text-align: left;
     font-size: 16px;
@@ -393,7 +355,6 @@ max-width: 800px;
     margin-bottom: 10px;
     
 }
-
 .date-row-status{
     display: flex;
     justify-content: space-around;
@@ -404,21 +365,17 @@ max-width: 800px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
-
 .date-header {
     text-align: left; 
     font-size: 16px;
     color: #000000;
     margin: 10px; 
 }
-
-
 .date-label input[type="radio"] {
     width: 20px; 
     height: 20px; 
     margin-right: 10px; 
 }
-
 .date-row {
     gap: 20px;
     display: flex;
@@ -430,12 +387,11 @@ max-width: 800px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
-
 .date-row.active {
     display: flex;
     flex-direction: column;
+    height: auto;
 }
-
 .date-label {
 font-size: 14px;
 color: #000000;
@@ -443,12 +399,10 @@ display: flex;
 align-items: center;
 gap: 5px;
 }
-
 .date-value {
 font-size: 14px;
 color: #000000;
 }
-
 .goal-last-date,
 .goal-start-date{
     display: flex;
@@ -457,24 +411,20 @@ color: #000000;
 .goal-start-text{
     margin: auto 7px;
 }
-
 .goal-date-final{
     display: flex;
     gap: 20px;
 }
-
 .progress-section {
 margin: 40px auto;
 width: 80%;
 max-width: 800px;
 }
-
 .progress-header {
     text-align: left;
     font-size: 16px;
     color: #000000;
 }
-
 .progress-bar {
     position: relative;
     height: 37px;
@@ -483,18 +433,15 @@ max-width: 800px;
     margin-top: 10px;
     overflow: hidden;
 }
-
 .progress-bar-fill {
     height: 100%;
     background: rgb(171, 235, 171);
     width: 25%; 
 }
-
 .progress-percentage {
     text-align: left;
     font-size: 16px;
 }
-
 .confirm-button {
     background: #fffdf1;
     border: none;
@@ -504,11 +451,9 @@ max-width: 800px;
     color: #000000;
     cursor: pointer;
 }
-
 .confirm-button:hover{
     background: beige;
 }
-
 .date-label {
     display: inline-flex;
     align-items: center; 
@@ -516,26 +461,21 @@ max-width: 800px;
     color: #000000;
     gap: 8px; 
 }
-
 .date-label img {
     width: 1.2em; 
     height: 1.2em; 
     cursor: pointer; 
 }
-
 .date-section {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
-
-
 .date-label {
 display: flex;
 align-items: center;
 gap: 5px;
 }
-
 .date-status,
 .date-header {
     text-align: left; 
@@ -544,20 +484,17 @@ gap: 5px;
     margin: 0; 
     padding-left: 5px; 
 }
-
 .date-value {
 margin-left: 10px;
 color: #555;
 font-size: 14px;
 }
-
 .button-container {
     display: flex;
     justify-content: center;
     gap: 100px;
     margin-bottom: 10px;
 }
-
 .goal-modal-overlay {
     position: fixed;
     top: 0;
@@ -570,13 +507,14 @@ font-size: 14px;
     align-items: center;
     z-index: 9999;
 }
-
 .goal-modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 10px;
     width: 60%;
     height: auto;
+    max-height: 85%;
+    overflow: auto;
     max-width: 600px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -584,5 +522,10 @@ font-size: 14px;
     display: flex;
     flex-direction: column;
 }
+.goal-modal-content::-webkit-scrollbar{
+    display: none;
+}
+.goal-modal-content.active {
+    height: 85%;
+}
 </style>
-

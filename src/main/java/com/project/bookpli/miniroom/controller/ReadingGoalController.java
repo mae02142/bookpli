@@ -49,21 +49,34 @@ public class ReadingGoalController {
 //    }
 
     //library 등록
-    @PostMapping("/register/{isbn13}")
+//    @PutMapping("/register/{isbn13}")
+//    public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
+//                                           @RequestBody LibraryDTO libraryDTO) {
+//        try {
+//             service.saveGoal(libraryDTO, isbn13);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("도서를 찾을 수 없습니다: " + e.getMessage());
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다.");
+//        }
+//        return ResponseEntity.ok("도서 저장성공");
+//    }
+
+    //독서목표 설정 status 변경
+    @PutMapping("/register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
-                                           @RequestBody LibraryDTO libraryDTO) {
-        try {
-            System.out.println("userID============="+libraryDTO.getUser_id());
-             service.saveGoal(libraryDTO, isbn13);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("도서를 찾을 수 없습니다: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다.");
+                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+
+        int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
+
+
+        if(update > 0){
+            return ResponseEntity.ok("독서목표가 설정되었습니다.");
+        }else{
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
         }
-        return ResponseEntity.ok("도서 저장성공");
     }
-
-
 
     //독서 목표 해제
     @DeleteMapping("/{isbn13}")
@@ -78,17 +91,15 @@ public class ReadingGoalController {
         }
     }
 
+
     //독서 기간 수정
-    @PutMapping("/reset")
-    public  ResponseEntity<String> updateAll(@RequestBody LibraryDTO dto){
-        int update= libraryrep.updateGoal(dto.getIsbn13(), dto.getUser_id(), dto.getStartDate(), dto.getEndDate(),dto.getStatus());
-
-        if(update > 0){
-            return ResponseEntity.ok("수정이 완료되었습니다.");
-        }else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 상태 수정에 실패했습니다.");
-        }
-
+    //독서 기간 수정
+    @PutMapping("/reset/{isbn13}")
+    public ResponseEntity<Integer> resetDate(@PathVariable String isbn13,
+                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+        int setPeriod = libraryrep.updateDate(isbn13,startDate,endDate);
+        return ResponseEntity.ok(setPeriod);
     }
 
 }
