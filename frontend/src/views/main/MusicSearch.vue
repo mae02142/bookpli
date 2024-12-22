@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { useUserStore } from "@/stores/user";
@@ -83,8 +83,8 @@ const router = useRouter();
 const userStore = useUserStore();
 const utilModalStore = useUtilModalStore();
 
-const query = ref(route.query.q || ""); // 쿼리 초기화
-const type = ref(route.query.type || "music"); // 타입 초기화
+const query = route.query.q || "";
+const type = route.query.type || "music";
 
 const songs = ref([]);
 const artists = ref([]);
@@ -95,21 +95,21 @@ const error = ref(null);
 
 const placeholderImage = "https://via.placeholder.com/150";
 
-// Spotify API 데이터 필터링
+// Spotify API search
 const filterValidItems = (items) => {
     return items?.filter((item) => item && item.id) || [];
 };
 
-// Spotify API 검색
+// Spotify API 데이터 필터링
 const searchMusic = async () => {
-    if (!query.value.trim()) return; // 빈 쿼리 방지
+    if (!query) return;
     loading.value = true;
     error.value = null;
 
     try {
         const response = await axios.get("https://api.spotify.com/v1/search", {
             headers: { Authorization: `Bearer ${userStore.accessToken}` },
-            params: { q: query.value, type: "track,artist,album,playlist", limit: 10 },
+            params: { q: query, type: "track,artist,album,playlist", limit: 10 },
         });
 
         // 필터링된 데이터 저장
@@ -124,38 +124,59 @@ const searchMusic = async () => {
     }
 };
 
-// 트랙 재생
+// Track 재생
 const playTrack = async (trackUri) => {
     try {
-        await axios.put(
-            "https://api.spotify.com/v1/me/player/play",
-            { uris: [trackUri] },
-            { headers: { Authorization: `Bearer ${userStore.accessToken}`, "Content-Type": "application/json" } }
-        );
+        await axios.put("https://api.spotify.com/v1/me/player/play", { uris: [trackUri] }, {
+            headers: { Authorization: `Bearer ${userStore.accessToken}`, "Content-Type": "application/json" },
+        });
     } catch (error) {
         utilModalStore.showModal("트랙 재생하기", `트랙 재생 오류.`, "warning");
     }
 };
 
-// 기타 재생 함수 및 상세 페이지 이동 함수는 동일
-
-// 쿼리 변경 시 새로운 데이터를 패치
-watch(
-    () => route.query.q, // route.query.q의 변경을 감시
-    (newQuery) => {
-        if (newQuery) {
-            query.value = newQuery; // query 값을 업데이트
-            searchMusic(); // 새로운 검색 실행
-        }
+// Album 재생
+const playAlbum = async (albumId) => {
+    try {
+        await axios.put("https://api.spotify.com/v1/me/player/play", { context_uri: `spotify:album:${albumId}` }, {
+            headers: { Authorization: `Bearer ${userStore.accessToken}` },
+        });
+    } catch (error) {
+        utilModalStore.showModal("앨범 재생하기", `앨범 재생 오류.`, "warning");
     }
-);
+};
 
-// 초기 검색 실행
+// Playlist 재생
+const playPlaylist = async (playlistUri) => {
+    try {
+        await axios.put("https://api.spotify.com/v1/me/player/play", { context_uri: playlistUri }, {
+            headers: { Authorization: `Bearer ${userStore.accessToken}` },
+        });
+    } catch (error) {
+        utilModalStore.showModal("플리 재생하기", `플리 재생 오류.`, "warning");
+    }
+};
+
+// 상세 페이지 이동
+const goToDetails = (category) => {
+    router.push({ path: `/details/${category}`, query: { q: query } });
+};
+
+const goToArtistDetail = (artistId) => {
+    if (!artistId) {
+        console.warn("Invalid artistId:", artistId);
+        utilModalStore.showModal("아티스트 불러오기", `아티스트 ID를 불러오는데 실패하였습니다.`, "warning");
+        return;
+    }
+    router.push({ path: `/artist/${artistId}` });
+};
+
 onMounted(() => {
-    searchMusic();
+    if (type === "music") {
+        searchMusic();
+    }
 });
 </script>
-
 
 <style scoped>
 .music-search {

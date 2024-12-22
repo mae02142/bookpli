@@ -1,5 +1,6 @@
 package com.project.bookpli.auth.filter;
 
+import com.project.bookpli.auth.service.CustomPrincipal;
 import com.project.bookpli.auth.service.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -85,14 +86,22 @@ public class JwtFilter extends OncePerRequestFilter {
      * SecurityContext에 사용자 인증 정보 저장
      */
     private void setAuthentication(Claims claims) {
-        // 사용자 정보 및 권한 추출
+        // 사용자 정보 추출
         String spotifyId = claims.get("spotifyId", String.class);
-//        String roles = claims.get("roles", String.class); // JWT에 roles 정보가 있는 경우
+        Long userId = claims.get("userId", Long.class);
+
+        // 사용자 정보 담기
+        CustomPrincipal principal = new CustomPrincipal(spotifyId, userId);
+
+        // 권한 설정
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+
+        // Authentication 객체 생성
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(spotifyId, "", authorities);
+                new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
         // SecurityContext에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+
 }

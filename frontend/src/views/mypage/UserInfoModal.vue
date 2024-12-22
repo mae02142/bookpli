@@ -298,7 +298,7 @@ onMounted(() => {
     border-radius: 30px;
     border: 1px solid gray;
     width: 120px;
-    background: #ffffff;;
+    background: #ffffff;
   }
 
   .save-btn:hover, .cancel-btn:hover, .confirm-btn:hover {
