@@ -1,9 +1,9 @@
 import apiClient from "@/api/axiosInstance";
 
 // 책 좋아요 기능
-export const addBookLike = async (userId, book) => {
+export const addBookLike = async (isbn13) => {
   try {
-    const response = await apiClient.post(`/api/library/${userId}/book`, book);
+    const response = await apiClient.post(`/api/library/book-like/${isbn13}`);
     return response.data.data;
   } catch (error) {
     console.error("좋아요 실패:", error);

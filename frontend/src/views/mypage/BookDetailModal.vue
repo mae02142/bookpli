@@ -28,7 +28,7 @@
           class="like-icon"
           src="@/assets/icons/dislike.png"
           alt="Dislike Icon"
-          @click="changeToLike(localBook)"
+          @click="changeToLike(localBook.isbn13)"
         />
       </div>
       <div class="btn-grid">
@@ -36,19 +36,15 @@
           v-if="!localBook.status"
           class="btn add-to-library"
           @click="handleAddToLibrary"
-        >
-          서재에 담기
-        </p>
+        >서재에 담기</p>
         <p
           class="btn change-status"
           v-if="localBook.status === 'wished' || localBook.status === 'reading'"
           @click="openGoalModal(localBook)"
-        >
-          독서 상태 변경
-        </p>
+        >독서 상태 변경</p>
         <p class="btn write-review" @click="writeReview">리뷰 작성</p>
         <p class="btn" @click="handleClick">도서 상세 보기</p>
-        <p class="btn remove-book" @click="removeBook" v-if="localBook.status === 'wished' || localBook.status === 'reading' || localBook.status === 'completed'">내 서재에서 삭제</p>
+        <p class="btn remove-book" @click="removeBook(localBook.libraryId)" v-if="localBook.status === 'wished' || localBook.status === 'reading' || localBook.status === 'completed'">내 서재에서 삭제</p>
         <p class="btn confirm" @click="closeModal">확인</p>
       </div>
     </div>
@@ -65,18 +61,15 @@ import { ref, onMounted, computed, watch } from "vue";
 import { useRouterUtils } from "@/router/routerUtils";
 import apiClient from "@/api/axiosInstance";
 import { addBookLike, removeBookLike } from "@/utils/likeUtils";
-import { useAuthStore } from "@/stores/auth";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 
 // Store 및 유틸리티
-const authStore = useAuthStore();
 const { gotoDetail } = useRouterUtils();
 
 // 상태 변수
 const bookLikeId = ref(null);
 const readGoalToggle = ref(false);
 const bookData = ref({});
-const isInLibrary = ref(false);
 
 // Props 정의
 const props = defineProps({
@@ -105,7 +98,7 @@ const isLiked = computed(() => bookLikeId.value !== null);
 const getBookLikeStatus = async () => {
   try {
     const response = await apiClient.get(
-      `/api/library/${authStore.user.userId}/book/${props.book.isbn13}`
+      `/api/library/book/${props.book.isbn13}`
     );
     bookLikeId.value = response.data.data;
   } catch (error) {
@@ -116,27 +109,22 @@ const getBookLikeStatus = async () => {
 const handleAddToLibrary = async () => {
   try {
     // API 요청
-    const response = await apiClient.post(`/api/library/${authStore.user.userId}`, localBook.value);
-    const updatedLibraryId = response.data.data.libraryId;
+    const response = await apiClient.post(`/api/library/${localBook.value.isbn13}`);
 
     // 로컬 데이터 업데이트
-    localBook.value = {
-      ...localBook.value,
-      status: "reading",
-      libraryId: updatedLibraryId,
-    };
+    localBook.value = response.data.data;
 
     // 부모에게 업데이트된 도서 데이터 전달
-    emit("update-book-status", { ...localBook.value });
+    emit("update-book-status", localBook.value );
   } catch (error) {
     console.error("서재 추가 실패:", error);
   }
 };
 
 
-const changeToLike = async (book) => {
-  bookLikeId.value = await addBookLike(authStore.user.userId, book);
-  emit("book-like-status", book.isbn13);
+const changeToLike = async (isbn13) => {
+  bookLikeId.value = await addBookLike(isbn13);
+  emit("book-like-status", isbn13);
 };
 
 const changeToDislike = async () => {
@@ -161,8 +149,8 @@ const writeReview = () => {
   emit("close");
 };
 
-const removeBook = async () => {
-  emit("delete-library", props.book.libraryId);
+const removeBook = async (libraryId) => {
+  emit("delete-library", libraryId);
   emit("close");
 };
 

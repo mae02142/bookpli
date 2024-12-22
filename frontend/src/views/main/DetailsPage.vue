@@ -9,7 +9,9 @@
                 <div class="image-container">
                     <img :src="getImage(item)" alt="이미지" />
                     <!-- Floating Button -->
-                    <button v-if="!item.artist" class="add-btn" @click.stop="handleAddButtonClick(item)">
+                    <button v-if="spotifyType === 'track' || spotifyType === 'playlist'"
+                        class="add-btn"
+                        @click.stop="handleAddButtonClick(item)">
                         +
                     </button>
                 </div>
@@ -242,7 +244,6 @@ const fetchUserPlaylists = async () => {
 };
 
 // 트랙을 플레이리스트에 추가하기
-// 트랙을 플레이리스트에 추가하기
 const addToPlaylist = async (playlistId) => {
     try {
         // 1. 선택된 플레이리스트의 트랙 목록 가져오기
@@ -285,7 +286,6 @@ const addToPlaylist = async (playlistId) => {
         );
     }
 };
-
 
 // 플레이리스트 팔로우하기
 const followPlaylist = async (playlistId) => {

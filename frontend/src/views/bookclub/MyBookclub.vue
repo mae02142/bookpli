@@ -194,7 +194,7 @@ import musicPlayer from "@/components/layouts/musicPlayer.vue";
 }
 
 .nav-name{
-  
+  font-size: 10px;
 }
 
 .nav-list {

@@ -83,7 +83,7 @@
 </template>
   
   <script setup>
-  import { ref, reactive, onMounted, computed } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
   import LeftSidebar from '@/components/layouts/LeftSidebar.vue';
   import BookDetailModal from './BookDetailModal.vue';
   import ReviewForm from '@/components/review/ReviewForm.vue';
@@ -108,13 +108,14 @@
 
   const getMyLibrary = async () => {
   try {
-    const response = await apiClient.get(`/api/library/${authStore.user.userId}`);
+    const response = await apiClient.get('/api/library');
     books.value = prepareBooksData(response.data.data); // books 데이터를 가공
     updateMenuItems();
   } catch (error) {
     console.error("내 서재 데이터 불러오기 오류:", error);
   }
 };
+
 //그룹이 존재하지 않을 때 새 그룹을 생성하는 조건식
 const groupedData = computed(() => {
       return books.value.reduce((acc, item) => {
@@ -122,6 +123,8 @@ const groupedData = computed(() => {
         return acc;
       }, {});
     });
+
+// 사이드바 독서 상태별 렌더링
 const updateMenuItems = () => {
       menuItems.value = [
         { title: '독서중', count: (groupedData.value.reading?.length || 0) +' 권', icon: 'openbook.png', route: 'reading' },
@@ -131,6 +134,11 @@ const updateMenuItems = () => {
         { title: '나의 리뷰',  icon: 'review.png', route: 'myreview'}
       ];
     };
+
+// 사이드바 선택된 상태 변경
+const selectStatus = (status) => {
+  selectedStatus.value = status;
+};
 
 // 모달에서 받은 업데이트된 데이터 처리
 const updateBookStatus = (updatedBook) => {
@@ -149,12 +157,9 @@ const updateBookStatus = (updatedBook) => {
 };
 
 
-
-
 // 현재 선택된 상태에 따른 책 필터링
 const filteredBooks = computed(() => {
   if (selectedStatus.value === "liked") {
-    console.log
     return likedBooks.value; // 좋아요 데이터만 사용
   }
   return (groupedData.value[selectedStatus.value] || []).map((book) => ({
@@ -162,11 +167,6 @@ const filteredBooks = computed(() => {
     isLiked: likedBooks.value.some((like) => like.isbn13 === book.isbn13),
   }));
 });
-
-// 선택된 상태 변경
-const selectStatus = (status) => {
-  selectedStatus.value = status;
-};
 
 // 좋아요 상태
 const handleBookLikeStatus = async () => {
@@ -184,74 +184,11 @@ const handleBookLikeStatus = async () => {
   }
 };
 
-// 모달 열기
-const openModal = (book) => {
-  selectedBook.value = { ...book }; // 최신 데이터 설정
-  isModalVisible.value = true;
-};
 
-const closeModal = () => {
-  isModalVisible.value = false;
-  // 선택된 책의 상태를 업데이트
-  if (selectedBook.value.libraryId || selectedBook.value.status) {
-    updateBookStatus(selectedBook.value); 
-  }
-  getMyLibrary();
-};
-
-
-// books 데이터에 progress와 remainingDays 추가
-const prepareBooksData = (books) => {
-  return books.map((book) => {
-    const progressData = progressStore.getProgress(book.isbn13);
-    const progressPercentage = progressData?.progressPercentage || 0; // 기본값 0 설정
-    return {
-      ...book,
-      progress: progressPercentage,
-      remainingDays: calculateRemainingDays(book.endDate),
-      isLiked: likedBooks.value.includes(book.isbn13), // 좋아요 상태 추가
-    };
-  });
-};
-// 남은 일 수 계산 함수
-const calculateRemainingDays = (endDate) => {
-  if (!endDate) return 0; // endDate가 없는 경우 0 반환
-  const today = new Date();
-  const end = new Date(endDate);
-  const diffTime = end.getTime() - today.getTime(); // 밀리초 차이 계산
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 일 단위로 변환
-  return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
-};
-const deleteLibrary = async (libraryId) => {
-  try {
-    await apiClient.delete(`/api/library`, {
-      data: {
-        userId: authStore.user.userId,
-        libraryId: libraryId,
-      },
-    });
-
-    // 서재 데이터에서 제거
-    books.value = books.value.filter((book) => book.libraryId !== libraryId);
-
-    // 좋아요 데이터 업데이트
-    const likedIndex = likedBooks.value.findIndex((book) => book.libraryId === libraryId);
-    if (likedIndex !== -1) {
-      likedBooks.value[likedIndex] = {
-        ...likedBooks.value[likedIndex],
-        libraryId: null,
-        status: null,
-      };
-    }
-    getMyLibrary();
-  } catch (error) {
-    console.error("서재 삭제 실패:", error);
-  }
-};
 // 좋아요 상태 확인
 const getBookLikeStatus = async () => {
   try {
-    const response = await apiClient.get(`/api/library/book-like/${authStore.user.userId}`);
+    const response = await apiClient.get('/api/library/book-like');
     const likedData = response.data.data.map((item) => ({
       author: item.bookDTO.author,
       cover: item.bookDTO.cover,
@@ -289,6 +226,68 @@ const getBookLikeStatus = async () => {
   }
 };
 
+// 도서 상세 모달 열기 / 닫기기
+const openModal = (book) => {
+  selectedBook.value = { ...book }; // 최신 데이터 설정
+  isModalVisible.value = true;
+};
+
+const closeModal = () => {
+  isModalVisible.value = false;
+  // 선택된 책의 상태를 업데이트
+  if (selectedBook.value.libraryId || selectedBook.value.status) {
+    updateBookStatus(selectedBook.value); 
+  }
+  getMyLibrary();
+};
+
+
+// books 데이터에 progress, remainingDays, 좋아요 상태 추가
+const prepareBooksData = (books) => {
+  return books.map((book) => {
+    const progressData = progressStore.getProgress(book.isbn13);
+    const progressPercentage = progressData?.progressPercentage || 0; // 기본값 0 설정
+    return {
+      ...book,
+      progress: progressPercentage,
+      remainingDays: calculateRemainingDays(book.endDate),
+      isLiked: likedBooks.value.includes(book.isbn13),
+    };
+  });
+};
+
+// 남은 일 수 계산 함수
+const calculateRemainingDays = (endDate) => {
+  if (!endDate) return 0; // endDate가 없는 경우 0 반환
+  const today = new Date();
+  const end = new Date(endDate);
+  const diffTime = end.getTime() - today.getTime(); // 밀리초 차이 계산
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 일 단위로 변환
+  return diffDays > 0 ? diffDays : 0; // 음수일 경우 0 반환
+};
+
+// 내 서재에서 담기 삭제
+const deleteLibrary = async (libraryId) => {
+  try {
+    await apiClient.delete(`/api/library/${libraryId}`);
+
+    // 서재 데이터에서 제거
+    books.value = books.value.filter((book) => book.libraryId !== libraryId);
+
+    // 좋아요 데이터 업데이트
+    const likedIndex = likedBooks.value.findIndex((book) => book.libraryId === libraryId);
+    if (likedIndex !== -1) {
+      likedBooks.value[likedIndex] = {
+        ...likedBooks.value[likedIndex],
+        libraryId: null,
+        status: null,
+      };
+    }
+    getMyLibrary();
+  } catch (error) {
+    console.error("서재 삭제 실패:", error);
+  }
+};
 
 onMounted(async() => {
   await getMyLibrary();

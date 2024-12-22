@@ -140,7 +140,7 @@
                     :src="song.albumCover"
                     alt="Album Cover"
                     class="album-cover"
-                     @click="openSongDetail(song)"
+                    @click="openSongDetail(song)"
                   />
                   <div class="song-details"
                       @mouseover="hoveredIndex = index"
@@ -148,7 +148,7 @@
                     <p class="song-title" @click="playSong(song.id)">
                       {{ song.name }}
                     </p>
-                    <p class="song-artist" @click="openArtistDetail(song)">{{ song.artists }}</p>
+                    <p class="song-artist">{{ song.artists }}</p>
                   </div>
                 </div>
               </td>
@@ -336,31 +336,38 @@ const playPlaylist = async (playlistId) => {
   }
 };
 
-const playSong = async (uri) => {
-    const playUrl = "https://api.spotify.com/v1/me/player/play";
-    uri = "spotify:track:" + uri;
-    try {
-      const devices = await getActiveDevices();
-      await axios.put(
-          playUrl,
-          {
-              uris: [uri],
-          },
-          {
-              headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-              },
-          }
-      );
-    } catch (error) {
-      console.error(
-          "Error playing song:",
-          error.response ? error.response.data : error.message
-      );
-      utilModalStore.showModal("트랙 재생", `트랙 재생에 실패하였습니다.`, "warnig");
+const playSong = async (songId) => {
+  try {
+    if (!selectedPlaylist.value) {
+      utilModalStore.showModal("재생 오류", "플레이리스트를 선택해주세요.", "warning");
+      return;
     }
+
+    // Play a specific song within the playlist context
+    const contextUri = `spotify:playlist:${selectedPlaylist.value.id}`;
+    await axios.put(
+      "https://api.spotify.com/v1/me/player/play",
+      {
+        context_uri: contextUri, // Use playlist context
+        offset: { uri: `spotify:track:${songId}` }, // Start from the specific track
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${userStore.accessToken}`,
+        },
+      }
+    );
+    console.log("플레이리스트 내에서 곡 재생 시작:", contextUri, songId);
+  } catch (error) {
+    console.error("곡 재생 오류:", error.response?.data || error.message);
+    utilModalStore.showModal(
+      "재생 오류",
+      "곡을 재생하는 도중 문제가 발생했습니다. 다시 시도해주세요.",
+      "warning"
+    );
+  }
 };
+
 
 // 플레이리스트 삭제
 const confirmDeletePlaylist = (playlistId) => {
@@ -405,8 +412,6 @@ const loadTracks = async (playlistId) => {
       (playlist) => playlist.id === playlistId
     );
 
-    // 선택된 플레이리스트가 있으면 자동 재생
-    playPlaylist(playlistId);
   } catch (error) {
     console.error("플레이리스트 로드 실패:", error);
   }
