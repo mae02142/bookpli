@@ -224,10 +224,20 @@ const toggleWishList = async () => {
 };
 
 const loadUserGoalExist = async () => {
-    console.log(book.value);
-    const response = await apiClient.get(`/api/library/${authStore.user.userId}/${book.value.isbn13}`);
-    console.log("goal 존재함??? : ", response.data.data);
-    bookInLibrary.value = response.data.data;
+    try {
+        const response = await apiClient.get(`/api/library/${authStore.user.userId}/${book.value.isbn13}`);
+        console.log("내 서재에서 책 정보:", response.data.data);
+
+        // bookInLibrary에 책 정보와 상태를 저장
+        bookInLibrary.value = response.data.data;
+
+        // 상태를 가져오고, book.value에 상태를 반영
+        if (bookInLibrary.value && bookInLibrary.value.status) {
+            book.value.status = bookInLibrary.value.status;
+        }
+    } catch (error) {
+        console.error("목록에서 책 상태 가져오기 오류:", error);
+    }
 }
 
 onMounted(async() => {
@@ -253,6 +263,7 @@ onMounted(async() => {
     await likeordislike();
     await loadUserGoalExist();
 });
+
 
 </script>
 

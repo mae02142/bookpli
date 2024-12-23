@@ -14,8 +14,8 @@
         </div>
 
         <div class="date-section">
-        <div class="date-status">독서상태</div>
-        <div class="date-row-status">
+        <div class="date-status" v-if="rbook.status==='reading'">독서상태</div>
+        <div class="date-row-status" v-if="rbook.status==='reading'">
             <span class="date-label">
                 <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
             </span>
@@ -34,7 +34,6 @@
                     @click="showStartPicker = !showStartPicker"
                     />
                     <VueDatePicker
-                    v-if="showStartPicker"
                     v-model="startDate"
                     :teleport="false"
                     :auto-apply="true"
@@ -51,7 +50,6 @@
                 <span class="date-label">
                 <img src="../../assets/icons/calendar.png" @click="showEndPicker = !showEndPicker" />
                 <VueDatePicker
-                    v-if="showEndPicker"
                     v-model="endDate"
                     :teleport="false"
                     :auto-apply="true"
@@ -80,7 +78,7 @@
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
-            <button class="confirm-button" @click="emitClose" >닫기</button>
+            <button class="cancel-button" @click="emitClose" >닫기</button>
         </span>    
     </div>
 </div>
@@ -166,11 +164,10 @@ const updateEndDate = (value) => {
     endDate.value = value;
     rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
-const authStore= useAuthStore();
 const startDate = ref(null);
 const endDate = ref(null);
-const showStartPicker = ref(false);
-const showEndPicker = ref(false);
+// const showStartPicker = ref(false);
+// const showEndPicker = ref(false);
 const radioSelect= ref("");
 
 const handleAction = async () => {
@@ -396,7 +393,8 @@ max-width: 800px;
 
 .date-row {
     gap: 20px;
-    display: flex;
+    display: grid;
+    justify-items: center;
     justify-content: space-around;
     align-items: center;
     background: #f0f0f0;
@@ -471,13 +469,20 @@ max-width: 800px;
 }
 
 .confirm-button {
-    background: #fffdf1;
-    border: none;
-    border-radius: 15px;
-    padding: 10px 15px;
-    font-size: 15px;
-    color: #000000;
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: 1px solid gray;
+    width: 120px;
+    background: #fff8bb;
     cursor: pointer;
+}
+
+.cancel-button {
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: 1px solid gray;
+    width: 120px;
+    background: #ffffff;
 }
 
 .confirm-button:hover{
@@ -529,8 +534,9 @@ font-size: 14px;
 .button-container {
     display: flex;
     justify-content: center;
-    gap: 100px;
+    gap: 20px;
     margin-bottom: 10px;
+    height: 40px;
 }
 
 .goal-modal-overlay {

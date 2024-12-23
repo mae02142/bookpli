@@ -42,22 +42,19 @@ public class LibraryService {
     }
 
     @Transactional
-    public Long addWishlist(Long userId, BookDTO request) {
-        String isbn13 = request.getIsbn13();
-
-        Book book = bookRepository.findById(isbn13)
-                .orElseGet(() -> {
-                    // Book 엔티티 생성 및 저장
-                    Book newBook = BookDTO.toEntity(request);
-                    return bookRepository.save(newBook);
-                });
+    public LibraryResponseDTO addWishlist(Long userId, String isbn13) {
 
         // 이미 담은 책인지 확인
-        Optional<Library> existingWishBook = libraryRepository.findByUserIdAndBook_Isbn13(userId, request.getIsbn13());
+        Optional<Library> existingWishBook = libraryRepository.findByUserIdAndBook_Isbn13(userId, isbn13);
         if (existingWishBook.isPresent()) {
             // 중복된 요청이 있을 경우 기존 bookLikeId를 반환
             throw new BaseException(BaseResponseStatus.LIBRARY_ALREADY_EXIST);
         }
+
+        // Book 객체 조회
+        Book book = bookRepository.findById(isbn13)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.BOOK_NOT_FOUND));
+
         // Library 저장
         Library library = Library.builder()
                 .userId(userId)
@@ -66,7 +63,7 @@ public class LibraryService {
                 .build();
 
         Library savedLibrary = libraryRepository.save(library);
-        return savedLibrary.getLibraryId();
+        return LibraryResponseDTO.fromEntity(savedLibrary, book);
     }
 
 
@@ -78,25 +75,22 @@ public class LibraryService {
 
 
     @Transactional
-    public Long addBookLike(Long userId, BookDTO request) {
+    public Long addBookLike(Long userId, String isbn13) {
         // 이미 좋아요한 기록이 있는지 확인
-        Optional<BookLike> existingLike = bookLikeRepository.findByUserIdAndBook_Isbn13(userId, request.getIsbn13());
+        Optional<BookLike> existingLike = bookLikeRepository.findByUserIdAndBook_Isbn13(userId, isbn13);
         if (existingLike.isPresent()) {
             // 중복된 요청이 있을 경우 기존 bookLikeId를 반환
             return existingLike.get().getBookLikeId();
         }
 
-        // 책이 존재하는지 확인 후 없으면 저장
-        bookRepository.findById(request.getIsbn13())
-        .orElseGet(() -> {
-            Book newBook = BookDTO.toEntity(request);
-            return bookRepository.saveAndFlush(newBook); // 즉시 저장 및 플러시
-        });
-
         // BookLike 엔티티 생성 및 저장
+        Book book = bookRepository.findById(isbn13)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.BOOK_NOT_FOUND));
+
+
         BookLike bookLike = BookLike.builder()
                 .userId(userId)
-                .book(BookDTO.toEntity(request))
+                .book(book)
                 .build();
 
         return bookLikeRepository.save(bookLike).getBookLikeId();

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
+import com.project.bookpli.entity.Book;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -45,10 +46,17 @@ public class BookService {
                 .bodyToMono(String.class)
                 .block();
 
-        return parseBookDetail(response);
+        Book book = parseBookDetail(response);
+
+        // 책이 존재하는지 확인 후 없으면 저장
+        Book newBook = bookRepository.findById(book.getIsbn13())
+                .orElseGet(() -> {
+                    return bookRepository.saveAndFlush(book); // 즉시 저장 및 플러시
+                });
+        return BookDTO.fromEntity(newBook);
     }
 
-    private BookDTO parseBookDetail(String response) {
+    private Book parseBookDetail(String response) {
         try {
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode itemNode = rootNode.path("item").get(0); // 첫 번째 item 가져오기
@@ -67,18 +75,18 @@ public class BookService {
             int startindex = itemNode.path("subInfo").path("itemPage").asInt();
             String genre = itemNode.path("categoryName").asText();
 
-            // BookDTO 객체 생성 및 반환
-            return new BookDTO(
-                    isbn13,
-                    title,
-                    author,
-                    description,
-                    pubDate,
-                    publisher,
-                    cover,
-                    startindex,
-                    genre
-            );
+            return Book.builder()
+                    .isbn13(isbn13)
+                    .title(title)
+                    .author(author)
+                    .description(description)
+                    .pubdate(pubDate)
+                    .publisher(publisher)
+                    .cover(cover)
+                    .startindex(startindex)
+                    .genre(genre)
+                    .build();
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse book detail response", e);
         }
