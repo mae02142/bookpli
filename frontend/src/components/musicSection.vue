@@ -698,14 +698,14 @@ body {
     background-color: #ffff;
     border: none;
     padding: 0.5rem;
-    width: 32px;
-    height: 32px;
+    width: 35px;
+    height: 35px;
     font-size: 18px;
     border-radius: 50%;
     cursor: pointer;
     position: absolute;
-    bottom: 20px;
-    right: 10px;
+    bottom: 18px;
+    right: 8px;
     z-index: 10;
     transition: background-color 0.3s, color 0.3s;
 }
