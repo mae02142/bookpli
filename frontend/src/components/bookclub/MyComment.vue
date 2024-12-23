@@ -18,7 +18,7 @@
                 :src="item.post.profilePath || Profile"
                 alt="커뮤니티 이미지"
               />
-              <p class="username">{{ item.post?.userNickname || 'User' }}</p>
+              <p class="username">{{ item.post.userNickname}}</p>
             </div>
                     <!-- 이미지 슬라이드 컨테이너 -->
               <div class="post-nav">    
@@ -71,7 +71,7 @@
             <div class="comment-box"> 
               <img class="author-image" :src="item.profilePath" alt="Author" />
               <div class="comment-text">
-                <h6 class="comment-user-name">{{ item.userNickname || 'Userdfdsfsdfsfsfds' }}</h6>
+                <h6 class="comment-user-name">{{ item.userNickname }}</h6>
                 <textarea
                 v-if="editingId === item.commentId"
                 class="edit-comment"
@@ -95,7 +95,7 @@
                   <img
                     class="icon"
                     :src="item.likes.changeLike"
-                    @click="checkLike(index)"
+                    @click="checkLike(item.commentId,index)"
                     id="like-icon"
                     alt="Like"/>
                   <p v-show="item.likeCount >0" class="like-count">{{ item.likeCount }}</p>
@@ -103,7 +103,7 @@
                 <p class="comment-date">{{ item.commentDate }}</p>
               </div>
             </div>
-            <div>
+            <div class="comment-btn-box">
               <button
               v-if="editingId === item.commentId"
               class="comment-btn"
@@ -180,16 +180,20 @@
             serverComments.value = response.data.data;
 
             if(Array.isArray(serverComments.value)){  // 추가 값 더하기 
-              comments.value = serverComments.value.map(comment => ({
+              comments.value = await Promise.all(serverComments.value.map(async(comment) => {
+                const getcount =await getLikes(comment.commentId);
+                const heartCheck =await heartChecking(comment.commentId,props.userId);
+              return{
                 ...comment,
-                likeCount : 0,
-                likes : {changeLike : dislike},
+                likeCount : getcount ||0,
+                likes: {changeLike :heartCheck},
                 deleteCheck : false,
                 openPost : false,
                 post: {
                   imageUrl: [],
                 },
                 curpos: 0,
+              }
               }));
             }
           }
@@ -197,18 +201,63 @@
           console.error(error, '에러 발생');
         }
       };
-     
-            // 좋아요 카운팅 
-        const checkLike = (index) => {
-            let currentLike = comments.value[index];
-            if(currentLike.likes.changeLike == dislike){
-                currentLike.likes.changeLike = like;
-                currentLike.likeCount +=1;
-            }else{
-                currentLike.likes.changeLike = dislike;
-                currentLike.likeCount -=1;
-            }   
+  
+
+     // 좋아요 default 값 설정
+     const heartChecking = async(commentId,userId) => {
+        const response = await apiClient.get(`/api/commentlike/checking`,{
+          params:{
+            commentId : commentId,
+          userId : userId
+          }
+        });
+        if(response.data.data){  
+          return like;
+        }else{
+          return dislike;
+        }
+      }
+
+      const getLikes = async(commentId) => {
+        const response = await apiClient.get(`/api/commentlike/${commentId}`);
+        try{
+        if(response.status == 200){
+          return response.data.data;
+        }
+        }catch(error){
+          console.error('에러 발생 : '+error);
+        }
+      }
+
+    // 좋아요 체크
+    const checkLike = async(commentId,index) => {
+        const checking = {
+          userId : props.userId,
+          commentId : commentId,
         };
+        try{
+          const response = await apiClient.post(`/api/commentlike/mylike`,checking);
+
+          if(response.data.data!==undefined){
+          // 현재 상태를 확인하고 적절히 처리
+            const currentLikeStatus = comments.value[index].likes.changeLike; // 현재 상태
+            const newLikeStatus = response.data.data ? like : dislike; // 새 상태
+
+            // 상태 변경
+            comments.value[index].likes.changeLike = newLikeStatus;
+            
+            // 좋아요 수 업데이트 (현재 상태와 새 상태 비교)
+            if (currentLikeStatus === like && newLikeStatus === dislike) {
+                    comments.value[index].likeCount -= 1; // 좋아요 취소
+                  } else if (currentLikeStatus === dislike && newLikeStatus === like) {
+                    comments.value[index].likeCount += 1; // 좋아요 추가
+            }
+          }
+        }catch(error){
+          console.error(error+'오류 발생');
+        }
+        }; 
+
                 // 수정, 삭제 버튼 보이게 하기
         const showBtn = ref([]); 
         const dropdown = (index) => {
@@ -497,6 +546,11 @@
       border: 0.5px solid #e5e5e5;
     }
 
+    .comment-btn-box {
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    }
     /* 게시글 보기 버튼 */
 .cta {
   position: relative;
