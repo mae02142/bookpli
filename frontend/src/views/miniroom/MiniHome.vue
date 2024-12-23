@@ -1004,31 +1004,16 @@
         cursor: pointer;
         transition: background-color 0.3s ease;
     }
-    .goal-bar{
-        width: 30px;
-        height: 10px;
-        background-color: rgb(171, 235, 171);
-    }
-
     .current-bar{
         width: 30px;
         height: 10px;
-        background-color: rgb(2, 77, 42);
-    }
-    /* .goal{
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 15px;
-        background-color: rgb(2, 77, 42);
-        border-radius: 6px;
-        z-index: 1;
-    }
-    .current{
-        height: 15px;
         background-color: rgb(171, 235, 171);
-        border-radius: 6px;
-    }*/
+    }
+    .goal-bar{
+        width: 30px;
+        height: 10px;
+        background-color: rgb(2, 77, 42);
+    }
     .progress-legend {
         display: flex;
         justify-content: flex-end;
