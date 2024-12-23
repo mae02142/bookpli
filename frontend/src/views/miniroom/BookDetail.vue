@@ -45,8 +45,7 @@
         </div>
         <ReadGoalModal 
             :visible="showModal"
-            :rbook="bookInLibrary"
-            @close="handleModalClose"
+            @close="closeModal"
         />
     </div>
 </div> 
@@ -79,6 +78,8 @@ import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
 import apiClient from "@/api/axiosInstance";
 import { useAuthStore } from "@/stores/auth";
 import { useUtilModalStore } from "@/stores/utilModalStore";
+import { useBookStore } from "@/stores/bookStore";
+
 import Recommend from "@/components/recommBooks/Recommend.vue";
 import { addBookLike, removeBookLike } from "@/utils/likeUtils";
 import dislikeImage from '@/assets/icons/dislike_lightgray.png';
@@ -97,6 +98,8 @@ const bookLikedId = ref(null); // bookLikeId 저장
 const isLiked = ref(false); // 좋아요 여부 상태
 const recommendations = ref();
 const bookInLibrary = ref({});
+const bookStore= useBookStore();
+
 
 const recomBookClick= (recomBook) => {
     book.value=recomBook;
@@ -147,19 +150,15 @@ const setActiveTab= (tab) => {
 const showModal = ref(false);
 
 const openModal= () => {
+    bookStore.setbook(bookInLibrary.value); //pinia로 rbook설정
     showModal.value=true;
 };
 
-
-const closeModal= () =>{
-    showModal.value=false;
-};
-
-const handleModalClose = (updatedBook) => {
+const closeModal = (updatedBook) => {
     if (updatedBook) {
         Object.assign(book.value, updatedBook);
     }
-    closeModal();
+    showModal.value=false;
 };
 
 const loadBookDetail = async () => {

@@ -17,11 +17,10 @@
         <div class="date-status">독서상태</div>
         <div class="date-row-status">
             <span class="date-label">
-                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
-                독서중
+                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
             </span>
             <span class="date-label">
-                <input type="radio" value="wished" v-model="radioSelect">독서 중 해제
+                <input type="radio" :checked="rbook.status === 'wished'" value="wished" v-model="radioSelect">독서 중 해제
             </span>
         </div>
         <div class="date-header">독서 목표 기간</div>
@@ -87,7 +86,7 @@
 </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, watch, toRefs } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
@@ -96,17 +95,18 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
+import { useBookStore } from "@/stores/bookStore";
+const bookStore= useBookStore();
+
+const rbook= bookStore.rbook;
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 const library = ref({});
-const authStore = useAuthStore();
 
 const props = defineProps({
-    visible: Boolean,
-    rbook: Object,
+    visible: Boolean 
 });
-const { rbook } = toRefs(props);
 
 const emit= defineEmits(["close","dropReading"]);
 const emitClose= () => {
@@ -126,7 +126,7 @@ const changeDate= async (rbook) => {
                 Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
             },
             params: {
-                status: props.rbook.status,
+                status: rbook.status,
                 startDate: formatStartDate,
                 endDate: formatEndDate,
             },
@@ -160,11 +160,11 @@ const book =ref(
 );
 const updateStartDate = (value) => {
     startDate.value = value; 
-    props.rbook.startDate= format(new Date(value),'yyyy-MM-dd');
+    rbook.startDate= format(new Date(value),'yyyy-MM-dd');
 };
 const updateEndDate = (value) => {
     endDate.value = value;
-    props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
+    rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
 const authStore= useAuthStore();
 const startDate = ref(null);
@@ -176,34 +176,34 @@ const radioSelect= ref("");
 const handleAction = async () => {
     const utilModalStore = useUtilModalStore();
     try {
-        if (props.rbook.status === "reading") {
+        if (rbook.status === "reading") {
             if(radioSelect.value !== "dropped"){
-                await changeDate(props.rbook);
+                await changeDate(rbook);
                 emitClose();
             }    
             if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
+                await dropReading(rbook);
                 utilModalStore.showModal(
                     "독서 상태 변경",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
+                    `"${rbook.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
             }
-        } else if (props.rbook.status === "wished") {
+        } else if (rbook.status === "wished") {
             if (radioSelect.value === "reading") {
-                await setGoal(props.rbook);
+                await setGoal(rbook);
                 utilModalStore.showModal(
                     "독서 목표 설정",
-                    `"${props.rbook.title}"도서가<br>독서 목표로 설정되었습니다.`,
+                    `"${rbook.title}"도서가<br>독서 목표로 설정되었습니다.`,
                     "success"
                 );
                 emitClose();
             } else if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
+                await dropReading(rbook);
                 utilModalStore.showModal(
                     "독서 상태 해제",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
+                    `"${rbook.title}" 독서 상태가 해제되었습니다.`,
                     "success"
                 );
                 emitClose();
@@ -267,7 +267,7 @@ const dropReading = async (rbook) => {
         emit("dropReading",rbook.isbn13);
         utilModalStore.showModal(
             "독서 상태 해제",
-            `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
+            `"${rbook.title}" 독서 상태가 해제되었습니다.`,
             "success"
         );
         emit("close");
@@ -281,25 +281,25 @@ const dropReading = async (rbook) => {
     }
 }
 const progressPercentage = computed(() => {
-const progress = progressStore.getProgress(props.rbook.isbn13);
+const progress = progressStore.getProgress(rbook.isbn13);
     return progress?.progressPercentage || 0;     
 });
 // Pinia 상태 감지 및 업데이트
 watch(
-    () => progressStore.progressData[props.rbook.isbn13],
+    () => progressStore.progressData[rbook.isbn13],
     (newProgress) => {
         if (newProgress) {
-            props.rbook.currentPage = newProgress.currentPage;
-            props.rbook.progressPercentage = newProgress.progressPercentage;
+            rbook.currentPage = newProgress.currentPage;
+            rbook.progressPercentage = newProgress.progressPercentage;
         }
     },
     { deep: true, immediate: true }
 );
 onMounted(() => {
-    const savedProgress= progressStore.getProgress(props.rbook.isbn13);
+    const savedProgress= progressStore.getProgress(rbook.isbn13);
     if(savedProgress){
-        props.rbook.currentPage=savedProgress.currentPage || 0;
-        props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
+        rbook.currentPage=savedProgress.currentPage || 0;
+        rbook.progressPercentage=savedProgress.progressPercentage || 0;
     }
     console.log("rbook : ", rbook.value);
 });
