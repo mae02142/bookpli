@@ -39,7 +39,7 @@
   
   <script>
 import apiClient from "@/api/axiosInstance";
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref } from "vue";
 import dislike from "@/assets/icons/dislike.png";
 import like from "@/assets/icons/like.png";
 import { useAuthStore } from "@/stores/auth";
@@ -119,8 +119,8 @@ import Profile from "@/assets/icons/profile.png"
       }
 
       const getLikes = async(commentId) => {
-        const response = await apiClient.get(`/api/commentlike/${commentId}`);
         try{
+          const response = await apiClient.get(`/api/commentlike/${commentId}`);
         if(response.status == 200){
           return response.data.data;
         }

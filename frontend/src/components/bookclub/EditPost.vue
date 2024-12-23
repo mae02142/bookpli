@@ -66,6 +66,7 @@ import {ref as firebaseRef, uploadBytes, getDownloadURL} from "firebase/storage"
 import { firebaseStorage } from "@/firebase/firebaseConfig";
 import { useConfirmModalStore } from '@/stores/utilModalStore';
 import { useUtilModalStore } from '@/stores/utilModalStore';
+import { useLoadingStore } from '@/stores/loading';
 
 export default {
   props: {
@@ -85,6 +86,7 @@ export default {
     const imageSrc = ref([]);   //미리보기 이미지 데이터 
     const selectedFiles = ref([]); // 실제 파일 데이터
     const utilModalStore = useUtilModalStore();
+    const loading = useLoadingStore();
 
     onMounted(() => {
       loadPostData();
@@ -147,6 +149,7 @@ export default {
     // 서버에 수정 요청
     const updatePost = async () => {
       try {
+        loading.startLoading();
         // 이미지 업로드
         const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
 
@@ -179,6 +182,9 @@ export default {
         }
       } catch (error) {
         console.error('게시글 수정 실패', error);
+      }
+      finally{
+        loading.stopLoading();
       }
     };
 

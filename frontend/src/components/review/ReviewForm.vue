@@ -167,7 +167,6 @@
     border-radius: 10px;
     width: 550px;
     max-width: 90%;
-    height: 300px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
