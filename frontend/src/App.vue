@@ -8,6 +8,7 @@
       <ConfirmModal></ConfirmModal>
       <UtilModal></UtilModal>
       <LoginAlertModal></LoginAlertModal>
+      <loadingSpinner></loadingSpinner>
     </div>
   </div>
 </template>
@@ -18,6 +19,7 @@ import { computed } from "vue";
 import ConfirmModal from "./components/modal/ConfirmModal.vue";
 import UtilModal from "./components/modal/UtilModal.vue";
 import LoginAlertModal from "./components/modal/LoginAlertModal.vue";
+import loadingSpinner from "./components/loadingSpinner/loadingSpinner.vue";
 
 const route = useRoute();
 

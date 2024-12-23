@@ -1,6 +1,7 @@
 package com.project.bookpli.auth.client;
 
 import com.project.bookpli.auth.manager.TokenManager;
+import com.project.bookpli.auth.service.CustomPrincipal;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -29,8 +30,8 @@ public class SpotifyApiClient {
      */
     private String getSpotifyIdFromContext() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof String) {
-            return (String) principal;
+        if (principal instanceof CustomPrincipal) {
+            return ((CustomPrincipal) principal).getSpotifyId();
         }
         throw new IllegalStateException("Unauthenticated user.");
     }

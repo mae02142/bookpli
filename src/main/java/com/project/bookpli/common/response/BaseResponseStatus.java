@@ -35,7 +35,8 @@ public enum BaseResponseStatus {
     WISH_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(),"해당 도서를 위시리스트에서 찾을 수 없습니다."),
     BOOK_LIKE_ID_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(),"해당 회원의 도서 좋아요 기록을 찾을 수 없습니다."),
     BOOK_LIKE_ALREADY_EXIST(false, HttpStatus.CONFLICT.value(), "이미 좋아요를 누른 도서입니다."),
-    LIBRARY_ALREADY_EXIST(false, HttpStatus.CONFLICT.value(), "이미 담겨있는 도서입니다.");
+    LIBRARY_ALREADY_EXIST(false, HttpStatus.CONFLICT.value(), "이미 담겨있는 도서입니다."),
+    BOOK_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "해당 도서를 찾을 수 없습니다.");
 
 
 

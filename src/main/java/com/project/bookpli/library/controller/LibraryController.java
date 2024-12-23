@@ -1,16 +1,15 @@
 package com.project.bookpli.library.controller;
 
-import com.project.bookpli.book.dto.BookDTO;
+import com.project.bookpli.auth.service.CustomPrincipal;
 import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.library.dto.BookLikeDTO;
 import com.project.bookpli.library.dto.LibraryResponseDTO;
 import com.project.bookpli.library.service.LibraryService;
-import com.project.bookpli.miniroom.dto.LibraryDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,9 +18,9 @@ public class LibraryController {
     private final LibraryService libraryService;
 
     /* 담기 기능 */
-    @GetMapping("{userId}")
-    public BaseResponse<List<LibraryResponseDTO>> getMyLibrary(@PathVariable Long userId){
-        List<LibraryResponseDTO> response = libraryService.getMyLibrary(userId);
+    @GetMapping
+    public BaseResponse<List<LibraryResponseDTO>> getMyLibrary(@AuthenticationPrincipal CustomPrincipal principal){
+        List<LibraryResponseDTO> response = libraryService.getMyLibrary(principal.getUserId());
         return new BaseResponse<>(response);
     }
 
@@ -31,38 +30,36 @@ public class LibraryController {
         return new BaseResponse<>(response);
     }
 
-    @PostMapping("{userId}")
-    public BaseResponse<Long> addWishlist(@PathVariable Long userId, @RequestBody BookDTO request){
-        Long response = libraryService.addWishlist(userId, request);
+    @PostMapping("{isbn13}")
+    public BaseResponse<LibraryResponseDTO> addWishlist(@PathVariable String isbn13, @AuthenticationPrincipal CustomPrincipal principal){
+        LibraryResponseDTO response = libraryService.addWishlist(principal.getUserId(), isbn13);
         return new BaseResponse<>(response);
     }
 
-
-    @DeleteMapping
-    public BaseResponse<Void> deleteMyLibrary(@RequestBody Map<String, Long> request){
-        libraryService.deleteMyLibrary(request.get("userId"), request.get("libraryId"));
+    @DeleteMapping("{libraryId}")
+    public BaseResponse<Void> deleteMyLibrary(@PathVariable Long libraryId, @AuthenticationPrincipal CustomPrincipal principal){
+        libraryService.deleteMyLibrary(principal.getUserId(), libraryId);
         return new BaseResponse<>();
     }
 
     /* 좋아요 기능 */
-    @GetMapping("{userId}/book/{isbn13}")
-    public BaseResponse<Long> getBookLike(@PathVariable Long userId, @PathVariable String isbn13){
-        Long response = libraryService.getBookLike(userId, isbn13);
+    @GetMapping("/book/{isbn13}")
+    public BaseResponse<Long> getBookLike(@PathVariable String isbn13, @AuthenticationPrincipal CustomPrincipal principal){
+        Long response = libraryService.getBookLike(principal.getUserId(), isbn13);
         return new BaseResponse<>(response);
     }
 
-    @GetMapping("/book-like/{userId}")
-    public BaseResponse<List<BookLikeDTO>> getBookLikesByUserId(@PathVariable Long userId){
-        List<BookLikeDTO> response = libraryService.getBookLikesByUserId(userId);
+    @GetMapping("/book-like")
+    public BaseResponse<List<BookLikeDTO>> getBookLikesByUserId(@AuthenticationPrincipal CustomPrincipal principal){
+        List<BookLikeDTO> response = libraryService.getBookLikesByUserId(principal.getUserId());
         return new BaseResponse<>(response);
     }
 
-    @PostMapping("{userId}/book")
-    public BaseResponse<Long> addBookLike(@PathVariable Long userId, @RequestBody BookDTO book){
-        Long response = libraryService.addBookLike(userId, book);
+    @PostMapping("/book-like/{isbn13}")
+    public BaseResponse<Long> addBookLike(@PathVariable String isbn13, @AuthenticationPrincipal CustomPrincipal principal){
+        Long response = libraryService.addBookLike(principal.getUserId(), isbn13);
         return new BaseResponse<>(response);
     }
-
 
     @DeleteMapping("/book-like/{bookLikeId}")
     public BaseResponse<Void> deleteBookLike(@PathVariable Long bookLikeId){

@@ -144,13 +144,26 @@ const loadUserInfo = async () => {
 
 // 닉네임 중복 확인
 const duplicateCheckNickname = async () => {
+  // 닉네임이 빈 값일 경우 처리
+  if (!user.userNickname || user.userNickname.trim() === "") {
+    nicknameError.value = true;
+    errorMessage.value = "닉네임을 입력해 주세요.";
+    nicknameCheck.value = false;
+    return;  // 빈 값이면 API 요청을 하지 않음
+  }
+
   try {
     const response = await apiClient.get(`/api/mypage/nickname/${user.userNickname}`);
     if (response.data.data) {
+      // 이미 존재하는 닉네임
       nicknameError.value = true;
       nicknameCheck.value = false;
       errorMessage.value = "이미 존재하는 닉네임입니다.";
+    } else if (nicknameCheck.value === null) {
+      // 닉네임이 한글자 미만일 때
+      errorMessage.value = "닉네임은 한글자 이상이어야 합니다.";
     } else {
+      // 사용 가능한 닉네임
       nicknameError.value = false;
       nicknameCheck.value = true;
       checkMessage.value = "✅사용 가능한 닉네임입니다.";
@@ -161,6 +174,7 @@ const duplicateCheckNickname = async () => {
     errorMessage.value = "닉네임 확인 중 오류가 발생했습니다.";
   }
 };
+
 
 onMounted(() => {
   loadUserInfo();
@@ -298,7 +312,7 @@ onMounted(() => {
     border-radius: 30px;
     border: 1px solid gray;
     width: 120px;
-    background: #ffffff;;
+    background: #ffffff;
   }
 
   .save-btn:hover, .cancel-btn:hover, .confirm-btn:hover {

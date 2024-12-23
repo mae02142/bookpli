@@ -60,6 +60,7 @@ import {ref} from "vue";
 import {ref as firebaseRef, uploadBytes, getDownloadURL} from "firebase/storage";
 import { firebaseStorage } from "@/firebase/firebaseConfig";
 import { useUtilModalStore } from '@/stores/utilModalStore';
+import { useLoadingStore } from '@/stores/loading';
 
     export default {
         props: {
@@ -78,7 +79,8 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
         },
         emits: ['update:modelValue','close','reload'],
         setup(props,{emit}) {
-
+            // spinner
+            const loading = useLoadingStore();
          
             const fileInput = ref(null); //input file 참조
             const imageSrc = ref([]);   //미리보기 이미지 데이터 
@@ -153,6 +155,9 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
 
         const submitPost = async() => {
             try{
+                loading.startLoading();
+                console.log("로딩 나오는중 ")
+                console.log(loading.isLoading);
                     // 이미지 업로드
                 const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
                     
@@ -170,7 +175,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
                     imageUrl: imageDtos,  // 이미지 URL 배열을 PostImageDTO 배열로
                 };
                 const response = await apiClient.post("/api/post/insert", data);
-                if(response.data.data == true){
+                if(response.data?.data === true){
                     utilModalStore.showModal(
                         '게시글 등록',
                         '게시글이 등록되었습니다.',
@@ -192,6 +197,10 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
                     '게시글 등록에 실패했습니다.',
                     'alert'
                 );
+            }
+            finally{
+                loading.stopLoading();
+                console.log("로딩 끝")
             }
         };
 
@@ -225,7 +234,7 @@ import { useUtilModalStore } from '@/stores/utilModalStore';
         width: 100%;
         height: 100%;
         background: rgb(0, 0, 0, 0.4);
-        z-index: 1000;
+        z-index: 999;
     }
     .post-modal-content {
         font-size: 18px;

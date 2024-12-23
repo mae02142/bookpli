@@ -18,7 +18,6 @@ public class BookController {
     @GetMapping("{isbn13}")
     public BaseResponse<BookDTO> getBookDetail(@PathVariable String isbn13){
         BookDTO response = bookService.getBookDetail(isbn13);
-        System.out.println(">>>>>>>>>>>>>>>>"+response);
         return new BaseResponse<>(response);
     }
 }
