@@ -1,18 +1,15 @@
 package com.project.bookpli.library.controller;
 
 import com.project.bookpli.auth.service.CustomPrincipal;
-import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.library.dto.BookLikeDTO;
 import com.project.bookpli.library.dto.LibraryResponseDTO;
 import com.project.bookpli.library.service.LibraryService;
-import com.project.bookpli.miniroom.dto.LibraryDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,7 +38,6 @@ public class LibraryController {
 
     @DeleteMapping("{libraryId}")
     public BaseResponse<Void> deleteMyLibrary(@PathVariable Long libraryId, @AuthenticationPrincipal CustomPrincipal principal){
-        System.out.println("오 신기해!!!! : " + principal.getUserId());
         libraryService.deleteMyLibrary(principal.getUserId(), libraryId);
         return new BaseResponse<>();
     }
