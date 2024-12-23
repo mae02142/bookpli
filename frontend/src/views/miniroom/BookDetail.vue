@@ -305,6 +305,7 @@ body {
     width: 200px;
     height: 280px;
     object-fit: cover;
+    border-radius: 5px;
 }
 
 .book-info-section {

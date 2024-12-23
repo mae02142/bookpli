@@ -98,7 +98,7 @@ const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 const library = ref({});
-const authStore = useAuthStore();
+
 
 const props = defineProps({
     visible: Boolean,

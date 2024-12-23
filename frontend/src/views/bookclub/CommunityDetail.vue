@@ -182,7 +182,9 @@
       const route = useRoute(); // 현재 라우트 정보
     
       onMounted(()=>{
-        getPosts();
+
+          getPosts();
+        
       });
 
       const community = ref({
