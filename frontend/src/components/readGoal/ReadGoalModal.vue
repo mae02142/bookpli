@@ -99,6 +99,10 @@ const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 const library = ref({});
+<<<<<<< HEAD
+=======
+
+>>>>>>> e6f3b76a520c79557d98ee91d997c39ee65e6a62
 
 const props = defineProps({
     visible: Boolean 

@@ -20,7 +20,7 @@
             />
             <div class="add-playlist-btns">
               <button @click="addPlaylist" class="add-playlist-button">추가</button>
-              <button @click="toggleAddMode" class="cancel-button">취소</button>
+              <button @click="toggleAddMode" class="pli-cancel-button">취소</button>
             </div>
           </div>
         </div>
@@ -757,7 +757,7 @@ text-align: center;
     font-size: 12px;
 }
 
-.cancel-button {
+.pli-cancel-button {
   background-color: #ffffff;
     border: none;
     border-radius: 30px;
