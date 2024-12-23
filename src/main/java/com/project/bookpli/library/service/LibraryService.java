@@ -1,9 +1,7 @@
 package com.project.bookpli.library.service;
 
-import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
 import com.project.bookpli.common.exception.BaseException;
-import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.BookLike;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
