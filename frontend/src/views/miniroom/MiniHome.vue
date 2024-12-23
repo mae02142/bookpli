@@ -138,7 +138,6 @@
 
         <ReadGoalModal
         :visible="showModal"
-        :rbook="selectBook"
         @close="closeModal"
         @dropReading="updateReadList"
         />
@@ -244,7 +243,6 @@
     const gotoLibrary= () =>{
         router.push({
                 path: `/mypage/mylibrary`,
-
             });
     }
 
@@ -268,27 +266,54 @@
         }
     }
 
-    const openModal = (book) => {
-      selectBook.value = book;
-      showModal.value = true;
+    const openModal = async (book) => {
+        selectBook.value = book;
+
+        // 백엔드에서 status를 가져옴
+        const status = await loadUserGoalExist(book.isbn13);
+
+        // 가져온 status를 book 데이터에 추가
+        selectBook.value.status = status;
+
+        // 가져온 status를 사용
+        console.log("goal 상태: ", book.status);
+        showModal.value = true;
     };
 
+    const loadUserGoalExist = async (isbn13) => {
+        try {
+            const response = await apiClient.get(`/api/library/${authStore.user.userId}/${isbn13}`);
+            console.log("goal 존재함??? : ", response.data.data);
+            return response.data.data; 
+        } catch (error) {
+            console.error("도서 정보 로드 실패:", error);
+            return null;
+        }
+    };
+    // const loadUserGoalExist = async () => {
+    //     console.log(book.value);
+    //     const response = await apiClient.get(`/api/library/${authStore.user.userId}/${book.value.isbn13}`);
+    //     console.log("goal 존재함??? : ", response.data.data);
+    //     bookInLibrary.value = response.data.data;
+    // }
+
+
     const closeModal = () => {
-      showModal.value = false;
+        showModal.value = false;
     };
 
     // 독서 진행률 계산
     const calInputPage = computed(() =>
-      readList.value.map((book, index) => {
+        readList.value.map((book, index) => {
         const current = currentPage.value[index] || 0;
         const total = book.startindex || 1;
         return Math.min(Math.max(Math.round((current / total) * 100), 0), 100);
-      })
+        })
     );
 
     // 목표 진행률 계산
     const calculateGoalProgress = computed(() =>
-      readList.value.map((book) => {
+        readList.value.map((book) => {
         const start = new Date(book.startDate);
         const end = new Date(book.endDate);
         const today = new Date();
@@ -296,7 +321,7 @@
         const elapsedDays = (today - start) / (1000 * 60 * 60 * 24);
 
         return Math.min(Math.max((elapsedDays / totalDays) * 100, 0), 100).toFixed(2);
-      })
+        })
     );
 
     // 완료된 책 통계 계산
@@ -347,7 +372,7 @@
     };
 
     // 이번달 독서 목표 및 진행 계산
-    const calculateMonthStats = () => {
+    const calculateMonthStatus = () => {
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
 
@@ -455,7 +480,7 @@
                 await loadBooks("reading", readList);
                 await loadBooks("completed", completedBooks);
                 calculateCompletedStats();
-                calculateMonthStats();
+                calculateMonthStatus();
             }
             } catch (error) {
             console.error("완독 처리 실패:", error);
@@ -529,7 +554,7 @@
     });
 
       calculateCompletedStats();
-      calculateMonthStats();
+      calculateMonthStatus();
       getToken()
     });
     </script>
@@ -1004,16 +1029,31 @@
         cursor: pointer;
         transition: background-color 0.3s ease;
     }
-    .current-bar{
-        width: 30px;
-        height: 10px;
-        background-color: rgb(171, 235, 171);
-    }
     .goal-bar{
         width: 30px;
         height: 10px;
         background-color: rgb(2, 77, 42);
     }
+
+    .current-bar{
+        width: 30px;
+        height: 10px;
+        background-color: rgb(171, 235, 171);
+    }
+    /* .goal{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 15px;
+        background-color: rgb(2, 77, 42);
+        border-radius: 6px;
+        z-index: 1;
+    }
+    .current{
+        height: 15px;
+        background-color: rgb(171, 235, 171);
+        border-radius: 6px;
+    }*/
     .progress-legend {
         display: flex;
         justify-content: flex-end;

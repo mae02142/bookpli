@@ -114,7 +114,7 @@ const handleAction = async () => {
   } else if (radioSelect.value === "dropped") {
     await dropReading();
   } else {
-    alert("독서상태를 선택해주세요");
+    alert("를 선택해주세요");
   }
 };
 

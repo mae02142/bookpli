@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
+        <div class="goal-modal-content"><!-- :class="{active: showStartPicker === true}" -->
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -24,15 +24,13 @@
             </span>
         </div>
         <div class="date-header">독서 목표 기간</div>
-        <div class="date-row"
-        :class="{active: showStartPicker === true}"
-        >
+        <div class="date-row">
             <div class="goal-start-date">
                 <p class="goal-start-text">시작일</p>
                 <span class="date-label">
                     <img src="../../assets/icons/calendar.png"
-                    @click="showStartPicker = !showStartPicker"
                     />
+                    <!-- @click="showStartPicker = !showStartPicker" -->
                     <VueDatePicker
                     v-model="startDate"
                     :teleport="false"
