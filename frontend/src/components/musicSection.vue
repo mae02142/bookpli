@@ -698,8 +698,8 @@ body {
     background-color: #ffff;
     border: none;
     padding: 0.5rem;
-    width: 15px;
-    height: 15px;
+    width: 35px;
+    height: 35px;
     font-size: 18px;
     border-radius: 50%;
     cursor: pointer;

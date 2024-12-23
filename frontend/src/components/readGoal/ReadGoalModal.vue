@@ -166,7 +166,6 @@ const updateEndDate = (value) => {
     endDate.value = value;
     props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
 };
-const authStore= useAuthStore();
 const startDate = ref(null);
 const endDate = ref(null);
 const showStartPicker = ref(false);

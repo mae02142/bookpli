@@ -3,6 +3,7 @@ package com.project.bookpli.mypli.controller;
 import com.project.bookpli.common.response.BaseResponse;
 import com.project.bookpli.mypli.service.MypliService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

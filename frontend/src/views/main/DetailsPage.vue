@@ -9,7 +9,9 @@
                 <div class="image-container">
                     <img :src="getImage(item)" alt="이미지" />
                     <!-- Floating Button -->
-                    <button v-if="!item.artist" class="add-btn" @click.stop="handleAddButtonClick(item)">
+                    <button v-if="spotifyType === 'track' || spotifyType === 'playlist'"
+                        class="add-btn"
+                        @click.stop="handleAddButtonClick(item)">
                         +
                     </button>
                 </div>
