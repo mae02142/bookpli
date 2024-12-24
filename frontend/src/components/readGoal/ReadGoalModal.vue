@@ -14,8 +14,8 @@
         </div>
 
         <div class="date-section">
-        <div class="date-status" v-if="rbook.status==='reading'">독서상태</div>
-        <div class="date-row-status" v-if="rbook.status==='reading'">
+        <div class="date-status"  v-if="isDateSelected" >독서상태</div>
+        <div class="date-row-status"  v-if="isDateSelected">
             <span class="date-label">
                 <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
             </span>
@@ -61,16 +61,6 @@
                 <span>~</span>
                 <p>{{ rbook.endDate ? rbook.endDate.split("T")[0] : '' }}</p>
             </div>
-             <!-- 날짜가 모두 선택되었을 때만 렌더링 -->
-            <div v-if="startDate && endDate" class="date-status">독서 상태</div>
-            <div v-if="startDate && endDate" class="date-row-status">
-                <span class="date-label">
-                    <input type="radio" value="reading" v-model="radioSelect">독서중
-                </span>
-                <span class="date-label">
-                    <input type="radio" value="dropped" v-model="radioSelect">독서 중 해제
-                </span>
-            </div>
         </div>
     </div>
 
@@ -106,32 +96,13 @@ const rbook = ref({});
 
 const isLoading= ref(false);
 
-// API 요청으로 도서 정보 불러오기
-// const fetchBookData = async () => {
-//     if (!props.isbn13) return;
-
-//     try {
-//         isLoading.value = true;
-//         const response = await apiClient.get(`/api/library/${authStore.user.userId}/${props.isbn13}`);
-//         rbook.value = response.data.data;
-
-//         startDate.value = rbook.value.startDate || null;
-//         endDate.value = rbook.value.endDate || null;
-//         console.log("도서 정보:", rbook.value);
-//     } catch (error) {
-//         console.error("도서 정보 불러오기 실패:", error);
-//     } finally {
-//         isLoading.value = false;
-//     }
-// };
-
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 
 const libraryId = ref(''); // 초기값 null
 const isInLibrary = ref(false); // 서재 상태 저장 변수
-
+const isDateSelected = ref(false);
 
 
 const props = defineProps({
@@ -201,11 +172,12 @@ const updateEndDate = (value) => {
 };
 const checkDateSelection = () => {
     // 두 날짜 모두 선택되었을 때만 라디오 버튼 표시
-    if (startDate.value && endDate.value) {
-        radioSelect.value = "reading"; 
-    }else {
-        radioSelect.value = ""; 
-    }
+    // if (startDate.value && endDate.value) {
+    //     radioSelect.value = "reading"; 
+    // }else {
+    //     radioSelect.value = ""; 
+    // }
+    isDateSelected.value = !!(startDate.value && endDate.value); // 둘 다 값이 있으면 true
 };
 const startDate = ref(null);
 const endDate = ref(null);
@@ -252,7 +224,6 @@ const likeordislike = async () => {
 const handleAction = async () => {
     const utilModalStore = useUtilModalStore();
     try {
-        // DB 조회로 상태 동기화
         await checkLibraryStatus();
 
         if (!rbook.value.isbn13) {
@@ -262,51 +233,21 @@ const handleAction = async () => {
                 "ISBN 값이 누락되었습니다. 다시 시도해주세요.",
                 "error"
             );
-            return; // API 호출 중단
+            return; 
         }
 
         const currentStatus = rbook.value.status;
         console.log("현재 도서 상태:", currentStatus);
 
-        // 'wished' 상태일 때 'reading'으로 변경하여 목표 설정
         if (currentStatus === "wished" && radioSelect.value === "reading") {
-            rbook.value.status = "reading"; // 현재 상태를 'reading'으로 변경
+            rbook.value.status = "reading"; 
             console.log("상태 변경됨:", rbook.value.status);
 
-            await setGoal(rbook); // 독서 목표 설정
-            // utilModalStore.showModal(
-            //     "독서 목표 설정",
-            //     `"${rbook.title}" 독서 목표로 설정되었습니다.`,
-            //     "success"
-            // );
-            return; // 실행 완료 후 종료
+            await setGoal(rbook); 
+            return;
         }
 
-        // if (currentStatus === "reading") {
-        //     if (radioSelect.value === "dropped") {
-        //         await dropReading(rbook);
-        //         utilModalStore.showModal(
-        //             "독서 상태 변경",
-        //             `"${rbook.title}" 독서 상태가 해제되었습니다.`,
-        //             "success"
-        //         );
-        //     } else {
-        //         await changeDate(rbook); // 날짜 변경
-        //         utilModalStore.showModal(
-        //             "목표 기간 변경",
-        //             `"${rbook.title}"의 독서 기간이 수정되었습니다.`,
-        //             "success"
-        //         );
-        //     }
-        // } else {
-        //     utilModalStore.showModal(
-        //         "오류 발생",
-        //         "작업 중 오류가 발생했습니다. 다시 시도해주세요.",
-        //         "error"
-        //     );
-        // }
-                // 'reading' 상태에서 날짜 변경 처리
-                if (currentStatus === "reading") {
+        if (currentStatus === "reading") {
             if (radioSelect.value === "dropped") {
                 await dropReading(rbook);
             } else {
@@ -404,24 +345,6 @@ const progressPercentage = computed(() => {
 const progress = progressStore.getProgress(rbook.isbn13);
     return progress?.progressPercentage || 0;     
 });
-
-// Pinia 상태 감지 및 업데이트
-// watch(
-//     () => progressStore.progressData[rbook.isbn13],
-//     (newProgress) => {
-//         if (newProgress) {
-//             rbook.currentPage = newProgress.currentPage;
-//             rbook.progressPercentage = newProgress.progressPercentage;
-//         }
-//     },
-//     { deep: true, immediate: true }
-// );
-
-// watch(rbook, (newVal) => {
-//     console.log("rbook 변경 감지:", newVal);
-//     startDate.value = newVal.startDate || null;
-//     endDate.value = newVal.endDate || null;
-// }, { deep: true });
 
 watch(
     () => bookStore.rbook,
