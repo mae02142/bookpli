@@ -179,12 +179,13 @@
     const showModal = ref(false);
     const selectBook = ref({});
     const liked= ref("");
-
+    const showReadBook= ref({});
     const currentReading=ref(1);
     const currentWished=ref(1);
     const itemsPerPage= ref(5);
     const currentMonth = ref('');
-
+    const radioSelect= ref("");
+    const rbook= ref({});
     const bookStore= useBookStore();
     const modalStore= useConfirmModalStore();
 
@@ -251,36 +252,48 @@
         }
     }
 
-    const openModal = async (book) => {
-        selectBook.value = book;
+const openModal = async (book) => {
+try {
+    // Pinia store의 bookStore에 데이터 저장
+    bookStore.setbook(book);
 
-        // 백엔드에서 status를 가져옴
-        const status = await loadUserGoalExist(book.isbn13);
+    // 서버에서 추가 정보 가져와서 업데이트
+    const status = await loadUserGoalExist(book.isbn13);
+    
+    rbook.value.status=status;
+    radioSelect.value=status;
 
-        // 가져온 status를 book 데이터에 추가
-        selectBook.value.status = status;
+    bookStore.updateStatus(status); // 상태 업데이트
 
-        // 가져온 status를 사용
-        console.log("goal 상태: ", book.status);
-        showModal.value = true;
-    };
+    radioSelect.value=status;
 
+    const savedProgress = progressStore.getProgress(book.isbn13);
+        if (savedProgress) {
+            rbook.value.progressPercentage = savedProgress.progressPercentage || 0;
+        }
+
+    // 모달 열기
+    showModal.value = true;
+} catch (error) {
+    console.error("모달 데이터 설정 실패:", error);
+}
+};
 
     const loadUserGoalExist = async (isbn13) => {
         try {            
             const response = await apiClient.get(`/api/library/${authStore.user.userId}/${isbn13}`);
             console.log("goal 존재함??? : ", response.data.data);
-            return response.data.data; 
+            
+            const bookData= response.data.data;
+            bookStore.setbook(bookData);
+            rbook.value= bookData;
+            console.log("독서상태 표시하기위한..:",rbook.value);
+
+            return response.data.data.status; 
         } catch (error) {
             console.error("도서 정보 로드 실패:", error);
         }
     };
-    // const loadUserGoalExist = async () => {
-    //     console.log(book.value);
-    //     const response = await apiClient.get(`/api/library/${authStore.user.userId}/${book.value.isbn13}`);
-    //     console.log("goal 존재함??? : ", response.data.data);
-    //     bookInLibrary.value = response.data.data;
-    // }
 
 
     const closeModal = () => {
@@ -355,17 +368,6 @@ const loadUserProfile = async () => {
     console.error("사용자 정보 로드 실패:", error);
     }
 };
-
-// const loadReading = async () => {
-//     const utilModalStore = useUtilModalStore();
-
-//     try {
-//         const response = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/book`);
-//         readList= response.value;
-//     } catch (error) {
-//         console.error(error);
-//     }
-// };
 
 const loadReadList = async (isbn13) => {
         const utilModalStore = useUtilModalStore();
@@ -459,8 +461,12 @@ const loadReadList = async (isbn13) => {
         totalPages: book.startindex || 1,
         progressPercentage: Math.round((currentPage.value[index] / (book.startindex || 1)) * 100),
       };
-
+      //pinia 저장
       progressStore.saveProgress(book.isbn13, progressData);
+
+      //동기화 처리
+      const savedProgress= progressStore.getProgress(book.isbn13);
+      book.progressPercentage= savedProgress.progressPercentage || 0;
     };
 
     // 편집 모드 제어
@@ -478,6 +484,25 @@ const loadReadList = async (isbn13) => {
       saveProgress(index);
     };
 
+    const updateProgress = () => {
+    readList.value.forEach((book, index) => {
+        const savedProgress = progressStore.getProgress(book.isbn13);
+        if (savedProgress) {
+            currentPage.value[index] = savedProgress.currentPage || 0; 
+            book.progressPercentage = savedProgress.progressPercentage || 0; 
+        } else {
+            book.progressPercentage = 0;
+        }
+    });
+
+    // rbook 업데이트 동기화
+    if (rbook.value.isbn13) {
+        const selectedBook = readList.value.find(b => b.isbn13 === rbook.value.isbn13);
+        if (selectedBook) {
+            rbook.value = { ...selectedBook };
+        }
+    }
+};
 
     const clearReading = (book) => {
     const confirmModalStore = useConfirmModalStore();
@@ -545,10 +570,15 @@ const loadReadList = async (isbn13) => {
     readList.value.forEach((book, index) => {
         const savedProgress = progressStore.getProgress(book.isbn13);
         if (savedProgress) {
-            currentPage.value[index] = savedProgress.currentPage; // 저장된 현재 페이지
+            currentPage.value[index] = savedProgress.currentPage || 0; // 저장된 현재 페이지
             book.progressPercentage = savedProgress.progressPercentage || 0; // 저장된 진행 퍼센트
         } else {
             book.progressPercentage = 0;
+        }
+
+        if(rbook.value.isbn13 === book.isbn13){
+            rbook.value.progressPercentage= book.progressPercentage;
+            rbook.value.currentPage = currentPage.value[index];
         }
     });
 
@@ -557,9 +587,9 @@ const loadReadList = async (isbn13) => {
         changeToFail(book, index); // 각 책에 대해 실패 상태 처리
     });
 
-      calculateCompletedStats();
-      calculateMonthStatus();
-      getToken()
+    calculateCompletedStats();
+    calculateMonthStatus();
+    getToken()
     });
 </script>
 
@@ -1075,4 +1105,6 @@ font-weight: bold;
     border-radius: 50%;
     margin-right: 5px;
 }
+
+
 </style>

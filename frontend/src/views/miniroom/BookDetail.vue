@@ -62,20 +62,6 @@
                 />
             </div>
         </div>
-            <div class="book-intro-grid">
-                <p class="book-intro-header">책소개</p>
-                <p class="book-intro" v-html="book.description"></p>
-            </div>
-            <div class="book-detail-grid">
-                <div class="book-detail-grid-first">
-                    <span class="book-meta">출판일: {{ book.pubdate }}</span>
-                    <span class="book-meta">쪽수: {{ book.startindex }}쪽</span>
-                    <span class="book-meta">ISBN: {{ book.isbn13 }}</span>
-                </div>
-                <div>
-                    <span class="book-meta">출판사: {{ book.publisher }}</span>
-                </div>
-            </div>
 
         </div>
         <div class="book-status-grid">
@@ -97,8 +83,9 @@
             :visible="showModal"
             @close="closeModal"
         />
-    </div>
-</div>
+    <!-- </div>
+</div> -->
+
 
         <!-- 추천 도서 및 리뷰 섹션 -->
         <div class="recommendations">
@@ -125,7 +112,6 @@
         <div class="music-player">
             <MusicPlayer/>
         </div>
-    </div>
 </template>
 
 <script setup>
@@ -158,7 +144,7 @@ const activeTab = ref("recommend");
 const bookLikedId = ref(null);
 const isLiked = ref(false);
 const recommendations = ref();
-const bookInLibrary = ref({});
+
 const bookStore= useBookStore();
 
 
@@ -167,41 +153,41 @@ const recomBookClick= (recomBook) => {
 }
 
 // 찜한 도서인지 확인하는 함수
-const likeordislike = async () => {
-  try {
-    const response = await apiClient.get(
-      `/api/library/${authStore.user.userId}/book/${isbn13}`
-    );
-    const likedId = response.data.data;
+// const likeordislike = async () => {
+//   try {
+//     const response = await apiClient.get(
+//       `/api/library/${authStore.user.userId}/book/${isbn13}`
+//     );
+//     const likedId = response.data.data;
 
-    // likedId 값에 따라 상태 업데이트
-    bookLikedId.value = likedId;
-    isLiked.value = !!likedId; // likedId가 존재하면 true, 아니면 false
-  } catch (error) {
-    console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
-  }
-};
+//     // likedId 값에 따라 상태 업데이트
+//     bookLikedId.value = likedId;
+//     isLiked.value = !!likedId; // likedId가 존재하면 true, 아니면 false
+//   } catch (error) {
+//     console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
+//   }
+// };
 
-// 좋아요 추가 및 삭제를 토글하는 함수
-const likeAndToggle = async (book) => {
-  try {
-    if (isLiked.value) {
-      // 이미 좋아요 상태면 삭제
-      const isRemoved = await removeBookLike(bookLikedId.value);
-      if (isRemoved) {
-        bookLikedId.value = null; // 좋아요 ID 초기화
-        isLiked.value = false; // 빈 하트 상태로 변경
-      }
-    } else {
-      // 좋아요 추가
-      const likedId = await addBookLike(authStore.user.userId, book);
-      bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
-      isLiked.value = true; // 꽉 찬 하트 상태로 변경
-    }
-  } catch (error) {
-    console.error("좋아요 토글 중 오류 발생:", error.message || error);
-  }
-};
+// // 좋아요 추가 및 삭제를 토글하는 함수
+// const likeAndToggle = async (book) => {
+//   try {
+//     if (isLiked.value) {
+//       // 이미 좋아요 상태면 삭제
+//       const isRemoved = await removeBookLike(bookLikedId.value);
+//       if (isRemoved) {
+//         bookLikedId.value = null; // 좋아요 ID 초기화
+//         isLiked.value = false; // 빈 하트 상태로 변경
+//       }
+//     } else {
+//       // 좋아요 추가
+//       const likedId = await addBookLike(authStore.user.userId, book);
+//       bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
+//       isLiked.value = true; // 꽉 찬 하트 상태로 변경
+//     }
+//   } catch (error) {
+//     console.error("좋아요 토글 중 오류 발생:", error.message || error);
+//   }
+// };
 
 const setActiveTab= (tab) => {
     activeTab.value= tab;
@@ -319,15 +305,6 @@ const likeAndToggle = async (book) => {
     }
 };
 
-// 모달 관련 함수들
-const openModal = () => {
-    showModal.value = true;
-};
-
-const closeModal = () => {
-    showModal.value = false;
-};
-
 const handleModalClose = (updatedBook) => {
     if (updatedBook) {
         Object.assign(book.value, updatedBook);
@@ -335,15 +312,6 @@ const handleModalClose = (updatedBook) => {
     closeModal();
 };
 
-// 추천 도서 관련
-const recomBookClick = (recomBook) => {
-    book.value = recomBook;
-};
-
-// 탭 관련
-const setActiveTab = (tab) => {
-    activeTab.value = tab;
-};
 
 // 도서 상태 로드
 const loadUserGoalExist = async () => {
