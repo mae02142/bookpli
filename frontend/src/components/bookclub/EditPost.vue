@@ -79,7 +79,7 @@ export default {
       required: true,
     },
   },
-  emits: ['update:modelValue', 'close'],
+  emits: ['update:modelValue', 'close', 'toggle'],
   setup(props, { emit }) {
     const post = ref({});
     const fileInput = ref(null);
@@ -148,6 +148,14 @@ export default {
 
     // 서버에 수정 요청
     const updatePost = async () => {
+      if(post.value.postContent == ""){
+                utilModalStore.showModal(
+                    '경고',
+                    '글을 작성하려면 최소 1글자 이상 입력해주세요!',
+                    'alert'
+                );
+                return;
+            }
       try {
         loading.startLoading();
         // 이미지 업로드
@@ -201,6 +209,7 @@ export default {
     };
 
     const closeModal = () => {
+        emit('toggle',props.editId);
         emit('close');
         emit('update:modelValue', false);
     };

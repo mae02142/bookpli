@@ -154,10 +154,17 @@ import { useLoadingStore } from '@/stores/loading';
             };
 
         const submitPost = async() => {
+            if(form.value.postContent == ""){
+                utilModalStore.showModal(
+                    '경고',
+                    '글을 작성하려면 최소 1글자 이상 입력해주세요!',
+                    'alert'
+                );
+                return;
+            }
+
             try{
                 loading.startLoading();
-                console.log("로딩 나오는중 ")
-                console.log(loading.isLoading);
                     // 이미지 업로드
                 const uploadedUrls= await uploadImagesToFirebase(selectedFiles.value, 'path');
                     

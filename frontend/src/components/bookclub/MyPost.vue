@@ -75,12 +75,14 @@
               <img class="icon" @click="dropdown(index)" src="@/assets/icons/more.png" alt="More" />
               <div v-show="showBtn[index]" class="dropdown">
                   <button @click="item.editCheck= true" class="show-btn">수정</button>
-                  <EditPost v-if="item.editCheck" 
-                  :editId="item.postId" @edit-post="EditPost"
-                   @close="getMyposts" />
                   <hr class="btn-line">
                   <button class="show-btn" @click="confirmRemove(item.postId)">삭제</button>
               </div>
+              <EditPost v-if="item.editCheck" 
+                  :editId="item.postId" @edit-post="EditPost"
+                   @close="getMyposts" 
+                   @toggle="toggleClose"
+                   />
             </div> 
           </div>   
           <Comment v-show="item.showComment" 
@@ -258,6 +260,7 @@
               '',
               ()=> deleteList(postId)
             )
+            toggleClose(postId);
         };
         
         // 서버로 삭제 요청
@@ -272,7 +275,11 @@
             }catch(error){
                 console.error(error +'에러발생 !');
             }};
-            
+        
+        const toggleClose = (postId) => {
+          const index = posts.value.findIndex(post => post.postId=== postId);
+          showBtn.value[index] = false;
+        }    
       return {
         dislike,
         like,
@@ -288,6 +295,7 @@
         dropdown,
         getLikes,
         confirmRemove,
+        toggleClose,
       };
     },
   };
