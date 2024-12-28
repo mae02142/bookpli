@@ -37,22 +37,12 @@
           class="btn add-to-library"
           @click="handleAddToLibrary"
         >서재에 담기</p>
-        <p
-          class="btn change-status"
-          v-if="localBook.status === 'wished' || localBook.status === 'reading'"
-          @click="openGoalModal(localBook)"
-        >독서 상태 변경</p>
         <p class="btn write-review" @click="writeReview">리뷰 작성</p>
         <p class="btn" @click="handleClick">도서 상세 보기</p>
         <p class="btn remove-book" @click="removeBook(localBook.libraryId)" v-if="localBook.status === 'wished' || localBook.status === 'reading' || localBook.status === 'completed'">내 서재에서 삭제</p>
         <p class="btn confirm" @click="closeModal">확인</p>
       </div>
     </div>
-    <ReadGoalModal
-      :visible="readGoalToggle"
-      :rbook="bookData"
-      @close="closeGoalModal"
-    />
   </div>
 </template>
 
@@ -68,8 +58,6 @@ const { gotoDetail } = useRouterUtils();
 
 // 상태 변수
 const bookLikeId = ref(null);
-const readGoalToggle = ref(false);
-const bookData = ref({});
 
 // Props 정의
 const props = defineProps({
@@ -133,15 +121,6 @@ const changeToDislike = async () => {
     bookLikeId.value = null;
     emit("book-like-status", props.book.isbn13);
   }
-};
-
-const openGoalModal = (book) => {
-  bookData.value = book;
-  readGoalToggle.value = true;
-};
-
-const closeGoalModal = () => {
-  readGoalToggle.value = false;
 };
 
 const writeReview = () => {

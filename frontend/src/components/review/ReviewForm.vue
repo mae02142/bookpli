@@ -119,8 +119,7 @@
        
        utilModalStore.showModal(
         '리뷰 등록',
-        '리뷰가 등록되었습니다.',
-        'alert'
+        '리뷰가 등록되었습니다.'
        )
       } catch(error){
         console.error(error,"등록 중 에러 발생");
