@@ -93,30 +93,27 @@ import { useBookStore } from "@/stores/bookStore";
 const bookStore= useBookStore();
 const authStore= useAuthStore()
 
-const isLoading= ref(false);
 
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
 
 const libraryId = ref(''); 
-const isInLibrary = ref(false); // 서재 상태 저장 변수
+const isInLibrary = ref(false); 
 const isDateSelected = ref(false);
 
 
 const props = defineProps({
     visible: Boolean ,
-    // isbn13: {String, require:true,}
     rbook: Object,
 });
 const localRbook = ref({ ...props.rbook });
 const rbook= computed(() => bookStore.rbook);
-// const rbook= ref({});
 
 watch(
     () => props.rbook,
     (newVal) => {
-        localRbook.value = { ...newVal }; // props 변경 시 동기화
+        localRbook.value = { ...newVal }; 
         console.log("rbook 데이터 변경 감지:", localRbook.value);
     },
     { deep: true, immediate: true }
@@ -145,7 +142,7 @@ const updateEndDate = (value) => {
 };
 
 const checkDateSelection = () => {
-    isDateSelected.value = !!(startDate.value && endDate.value); // 둘 다 값이 있으면 true
+    isDateSelected.value = !!(startDate.value && endDate.value); 
 };
 const startDate = ref(null);
 const endDate = ref(null);
@@ -155,7 +152,6 @@ const radioSelect= ref("");
 const checkLibraryStatus = async () => {
     try {
         const response = await apiClient.get(`/api/library/${authStore.user.userId}/${rbook.value.isbn13}`);
-        // const libraryItems = response.data.data || [];
 
         const libraryItems = Array.isArray(response.data.data) 
             ? response.data.data 
@@ -209,8 +205,8 @@ const handleAction = async () => {
         const formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
 
         // 현재 상태와 변경 사항 확인
-        const currentStatus = rbook.value.status || "wished"; // 기본값 설정
-        const selectedStatus = radioSelect.value; // 선택된 상태
+        const currentStatus = rbook.value.status || "wished"; 
+        const selectedStatus = radioSelect.value; 
         console.log("현재 상태:", currentStatus, "선택된 상태:", selectedStatus);
 
         // 1. 상태 변경 - 독서 목표 설정
@@ -218,9 +214,11 @@ const handleAction = async () => {
             if (selectedStatus === "reading") {
                 console.log("독서 목표 설정 시작");
                 await setGoal(rbook.value, formatStartDate, formatEndDate, selectedStatus);
+                emitClose();
             } else if (selectedStatus === "wished") {
                 console.log("독서 중 해제 시작");
                 await dropReading(rbook.value);
+                emitClose();
             }
         }
         // 2. 기간 변경
@@ -230,6 +228,7 @@ const handleAction = async () => {
         ) {
             console.log("기간 변경 시작");
             await changeDate(rbook.value, formatStartDate, formatEndDate);
+            emitClose();
         } else {
             utilModalStore.showModal("알림", "변경된 내용이 없습니다.", "info");
         }
@@ -357,7 +356,7 @@ const loadUserGoalExist = async () => {
         console.error("목록에서 책 상태 가져오기 오류:", error);
         bookInLibrary.value = {};
         rbook.value.status = "wished";
-        radioSelect.value = "wished"; // 기본값 설정
+        radioSelect.value = "wished"; 
     }
 };
 

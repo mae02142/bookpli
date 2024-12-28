@@ -36,43 +36,6 @@ public class ReadingGoalController {
     @Autowired
     private BookApiService service;
 
-    //독서목표 설정 status 변경
-//    @PutMapping("/register/{isbn13}")
-//    public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
-//                                           @RequestBody LibraryDTO libraryDTO) {
-//        System.out.println("요청 데이터: " + libraryDTO);
-//        System.out.println("PathVariable isbn13: " + isbn13);
-//
-//        // 요청 데이터 검증
-//        if (!isbn13.equals(libraryDTO.getIsbn13())) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ISBN 번호가 일치하지 않습니다.");
-//        }
-//
-//        try {
-//            // ISBN 존재 여부 확인
-//            boolean exists = libraryrep.existsByIsbn13(isbn13);
-//            if (!exists) {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("해당 ISBN 데이터가 존재하지 않습니다.");
-//            }
-//
-//            // 쿼리 실행
-//            int update = libraryrep.setReadGoal(
-//                    isbn13,
-//                    libraryDTO.getStartDate(),
-//                    libraryDTO.getEndDate(),
-//                    libraryDTO.getStatus()
-//            );
-//
-//            if (update > 0) {
-//                return ResponseEntity.ok("독서목표가 설정되었습니다.");
-//            } else {
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 에러 발생: " + e.getMessage());
-//        }
-//    }
 
     @PutMapping("/register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,

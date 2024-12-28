@@ -516,7 +516,6 @@ const loadReadList = async (isbn13) => {
             try {
             const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
             if (status === 200) {
-                alert("완독 처리되었습니다.");
                 await loadBooks("reading", readList);
                 await loadBooks("completed", completedBooks);
                 calculateCompletedStats();

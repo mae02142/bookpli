@@ -65,29 +65,11 @@
         </div>
 
         </div>
-        <div class="book-status-grid">
-            <div class="book-status-goal" @click="openModal">
-                <img src="@/assets/icons/book_option.png" class="register-status-icon">
-                <span v-if="bookInLibrary.status === 'reading'">독서 설정 변경</span>
-                <span v-else>바로 독서 설정</span>
-            </div>
-            <div class="book-status-wish" @click="toggleWishList">
-                <img src="@/assets/icons/add_book_shelf.png">
-                <span v-if="isInLibrary">내 서재에서 삭제하기</span>
-                <span v-else>내 서재에 담기</span>
-            </div>
-            <div class="book-status-like">
-                <img :src="isLiked ? likeImage : dislikeImage" class="detail-icons" @click="likeAndToggle(book)"/>
-            </div>
-        </div>
-        <ReadGoalModal
+        <!-- <ReadGoalModal
             :visible="showModal"
             :rbook="bookInLibrary"
             @close="closeModal"
-        />
-    <!-- </div>
-</div> -->
-
+        /> -->
 
         <!-- 추천 도서 및 리뷰 섹션 -->
         <div class="recommendations">
@@ -117,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import BookReview from "@/components/review/BookReview.vue";
 import ReadGoalModal from "@/components/readGoal/ReadGoalModal.vue";
@@ -136,7 +118,7 @@ import MusicPlayer from '@/components/layouts/musicPlayer.vue';
 const route = useRoute();
 const authStore = useAuthStore();
 const utilModalStore = useUtilModalStore();
-const isbn13 = route.params.isbn13;
+const isbn13 = ref(route.params.isbn13);
 
 const book = ref({});
 const bookInLibrary = ref({});
@@ -149,47 +131,11 @@ const recommendations = ref();
 
 const bookStore= useBookStore();
 
+const recomBookClick = async (recomBook) => {
+    isbn13.value = recomBook.isbn13; 
+    await loadBookDetail(); 
+};
 
-const recomBookClick= (recomBook) => {
-    book.value=recomBook;
-}
-
-// 찜한 도서인지 확인하는 함수
-// const likeordislike = async () => {
-//   try {
-//     const response = await apiClient.get(
-//       `/api/library/${authStore.user.userId}/book/${isbn13}`
-//     );
-//     const likedId = response.data.data;
-
-//     // likedId 값에 따라 상태 업데이트
-//     bookLikedId.value = likedId;
-//     isLiked.value = !!likedId; // likedId가 존재하면 true, 아니면 false
-//   } catch (error) {
-//     console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
-//   }
-// };
-
-// // 좋아요 추가 및 삭제를 토글하는 함수
-// const likeAndToggle = async (book) => {
-//   try {
-//     if (isLiked.value) {
-//       // 이미 좋아요 상태면 삭제
-//       const isRemoved = await removeBookLike(bookLikedId.value);
-//       if (isRemoved) {
-//         bookLikedId.value = null; // 좋아요 ID 초기화
-//         isLiked.value = false; // 빈 하트 상태로 변경
-//       }
-//     } else {
-//       // 좋아요 추가
-//       const likedId = await addBookLike(authStore.user.userId, book);
-//       bookLikedId.value = likedId; // 새로 생성된 bookLikeId 저장
-//       isLiked.value = true; // 꽉 찬 하트 상태로 변경
-//     }
-//   } catch (error) {
-//     console.error("좋아요 토글 중 오류 발생:", error.message || error);
-//   }
-// };
 
 const setActiveTab= (tab) => {
     activeTab.value= tab;
@@ -198,34 +144,6 @@ const setActiveTab= (tab) => {
 //모달 
 const showModal = ref(false);
 
-// const openModal= async () => {
-//     bookStore.setbook(bookInLibrary.value); //pinia로 rbook설정
-//     console.log("pinia에 저장된 rbook", bookStore.rbook.value);
-//     showModal.value=true;
-//     if(bookInLibrary.value && bookInLibrary.value.isbn13){
-//     }else{
-//         console.error("도서정보가 없습니다.",bookInLibrary.value);
-//     }
-// };
-// const openModal = async () => {
-//     try {
-//         // 비동기 데이터 로딩 완료 후 실행
-//         await checkLibraryStatus(); 
-
-//         if (bookInLibrary.value && bookInLibrary.value.isbn13) {
-//             // Pinia 스토어에 데이터 저장
-//             bookStore.setbook(bookInLibrary.value); 
-//             console.log("Pinia에 저장된 rbook:", bookStore.rbook);
-
-//             // 모달 표시
-//             showModal.value = true;
-//         } else {
-//             console.error("도서정보가 없습니다.", bookInLibrary.value);
-//         }
-//     } catch (error) {
-//         console.error("openModal 실행 중 오류:", error);
-//     }
-// };
 const openModal = async () => {
     try {
         await checkLibraryStatus(); // 데이터 로딩 완료 후 실행
@@ -235,8 +153,6 @@ const openModal = async () => {
             bookStore.setbook({ ...bookInLibrary.value });
 
             console.log("Pinia 저장된 rbook:", bookStore.rbook);
-
-            // 모달 표시
             showModal.value = true;
         } else {
             console.error("도서정보가 없습니다.", bookInLibrary.value);
@@ -261,19 +177,10 @@ const updateBookInStore = (updatedBook) => {
     console.log("updateBookInStore 동기화 완료:", bookStore.rbook);
 };
 
-
-// const closeModal = (updatedBook) => {
-//     if (updatedBook) {
-//         Object.assign(book.value, updatedBook);
-//         console.log("close후 데이터 확인:",book.value);
-//     }
-//     showModal.value=false;
-// };
-
 // 도서 상세 정보 로드
 const loadBookDetail = async () => {
     try {
-        const response = await apiClient.get(`/api/book/${isbn13}`);
+        const response = await apiClient.get(`/api/book/${isbn13.value}`);
         book.value = response.data.data;
         await checkLibraryStatus();
     } catch (error) {
@@ -282,29 +189,6 @@ const loadBookDetail = async () => {
     }
 };
 
-// 내 서재 상태 확인
-// const checkLibraryStatus = async () => {
-//     try {
-//         const response = await apiClient.get('/api/library');
-//         const libraryItems = response.data.data || [];
-//         const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
-
-//         if (existingBook) {
-//             isInLibrary.value = true;
-//             libraryId.value = existingBook.libraryId;
-//             bookInLibrary.value = existingBook;
-//         } else {
-//             isInLibrary.value = false;
-//             libraryId.value = null;
-//             bookInLibrary.value = {};
-//         }
-//         console.log("bookinlibrary 데이터 확인:",bookInLibrary.value.data);
-//     } catch (error) {
-//         console.error("내 서재 상태 확인 오류:", error);
-//         isInLibrary.value=false;
-//         bookInLibrary.value= {};
-//     }
-// };
 const checkLibraryStatus = async () => {
     try {
         const response = await apiClient.get('/api/library');
@@ -342,7 +226,6 @@ const checkLibraryStatus = async () => {
     }
 };
 
-
 // 도서 추가
 const handleAddBook = async () => {
     try {
@@ -379,7 +262,7 @@ const handleDeleteBook = async () => {
 // 좋아요 관련 함수들
 const likeordislike = async () => {
     try {
-        const response = await apiClient.get(`/api/library/book/${isbn13}`);
+        const response = await apiClient.get(`/api/library/book/${isbn13.value}`);
         const likedId = response.data.data;
         bookLikedId.value = likedId;
         isLiked.value = !!likedId;
@@ -427,11 +310,20 @@ const loadUserGoalExist = async () => {
     }
 };
 
+watch(() => isbn13.value, async (newIsbn) => {
+    if (newIsbn) {
+        await loadBookDetail(); 
+        await likeordislike();
+        await loadUserGoalExist();
+    }
+});
+
+
 // 컴포넌트 마운트
 onMounted(async () => {
     try {
         await loadBookDetail();
-        if (!book.value.isbn13) return; // 데이터 유효성 검사
+        if (!book.value.isbn13) return; 
         await Promise.all([likeordislike(), loadUserGoalExist()]);
     } catch (error) {
         console.error("초기 데이터 로드 중 오류:", error);
