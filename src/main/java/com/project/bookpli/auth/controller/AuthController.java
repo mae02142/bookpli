@@ -101,8 +101,6 @@ public class AuthController {
                 "spotifyId", user.getSpotifyId(),
                 "userId", user.getUserId()
         );
-
         return new BaseResponse<>(userInfo);
-
     }
 }

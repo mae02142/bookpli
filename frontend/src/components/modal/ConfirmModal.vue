@@ -12,7 +12,7 @@
         </div>
         <div class="modal-footer">
           <button class="delete-button" @click="handleConfirmAction">{{ modalStore.cofirmButton }}</button>
-          <button class="cancel-button" @click="modalStore.closeModal">취소</button>
+          <button class="confirm-cancel-button" @click="modalStore.closeModal">취소</button>
         </div>
       </div>
     </div>
@@ -133,7 +133,7 @@ const modalImage = computed(() => {
     cursor: pointer;
   }
   
-  .cancel-button {
+  .confirm-cancel-button {
     background: #ffffff;
     color: #555353;
     border: 1px solid #555353;
