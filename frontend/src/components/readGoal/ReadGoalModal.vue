@@ -133,11 +133,28 @@ const book =ref(
 const updateStartDate = (value) => {
     startDate.value = value; 
     rbook.startDate= format(new Date(value),'yyyy-MM-dd');
+
+    // if(endDate.value && new Date(endDate.value)){
+    //     const utilModalStore= useUtilModalStore();
+    //     utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다. 종료일을 다시 선택해주세요.", "error");
+    //     startDate.value=null;
+    //     rbook.startDate=null;
+    //     return;
+    // }
     checkDateSelection();
 };
 const updateEndDate = (value) => {
     endDate.value = value;
     rbook.endDate= format(new Date(value),'yyyy-MM-dd');
+
+    // if(startDate.value && new Date(startDate.value)){
+    //     const utilModalStore= useUtilModalStore();
+    //     utilModalStore.showModal("날짜 선택 오류", "종료일은 시작일보다 빠를 수 없습니다. 시작일을 다시 선택해주세요.", "error");
+    //     endDate.value=null;
+    //     rbook.endDate=null;
+    //     return;
+    // }
+
     checkDateSelection();
 };
 
@@ -197,6 +214,13 @@ const handleAction = async () => {
 
         if (!startDate.value || !endDate.value) {
             utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
+            return;
+        }
+
+        // 날짜 검증 추가
+        if (new Date(startDate.value) > new Date(endDate.value)) {
+            utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다.", "error");
+            emitClose();
             return;
         }
 
