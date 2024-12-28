@@ -7,12 +7,20 @@ export const useProgressStore = defineStore("progress", {
     actions: {
         saveProgress(isbn13, data) {
             this.progressData[isbn13] = data; // 진행 데이터 저장
-            // this.syncWithStorage(); // 저장 시 localStorage와 동기화
+        
         },
         getProgress(isbn13) {
-            return this.progressData[isbn13] || null; // 저장된 진행 데이터 반환
+            return this.progressData[isbn13] || { progressPercentage: 0, currentPage: 0 }; // 저장된 진행 데이터 반환
         },
-        
+        clearProgress(isbn13){
+            delete this.rogressData[isbn13];
+        },
+        updateProgress(isbn13, percentage, currentPage) {
+            if (this.progressData[isbn13]) {
+                this.progressData[isbn13].progressPercentage = percentage;
+                this.progressData[isbn13].currentPage = currentPage;
+            }
+        },
     },
     persist: {
         key: "progressData", // localStorage에 저장될 키

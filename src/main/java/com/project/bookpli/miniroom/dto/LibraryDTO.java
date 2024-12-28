@@ -1,5 +1,6 @@
 package com.project.bookpli.miniroom.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.Library;
 import lombok.*;
@@ -13,6 +14,7 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 public class LibraryDTO {
+    @JsonProperty("userId")
     private Long user_id;
     private String isbn13;
     private String status;
