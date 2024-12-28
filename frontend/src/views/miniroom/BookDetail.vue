@@ -57,8 +57,9 @@
                 <!-- 모달 -->
                 <ReadGoalModal
                     :visible="showModal"
-                    :rbook="bookInLibrary"
+                    :rbook="bookStore.rbook"
                     @close="handleModalClose"
+                    @updateRbook="updateBookInStore"
                 />
             </div>
         </div>
@@ -81,6 +82,7 @@
         </div>
         <ReadGoalModal
             :visible="showModal"
+            :rbook="bookInLibrary"
             @close="closeModal"
         />
     <!-- </div>
@@ -196,17 +198,77 @@ const setActiveTab= (tab) => {
 //모달 
 const showModal = ref(false);
 
-const openModal= () => {
-    bookStore.setbook(bookInLibrary.value); //pinia로 rbook설정
-    showModal.value=true;
+// const openModal= async () => {
+//     bookStore.setbook(bookInLibrary.value); //pinia로 rbook설정
+//     console.log("pinia에 저장된 rbook", bookStore.rbook.value);
+//     showModal.value=true;
+//     if(bookInLibrary.value && bookInLibrary.value.isbn13){
+//     }else{
+//         console.error("도서정보가 없습니다.",bookInLibrary.value);
+//     }
+// };
+// const openModal = async () => {
+//     try {
+//         // 비동기 데이터 로딩 완료 후 실행
+//         await checkLibraryStatus(); 
+
+//         if (bookInLibrary.value && bookInLibrary.value.isbn13) {
+//             // Pinia 스토어에 데이터 저장
+//             bookStore.setbook(bookInLibrary.value); 
+//             console.log("Pinia에 저장된 rbook:", bookStore.rbook);
+
+//             // 모달 표시
+//             showModal.value = true;
+//         } else {
+//             console.error("도서정보가 없습니다.", bookInLibrary.value);
+//         }
+//     } catch (error) {
+//         console.error("openModal 실행 중 오류:", error);
+//     }
+// };
+const openModal = async () => {
+    try {
+        await checkLibraryStatus(); // 데이터 로딩 완료 후 실행
+
+        if (bookInLibrary.value && bookInLibrary.value.isbn13) {
+            // Pinia 상태 업데이트
+            bookStore.setbook({ ...bookInLibrary.value });
+
+            console.log("Pinia 저장된 rbook:", bookStore.rbook);
+
+            // 모달 표시
+            showModal.value = true;
+        } else {
+            console.error("도서정보가 없습니다.", bookInLibrary.value);
+        }
+    } catch (error) {
+        console.error("openModal 실행 중 오류:", error);
+    }
 };
 
 const closeModal = (updatedBook) => {
     if (updatedBook) {
+        // 상위 컴포넌트 데이터 동기화
         Object.assign(book.value, updatedBook);
+        console.log("closeModal 후 데이터 확인:", book.value);
     }
-    showModal.value=false;
+    showModal.value = false; // 모달 닫기
 };
+
+const updateBookInStore = (updatedBook) => {
+    // Pinia 상태 업데이트
+    bookStore.setbook(updatedBook);
+    console.log("updateBookInStore 동기화 완료:", bookStore.rbook);
+};
+
+
+// const closeModal = (updatedBook) => {
+//     if (updatedBook) {
+//         Object.assign(book.value, updatedBook);
+//         console.log("close후 데이터 확인:",book.value);
+//     }
+//     showModal.value=false;
+// };
 
 // 도서 상세 정보 로드
 const loadBookDetail = async () => {
@@ -221,25 +283,65 @@ const loadBookDetail = async () => {
 };
 
 // 내 서재 상태 확인
+// const checkLibraryStatus = async () => {
+//     try {
+//         const response = await apiClient.get('/api/library');
+//         const libraryItems = response.data.data || [];
+//         const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
+
+//         if (existingBook) {
+//             isInLibrary.value = true;
+//             libraryId.value = existingBook.libraryId;
+//             bookInLibrary.value = existingBook;
+//         } else {
+//             isInLibrary.value = false;
+//             libraryId.value = null;
+//             bookInLibrary.value = {};
+//         }
+//         console.log("bookinlibrary 데이터 확인:",bookInLibrary.value.data);
+//     } catch (error) {
+//         console.error("내 서재 상태 확인 오류:", error);
+//         isInLibrary.value=false;
+//         bookInLibrary.value= {};
+//     }
+// };
 const checkLibraryStatus = async () => {
     try {
         const response = await apiClient.get('/api/library');
-        const libraryItems = response.data.data || [];
-        const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
+
+        // 응답이 배열인지, 객체인지 처리
+        const libraryItems = Array.isArray(response.data.data)
+            ? response.data.data
+            : [response.data.data]; // 객체인 경우 배열로 변환
+
+        // bookInLibrary 값 설정
+        const existingBook = libraryItems.find(
+            (item) => item.isbn13 === book.value.isbn13
+        );
 
         if (existingBook) {
-            isInLibrary.value = true;
-            libraryId.value = existingBook.libraryId;
-            bookInLibrary.value = existingBook;
+            isInLibrary.value = true; // 서재 등록 상태 true
+            libraryId.value = existingBook.libraryId; // 라이브러리 ID 저장
+            bookInLibrary.value = existingBook; // 도서 정보 저장
         } else {
             isInLibrary.value = false;
             libraryId.value = null;
-            bookInLibrary.value = {};
+            bookInLibrary.value = {
+                isbn13: book.value.isbn13, // 최소한의 데이터 설정
+                title: book.value.title,
+                cover: book.value.cover,
+            }; 
         }
+
+        console.log("checkLibraryStatus 결과:", bookInLibrary.value);
     } catch (error) {
         console.error("내 서재 상태 확인 오류:", error);
+        isInLibrary.value = false;
+        libraryId.value = null;
+        bookInLibrary.value = {};
     }
 };
+
 
 // 도서 추가
 const handleAddBook = async () => {
