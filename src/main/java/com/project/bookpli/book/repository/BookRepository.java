@@ -44,6 +44,6 @@ public interface BookRepository extends JpaRepository<Book, String> {
     @Query("SELECT new com.project.bookpli.book.dto.BookDTO"
             + "(b.isbn13, b.title, b.author, b.description, b.pubdate, b.publisher, b.cover, b.startindex, b.genre) "
             + "FROM Book b WHERE b.isbn13 = :isbn13")
-    List<BookDTO> findByIsbn13(@Param("isbn13") String isbn13);
+    Optional<BookDTO> findByIsbn13(@Param("isbn13") String isbn13);
 
 }

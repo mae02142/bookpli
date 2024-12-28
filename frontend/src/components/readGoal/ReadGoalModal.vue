@@ -1,7 +1,7 @@
 <!--모달로 보여주는 독서목표-->
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
-        <div class="goal-modal-content"  :class="{active: showStartPicker === true}">
+        <div class="goal-modal-content">
             
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
@@ -14,25 +14,22 @@
         </div>
 
         <div class="date-section">
-        <div class="date-status" v-if="rbook.status==='reading'">독서상태</div>
-        <div class="date-row-status" v-if="rbook.status==='reading'">
-            <span class="date-label">
-                <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">
-                독서중
-            </span>
-            <span class="date-label">
-                <input type="radio" value="wished" v-model="radioSelect">독서 중 해제
-            </span>
-        </div>
+            <div class="date-status"  v-if="isDateSelected || rbook.status === 'reading'" >독서상태</div>
+            <div class="date-row-status"  v-if="isDateSelected || rbook.status === 'reading'">
+                <span class="date-label">
+                    <input type="radio" :checked="rbook.status === 'reading'" value="reading" v-model="radioSelect">독서중
+                </span>
+                <span class="date-label">
+                    <input type="radio" :checked="rbook.status === 'wished'" value="wished" v-model="radioSelect">독서 중 해제
+                </span>
+            </div>
+        
         <div class="date-header">독서 목표 기간</div>
-        <div class="date-row"
-        :class="{active: showStartPicker === true}"
-        >
+        <div class="date-row">
             <div class="goal-start-date">
                 <p class="goal-start-text">시작일</p>
                 <span class="date-label">
                     <img src="../../assets/icons/calendar.png"
-                    @click="showStartPicker = !showStartPicker"
                     />
                     <VueDatePicker
                     v-model="startDate"
@@ -40,7 +37,6 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="ko"
                     :format="dateFormat"
                     @update:modelValue="updateStartDate"
                     />
@@ -56,7 +52,6 @@
                     :auto-apply="true"
                     :enable-time-picker="false"
                     placeholder="날짜 선택"
-                    :locale="'ko'"
                     :format="dateFormat"
                     @update:modelValue="updateEndDate"
                 />
@@ -73,9 +68,9 @@
         <div class="progress-section" v-if="rbook.status === 'reading'">
             <div class="progress-header">독서량</div>
             <div class="progress-bar">
-                <div class="progress-bar-fill" :style="{width: `${rbook.progressPercentage || 0}%`}"></div>
+                <div class="progress-bar-fill" :style="{width: `${progressPercentage}%`}"></div>
             </div>
-            <p class="progress-percentage">{{ rbook.progressPercentage || 0 }}%</p>
+            <p class="progress-percentage">{{ progressPercentage || 0 }}%</p>
         </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
@@ -85,7 +80,7 @@
 </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, watch, toRefs } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useAuthStore } from '@/stores/auth';
 import { useRoute, useRouter } from "vue-router";
 import { useProgressStore } from "@/stores/readingProgressbar";
@@ -94,212 +89,332 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { format } from "date-fns";
 import apiClient from "@/api/axiosInstance";
 import { useUtilModalStore } from "@/stores/utilModalStore";
+import { useBookStore } from "@/stores/bookStore";
+const bookStore= useBookStore();
+const authStore= useAuthStore()
+
+
 const route= useRoute();
 const router= useRouter();
 const progressStore= useProgressStore();
-const library = ref({});
+
+const libraryId = ref(''); 
+const isInLibrary = ref(false); 
+const isDateSelected = ref(false);
 
 
 const props = defineProps({
-    visible: Boolean,
+    visible: Boolean ,
     rbook: Object,
 });
-const { rbook } = toRefs(props);
+const localRbook = ref({ ...props.rbook });
+const rbook= computed(() => bookStore.rbook);
 
-const emit= defineEmits(["close","dropReading"]);
+watch(
+    () => props.rbook,
+    (newVal) => {
+        localRbook.value = { ...newVal }; 
+        console.log("rbook 데이터 변경 감지:", localRbook.value);
+    },
+    { deep: true, immediate: true }
+);
+
+
+const emit= defineEmits(["close","dropReading","updateRbook"]);
 const emitClose= () => {
     emit("close");
 };
 //날짜 포맷팅
 const dateFormat = "yyyy-MM-dd";
-//독서기간 변경
-const changeDate= async (rbook) => {
-    const utilModalStore = useUtilModalStore();
-    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
-    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
-    
-    try{
-        const response= await apiClient.put(`/api/goal/reset/${rbook.isbn13}`,null, {
-            headers: {
-                Authorization: `Bearer ${authStore.token}`, // JWT 토큰 추가
-            },
-            params: {
-                status: props.rbook.status,
-                startDate: formatStartDate,
-                endDate: formatEndDate,
-            },
-        });
-        utilModalStore.showModal(
-            "독서기간 수정",
-            "독서기간이 수정되었습니다.",
-            "success"
-        );
-        
-    }catch(error){
-        let errorMessage = "독서기간 수정 중 오류가 발생했습니다.";
-        if (error.response) {
-            console.error("서버 응답 에러:", error.response.status, error.response.data);
-            errorMessage = error.response.data.message || errorMessage;
-        } else if (error.request) {
-            console.error("요청이 보내졌으나 응답 없음:", error.request);
-        } else {
-            console.error("에러 설정 문제:", error.message);
-        }
-        // 에러 알림
-        utilModalStore.showModal(
-            "독서기간 수정 실패", 
-            errorMessage,       
-            "error"             
-        );
-    }
-}
+
 const book =ref(
     route.query.data ? JSON.parse(route.query.data): {}
 );
 const updateStartDate = (value) => {
     startDate.value = value; 
-    props.rbook.startDate= format(new Date(value),'yyyy-MM-dd');
+    rbook.startDate= format(new Date(value),'yyyy-MM-dd');
+
+    // if(endDate.value && new Date(endDate.value)){
+    //     const utilModalStore= useUtilModalStore();
+    //     utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다. 종료일을 다시 선택해주세요.", "error");
+    //     startDate.value=null;
+    //     rbook.startDate=null;
+    //     return;
+    // }
+    checkDateSelection();
 };
 const updateEndDate = (value) => {
     endDate.value = value;
-    props.rbook.endDate= format(new Date(value),'yyyy-MM-dd');
+    rbook.endDate= format(new Date(value),'yyyy-MM-dd');
+
+    // if(startDate.value && new Date(startDate.value)){
+    //     const utilModalStore= useUtilModalStore();
+    //     utilModalStore.showModal("날짜 선택 오류", "종료일은 시작일보다 빠를 수 없습니다. 시작일을 다시 선택해주세요.", "error");
+    //     endDate.value=null;
+    //     rbook.endDate=null;
+    //     return;
+    // }
+
+    checkDateSelection();
+};
+
+const checkDateSelection = () => {
+    isDateSelected.value = !!(startDate.value && endDate.value); 
 };
 const startDate = ref(null);
 const endDate = ref(null);
-// const showStartPicker = ref(false);
-// const showEndPicker = ref(false);
 const radioSelect= ref("");
+
+// 내 서재 상태 확인
+const checkLibraryStatus = async () => {
+    try {
+        const response = await apiClient.get(`/api/library/${authStore.user.userId}/${rbook.value.isbn13}`);
+
+        const libraryItems = Array.isArray(response.data.data) 
+            ? response.data.data 
+            : (response.data.data ? [response.data.data] : []); 
+        const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
+
+        if (existingBook) {
+            isInLibrary.value = true;
+            libraryId.value = existingBook.libraryId;
+        } else {
+            isInLibrary.value = false;
+            libraryId.value = null;
+        }
+    } catch (error) {
+        console.error("내 서재 상태 확인 오류:", error);
+    }
+};
+// 찜한 도서인지 확인하는 함수
+const likeordislike = async () => {
+  try {
+    const response = await apiClient.get(
+      `/api/library/${authStore.user.userId}/book/${isbn13}`
+    );
+    const likedId = response.data.data;
+
+    // likedId 값에 따라 상태 업데이트
+    bookLikedId.value = likedId;
+    isLiked.value = !!likedId; // likedId가 존재하면 true, 아니면 false
+  } catch (error) {
+    console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
+  }
+};
 
 const handleAction = async () => {
     const utilModalStore = useUtilModalStore();
+
     try {
-        if (props.rbook.status === "reading") {
-            if(radioSelect.value !== "dropped"){
-                await changeDate(props.rbook);
-                emitClose();
-            }    
-            if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
-                utilModalStore.showModal(
-                    "독서 상태 변경",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
-                    "success"
-                );
-                emitClose();
-            }
-        } else if (props.rbook.status === "wished") {
-            if (radioSelect.value === "reading") {
-                await setGoal(props.rbook);
-                utilModalStore.showModal(
-                    "독서 목표 설정",
-                    `"${props.rbook.title}"도서가<br>독서 목표로 설정되었습니다.`,
-                    "success"
-                );
-                emitClose();
-            } else if (radioSelect.value === "dropped") {
-                await dropReading(props.rbook);
-                utilModalStore.showModal(
-                    "독서 상태 해제",
-                    `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
-                    "success"
-                );
-                emitClose();
-            } else {
-                utilModalStore.showModal(
-                    "알림",
-                    "독서 상태를 선택해주세요.",
-                    "warning"
-                );
-                emitClose();
-            }
-        }else{
-            utilModalStore.showModal(
-                "오류 발생",
-                "작업 중 오류가 발생했습니다. 다시 시도해주세요.",
-                "error"
-            );
+        // 검증: ISBN 및 날짜 값 확인
+        if (!rbook.value || !rbook.value.isbn13) {
+            utilModalStore.showModal("오류 발생", "도서 정보가 누락되었습니다.", "error");
+            return;
         }
+
+        if (!startDate.value || !endDate.value) {
+            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
+            return;
+        }
+
+        // 날짜 검증 추가
+        if (new Date(startDate.value) > new Date(endDate.value)) {
+            utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다.", "error");
+            emitClose();
+            return;
+        }
+
+        // 날짜 포맷 변환
+        const formatStartDate = format(new Date(startDate.value), "yyyy-MM-dd");
+        const formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
+
+        // 현재 상태와 변경 사항 확인
+        const currentStatus = rbook.value.status || "wished"; 
+        const selectedStatus = radioSelect.value; 
+        console.log("현재 상태:", currentStatus, "선택된 상태:", selectedStatus);
+
+        // 1. 상태 변경 - 독서 목표 설정
+        if (currentStatus !== selectedStatus) {
+            if (selectedStatus === "reading") {
+                console.log("독서 목표 설정 시작");
+                await setGoal(rbook.value, formatStartDate, formatEndDate, selectedStatus);
+                emitClose();
+            } else if (selectedStatus === "wished") {
+                console.log("독서 중 해제 시작");
+                await dropReading(rbook.value);
+                emitClose();
+            }
+        }
+        // 2. 기간 변경
+        else if (
+            formatStartDate !== rbook.value.startDate ||
+            formatEndDate !== rbook.value.endDate
+        ) {
+            console.log("기간 변경 시작");
+            await changeDate(rbook.value, formatStartDate, formatEndDate);
+            emitClose();
+        } else {
+            utilModalStore.showModal("알림", "변경된 내용이 없습니다.", "info");
+        }
+
+        // 부모 컴포넌트로 변경된 데이터 전달
+        emit("updateRbook", rbook.value);
+
     } catch (error) {
         console.error("handleAction 실행 중 에러:", error);
-        utilModalStore.showModal(
-            "오류 발생",
-            "작업 중 문제가 발생했습니다. 다시 시도해주세요.",
-            "error"
-        );
+        utilModalStore.showModal("오류 발생", "작업 중 문제가 발생했습니다.", "error");
     }
 };
-const setGoal = async (rbook) => {
-    const utilModalStore = useUtilModalStore(); 
-    const formatStartDate= format(new Date(startDate.value),"yyyy-MM-dd");
-    const formatEndDate= format(new Date(endDate.value),"yyyy-MM-dd");
-    try{
-        const response= await apiClient.put(`/api/goal/register/${rbook.isbn13}`, null, {
-            params: {
-                status: rbook.status,
-                startDate: formatStartDate,
-                endDate: formatEndDate,
-            },
-        });
-        utilModalStore.showModal(
-            "독서 목표 설정",
-            `"${rbook.title}"의 독서 목표가 설정되었습니다.`,
-            "success"
+const setGoal = async (rbook, startDate, endDate, status) => {
+    const utilModalStore = useUtilModalStore();
+
+    try {
+        // 날짜 포맷 변환
+        const formatStartDate = format(new Date(startDate), "yyyy-MM-dd");
+        const formatEndDate = format(new Date(endDate), "yyyy-MM-dd");
+
+        const requestData = {
+            userId: authStore.user.userId,
+            isbn13: rbook.isbn13,
+            status: "reading",
+            startDate: format(new Date(startDate), "yyyy-MM-dd"),
+            endDate: format(new Date(endDate), "yyyy-MM-dd"),
+        };
+        console.log("setGoal 요청 데이터:", requestData);
+
+        // API 요청
+        const response = await apiClient.put(
+            `/api/goal/register/${rbook.isbn13}`,
+            requestData,
+            {
+                headers: {
+                    Authorization: `Bearer ${authStore.token}`,
+                    "Content-Type": "application/json",
+                },
+            }
         );
-        router.push('/miniroom/minihome');
-    }catch(error){
-        console.error(error.response?.data || error.message);
-        utilModalStore.showModal(
-            "오류 발생",
-            "작업 중 문제가 발생했습니다. 다시 시도해주세요.",
-            "error"
-        );
+        console.log("setGoal 요청 데이터:", requestData);
+
+
+        console.log("setGoal 응답:", response.data);
+        utilModalStore.showModal("독서 목표 설정", `"${rbook.title}" 목표가 설정되었습니다.`, "success");
+
+        // 상태 업데이트
+        rbook.status = status;
+        rbook.startDate = formatStartDate;
+        rbook.endDate = formatEndDate;
+
+    } catch (error) {
+        console.error("setGoal 에러:", error.response?.data || error.message);
+        utilModalStore.showModal("오류 발생", "목표 설정 중 문제가 발생했습니다.", "error");
     }
-}
+};
+const changeDate = async (rbook, startDate, endDate) => {
+    const utilModalStore = useUtilModalStore();
+
+    try {
+        const response = await apiClient.put(
+            `/api/goal/reset/${rbook.isbn13}`,
+            null,
+            {
+                headers: {
+                    Authorization: `Bearer ${authStore.token}`,
+                },
+                params: {
+                    status: rbook.status,
+                    startDate: startDate,
+                    endDate: endDate,
+                },
+            }
+        );
+
+        utilModalStore.showModal("독서 기간 변경", "독서 기간이 수정되었습니다.", "success");
+
+        // 상태 업데이트
+        rbook.startDate = startDate;
+        rbook.endDate = endDate;
+
+    } catch (error) {
+        console.error("changeDate 에러:", error.response?.data || error.message);
+        utilModalStore.showModal("오류 발생", "기간 변경 중 문제가 발생했습니다.", "error");
+    }
+};
 const dropReading = async (rbook) => {
-    const utilModalStore = useUtilModalStore(); 
-    try{
-        const response= await apiClient.delete(`/api/goal/${rbook.isbn13}`,{
+    const utilModalStore = useUtilModalStore();
+
+    try {
+        const response = await apiClient.delete(`/api/goal/${rbook.isbn13}`, {
             params: { status: "wished" },
         });
-        emit("dropReading",rbook.isbn13);
-        utilModalStore.showModal(
-            "독서 상태 해제",
-            `"${props.rbook.title}" 독서 상태가 해제되었습니다.`,
-            "success"
-        );
-        emit("close");
-    }catch(error){
-        console.error(error.response?.data || error.message);
-        utilModalStore.showModal(
-            "오류 발생",
-            "작업 중 문제가 발생했습니다. 다시 시도해주세요.",
-            "error"
-        );
+
+        utilModalStore.showModal("독서 상태 해제", `"${rbook.title}" 독서 상태가 해제되었습니다.`, "success");
+
+        // 상태 초기화
+        rbook.status = "wished";
+        rbook.startDate = null;
+        rbook.endDate = null;
+
+    } catch (error) {
+        console.error("dropReading 에러:", error.response?.data || error.message);
+        utilModalStore.showModal("오류 발생", "독서 상태 해제 중 문제가 발생했습니다.", "error");
     }
-}
+};
+
 const progressPercentage = computed(() => {
-const progress = progressStore.getProgress(props.rbook.isbn13);
-    return progress?.progressPercentage || 0;     
+const savedprogress = progressStore.getProgress(rbook.value.isbn13);
+    return savedprogress?.progressPercentage || 0;     
 });
-// Pinia 상태 감지 및 업데이트
-watch(
-    () => progressStore.progressData[props.rbook.isbn13],
-    (newProgress) => {
-        if (newProgress) {
-            props.rbook.currentPage = newProgress.currentPage;
-            props.rbook.progressPercentage = newProgress.progressPercentage;
-        }
-    },
-    { deep: true, immediate: true }
-);
-onMounted(() => {
-    const savedProgress= progressStore.getProgress(props.rbook.isbn13);
-    if(savedProgress){
-        props.rbook.currentPage=savedProgress.currentPage || 0;
-        props.rbook.progressPercentage=savedProgress.progressPercentage || 0;
+
+const bookInLibrary = ref({});
+
+const loadUserGoalExist = async () => {
+    try {
+        const response = await apiClient.get(`/api/library/${authStore.user.userId}/${rbook.value.isbn13}`);
+        bookInLibrary.value = response.data.data || {};
+        
+        // 상태 업데이트
+        rbook.value.status = bookInLibrary.value?.status || "wished";
+        radioSelect.value = rbook.value.status; // 초기값 동기화
+        console.log("도서 상태 확인:", rbook.value.status);
+    } catch (error) {
+        console.error("목록에서 책 상태 가져오기 오류:", error);
+        bookInLibrary.value = {};
+        rbook.value.status = "wished";
+        radioSelect.value = "wished"; 
     }
-    console.log("rbook : ", rbook.value);
+};
+
+onMounted(async () => {
+    // rbook 초기화
+    const bookFromStore = bookStore.rbook || {};
+    
+    if (!bookFromStore || !bookFromStore.isbn13) {
+        console.error("초기화 실패: 도서 정보 없음", bookFromStore);
+        return;
+    }
+    
+    // rbook 데이터 복사
+    rbook.value = { ...bookFromStore };
+    console.log("초기 rbook 값:", rbook.value);
+
+    // 사용자 독서 상태 로드
+    await loadUserGoalExist();
+
+    // 날짜 초기화
+    startDate.value = rbook.value.startDate || null;
+    endDate.value = rbook.value.endDate || null;
+
+    // 진행률 초기화
+    const savedProgress = progressStore.getProgress(rbook.value.isbn13);
+    if (savedProgress) {
+        rbook.value.progressPercentage = savedProgress.progressPercentage || 0;
+    } else {
+        rbook.value.progressPercentage = 0;
+    }
+
+    console.log("초기 상태 확인:", rbook.value.status, radioSelect.value);
 });
+
 </script>
 
 <style>

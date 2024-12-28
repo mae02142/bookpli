@@ -2,9 +2,12 @@ package com.project.bookpli.miniroom.controller;
 
 import com.project.bookpli.book.dto.BookDTO;
 import com.project.bookpli.book.repository.BookRepository;
+import com.project.bookpli.common.exception.BaseException;
 import com.project.bookpli.common.response.BaseResponse;
+import com.project.bookpli.common.response.BaseResponseStatus;
 import com.project.bookpli.entity.Book;
 import com.project.bookpli.entity.Library;
+import com.project.bookpli.library.dto.LibraryResponseDTO;
 import com.project.bookpli.library.repository.LibraryRepository;
 import com.project.bookpli.miniroom.dto.LibraryDTO;
 import com.project.bookpli.miniroom.service.BookApiService;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -33,49 +37,55 @@ public class ReadingGoalController {
     private BookApiService service;
 
 
-    //독서목표 설정 status 변경
-//    @PutMapping("/change/{isbn13}")
-//    public ResponseEntity<String> bookGoal(@PathVariable String isbn13, @RequestParam Long userId,
-//                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
-//
-//            int update= libraryrep.setReadGoal(isbn13, userId, startDate, endDate);
-//
-//            if(update > 0){
-//                return ResponseEntity.ok("독서목표가 설정되었습니다.");
-//            }else{
-//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
-//            }
-//    }
-
-    //library 등록
-//    @PutMapping("/register/{isbn13}")
-//    public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
-//                                           @RequestBody LibraryDTO libraryDTO) {
-//        try {
-//             service.saveGoal(libraryDTO, isbn13);
-//        } catch (IllegalArgumentException e) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("도서를 찾을 수 없습니다: " + e.getMessage());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알 수 없는 오류가 발생했습니다.");
-//        }
-//        return ResponseEntity.ok("도서 저장성공");
-//    }
-
-    //독서목표 설정 status 변경
     @PutMapping("/register/{isbn13}")
     public ResponseEntity<String> bookGoal(@PathVariable String isbn13,
-                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+                                           @RequestBody LibraryDTO libraryDTO) {
 
-        System.out.println(startDate + " >>>>>>>>>>> " + endDate);
-        int update= libraryrep.setReadGoal(isbn13,startDate, endDate);
+        System.out.println("요청 데이터: " + libraryDTO);
+        System.out.println("PathVariable isbn13: " + isbn13);
+
+        // 요청 데이터 검증
+        if (!isbn13.equals(libraryDTO.getIsbn13())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ISBN 번호가 일치하지 않습니다.");
+        }
+
+        try {
+            // ISBN 존재 여부 확인
+            Optional<Library> existingLibrary = libraryrep.findByUserIdAndBook_Isbn13(libraryDTO.getUser_id(), isbn13);
+
+            // 존재하지 않으면 새로 추가
+            if (existingLibrary.isEmpty()) {
+                // Book 엔티티 조회 또는 생성
+                Book book = bookrep.findById(isbn13)
+                        .orElseThrow(() -> new BaseException(BaseResponseStatus.BOOK_NOT_FOUND));
+
+                // Library 엔티티 생성
+                Library library = Library.builder()
+                        .userId(libraryDTO.getUser_id())
+                        .book(book)
+                        .status("wished") // 기본 상태
+                        .build();
+                libraryrep.save(library);
 
 
-        if(update > 0){
-            return ResponseEntity.ok("독서목표가 설정되었습니다.");
-        }else{
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패");
+            }
+
+            // 독서 목표 업데이트 실행
+            int update = libraryrep.setReadGoal(
+                    isbn13,
+                    libraryDTO.getStartDate(),
+                    libraryDTO.getEndDate(),
+                    libraryDTO.getStatus()
+            );
+
+            if (update > 0) {
+                return ResponseEntity.ok("독서목표가 설정되었습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("독서 목표 설정 실패: 조건에 맞는 데이터가 없습니다.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 에러 발생: " + e.getMessage());
         }
     }
 

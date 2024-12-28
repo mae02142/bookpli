@@ -31,10 +31,20 @@ public interface LibraryRepository extends JpaRepository<Library, Long> {
 
     //독서 목표 수정
     //독서 목표설정 status update
-    @Transactional
     @Modifying
-    @Query("update Library l set l.status='reading', l.startDate= :startDate, l.endDate= :endDate where l.status='wished' AND l.book.isbn13 = :isbn13")
-    int setReadGoal(@Param("isbn13") String isbn13, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Transactional
+    @Query("update Library l " +
+            "set l.startDate = :startDate, " +
+            "l.endDate = :endDate, " +
+            "l.status = :status " +
+            "where l.book.isbn13 = :isbn13")
+    int setReadGoal(@Param("isbn13") String isbn13,
+                    @Param("startDate") LocalDate startDate,
+                    @Param("endDate") LocalDate endDate,
+                    @Param("status") String status);
+
+    @Query("SELECT COUNT(l) > 0 FROM Library l WHERE l.book.isbn13 = :isbn13")
+    boolean existsByIsbn13(@Param("isbn13") String isbn13);
 
     //독서 상태 해제로 변경
     @Transactional

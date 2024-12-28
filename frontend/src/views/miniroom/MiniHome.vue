@@ -138,7 +138,6 @@
 
         <ReadGoalModal
         :visible="showModal"
-        :rbook="selectBook"
         @close="closeModal"
         @dropReading="updateReadList"
         />
@@ -157,7 +156,7 @@
     import LeftSidebar from "@/components/layouts/LeftSidebar.vue";
     import { useUtilModalStore } from "@/stores/utilModalStore";
     import { useConfirmModalStore } from "@/stores/utilModalStore";
-
+    import { useBookStore } from "@/stores/bookStore";
     import { useRouterUtils } from "@/router/routerUtils";
     
     const { gotoDetail } = useRouterUtils();
@@ -180,12 +179,14 @@
     const showModal = ref(false);
     const selectBook = ref({});
     const liked= ref("");
-
+    const showReadBook= ref({});
     const currentReading=ref(1);
     const currentWished=ref(1);
     const itemsPerPage= ref(5);
     const currentMonth = ref('');
-
+    const radioSelect= ref("");
+    const rbook= ref({});
+    const bookStore= useBookStore();
     const modalStore= useConfirmModalStore();
 
     const pageinationRead = computed (() => {
@@ -225,26 +226,9 @@
         }
     };
 
-    const loadReadList = () => {
-        const utilModalStore = useUtilModalStore();
-
-        if (currentReading.value * itemsPerPage.value < readList.value.length) {
-        currentReading.value += 1;
-        } else {
-        utilModalStore.showModal(
-            "알림",
-            "마지막 페이지입니다.",
-            "warning"
-        );
-        currentReading.value = 1;
-        }
-    };
-
-
     const gotoLibrary= () =>{
         router.push({
                 path: `/mypage/mylibrary`,
-
             });
     }
 
@@ -268,27 +252,66 @@
         }
     }
 
-    const openModal = (book) => {
-      selectBook.value = book;
-      showModal.value = true;
+const openModal = async (book) => {
+try {
+    // Pinia store의 bookStore에 데이터 저장
+    bookStore.setbook(book);
+
+    // 서버에서 추가 정보 가져와서 업데이트
+    const status = await loadUserGoalExist(book.isbn13);
+    
+    rbook.value.status=status;
+    radioSelect.value=status;
+
+    bookStore.updateStatus(status); // 상태 업데이트
+
+    radioSelect.value=status;
+
+    const savedProgress = progressStore.getProgress(book.isbn13);
+        if (savedProgress) {
+            rbook.value.progressPercentage = savedProgress.progressPercentage || 0;
+        }
+
+    // 모달 열기
+    showModal.value = true;
+} catch (error) {
+    console.error("모달 데이터 설정 실패:", error);
+}
+};
+
+    const loadUserGoalExist = async (isbn13) => {
+        try {            
+            const response = await apiClient.get(`/api/library/${authStore.user.userId}/${isbn13}`);
+            console.log("goal 존재함??? : ", response.data.data);
+            
+            const bookData= response.data.data;
+            bookStore.setbook(bookData);
+            rbook.value= bookData;
+            console.log("독서상태 표시하기위한..:",rbook.value);
+
+            return response.data.data.status; 
+        } catch (error) {
+            console.error("도서 정보 로드 실패:", error);
+        }
     };
 
+
     const closeModal = () => {
-      showModal.value = false;
+        showModal.value = false;
     };
 
     // 독서 진행률 계산
     const calInputPage = computed(() =>
-      readList.value.map((book, index) => {
+        readList.value.map((book, index) => {
         const current = currentPage.value[index] || 0;
         const total = book.startindex || 1;
         return Math.min(Math.max(Math.round((current / total) * 100), 0), 100);
-      })
+        })
     );
 
     // 목표 진행률 계산
     const calculateGoalProgress = computed(() =>
-      readList.value.map((book) => {
+        readList.value.map((book) => {
         const start = new Date(book.startDate);
         const end = new Date(book.endDate);
         const today = new Date();
@@ -296,7 +319,7 @@
         const elapsedDays = (today - start) / (1000 * 60 * 60 * 24);
 
         return Math.min(Math.max((elapsedDays / totalDays) * 100, 0), 100).toFixed(2);
-      })
+        })
     );
 
     // 완료된 책 통계 계산
@@ -324,30 +347,49 @@
       mostReadInfo.value = mostRead;
     };
 
-    // 독서 데이터 로드
-    const loadBooks = async (status, targetList) => {
-      try {
-        const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/book`, {
-          params: { status },
-        });
-        targetList.value = data;
-      } catch (error) {
-        console.error(`${status} 상태의 책 로드 실패:`, error);
-      }
-    };
+// 독서 데이터 로드
+const loadBooks = async (status, targetList) => {
+    try {
+    const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/book`, {
+        params: { status },
+    });
+    targetList.value = data;
+    } catch (error) {
+    console.error(`${status} 상태의 책 로드 실패:`, error);
+    }
+};
 
-    // 사용자 정보 로드
-    const loadUserProfile = async () => {
-      try {
-        const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/profile`);
-        userData.value = data;
-      } catch (error) {
-        console.error("사용자 정보 로드 실패:", error);
-      }
+// 사용자 정보 로드
+const loadUserProfile = async () => {
+    try {
+    const { data } = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/profile`);
+    userData.value = data;
+    } catch (error) {
+    console.error("사용자 정보 로드 실패:", error);
+    }
+};
+
+const loadReadList = async (isbn13) => {
+        const utilModalStore = useUtilModalStore();
+
+        try{
+            if (currentReading.value * itemsPerPage.value < readList.value.length) {
+            currentReading.value += 1;
+            } else {
+            utilModalStore.showModal(
+                "알림",
+                "마지막 페이지입니다.",
+                "warning"
+            );
+            currentReading.value = 1;
+            }
+        }catch(error){
+            console.log(error);
+        }
     };
 
     // 이번달 독서 목표 및 진행 계산
-    const calculateMonthStats = () => {
+    const calculateMonthStatus = () => {
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
 
@@ -419,8 +461,12 @@
         totalPages: book.startindex || 1,
         progressPercentage: Math.round((currentPage.value[index] / (book.startindex || 1)) * 100),
       };
-
+      //pinia 저장
       progressStore.saveProgress(book.isbn13, progressData);
+
+      //동기화 처리
+      const savedProgress= progressStore.getProgress(book.isbn13);
+      book.progressPercentage= savedProgress.progressPercentage || 0;
     };
 
     // 편집 모드 제어
@@ -438,6 +484,25 @@
       saveProgress(index);
     };
 
+    const updateProgress = () => {
+    readList.value.forEach((book, index) => {
+        const savedProgress = progressStore.getProgress(book.isbn13);
+        if (savedProgress) {
+            currentPage.value[index] = savedProgress.currentPage || 0; 
+            book.progressPercentage = savedProgress.progressPercentage || 0; 
+        } else {
+            book.progressPercentage = 0;
+        }
+    });
+
+    // rbook 업데이트 동기화
+    if (rbook.value.isbn13) {
+        const selectedBook = readList.value.find(b => b.isbn13 === rbook.value.isbn13);
+        if (selectedBook) {
+            rbook.value = { ...selectedBook };
+        }
+    }
+};
 
     const clearReading = (book) => {
     const confirmModalStore = useConfirmModalStore();
@@ -451,11 +516,10 @@
             try {
             const { status } = await apiClient.put(`/api/miniroom/clear/${book.isbn13}?status=completed`);
             if (status === 200) {
-                alert("완독 처리되었습니다.");
                 await loadBooks("reading", readList);
                 await loadBooks("completed", completedBooks);
                 calculateCompletedStats();
-                calculateMonthStats();
+                calculateMonthStatus();
             }
             } catch (error) {
             console.error("완독 처리 실패:", error);
@@ -463,17 +527,6 @@
         }
         );
     };
-
-
-    const likeordislike = async () => {
-        try{
-            const response= await apiClient.get(`/api/book/${authStore.user.userId}/${isbn13}`);
-            liked.value=response.data;
-            console.log(liked.data);
-        }catch(error){
-            console.log(error);
-        }
-    }
     
     const gotoPlaylist= () => {
         router.push({
@@ -516,10 +569,15 @@
     readList.value.forEach((book, index) => {
         const savedProgress = progressStore.getProgress(book.isbn13);
         if (savedProgress) {
-            currentPage.value[index] = savedProgress.currentPage; // 저장된 현재 페이지
+            currentPage.value[index] = savedProgress.currentPage || 0; // 저장된 현재 페이지
             book.progressPercentage = savedProgress.progressPercentage || 0; // 저장된 진행 퍼센트
         } else {
             book.progressPercentage = 0;
+        }
+
+        if(rbook.value.isbn13 === book.isbn13){
+            rbook.value.progressPercentage= book.progressPercentage;
+            rbook.value.currentPage = currentPage.value[index];
         }
     });
 
@@ -528,507 +586,524 @@
         changeToFail(book, index); // 각 책에 대해 실패 상태 처리
     });
 
-      calculateCompletedStats();
-      calculateMonthStats();
-      getToken()
+    calculateCompletedStats();
+    calculateMonthStatus();
+    getToken()
     });
-    </script>
+</script>
 
-    <style scoped>
-    .dashboard {
-        height: 100vh;
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: 0fr 0.95fr;
-    }
+<style scoped>
+.dashboard {
+    height: 100vh;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 0fr 0.95fr;
+}
 
-    .minihome-section{
-        width: 100%;
-        display: flex;
-        margin: 20px;
-        border: 1px solid #cecece52;
-        border-radius: 20px;
-        padding: 30px 10px;
-        background-color: #fffffb;
-    }
-
-    .book-section{
-        align-items: flex-start;
-    }
-
-    .left-section,
-    .right-section {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    border: 1px solid #cecece52;
-    border-radius: 30px;
-    }
-
-
-    .left-section {
-        align-items: center;
-        gap: 20px;
-        margin: 10px;
-        padding: 10px;
-    }
-
-    .home-user-profile {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 20px;
-        margin: 10px 20px;
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .avatar {
-        width: 100px;
-        height: 100px;
-        background-color: #ddd;
-        border-radius: 50%;
-    }
-
-    .status-card {
-        display: flex;
-        gap: 15px;
-        margin-left: 15px;
-        flex-direction: row;
-        align-items: center;
-        margin-right: 15px;
-    }
-
-    .most-read-month,
-    .yearly-read {
-        display: flex;
-        width: 142px;
-        height: 85px;
-        text-align: center;
-        background: #ffffff;
-        border-radius: 20px;
-        box-sizing: border-box;
-        flex-flow: column;
-        justify-content: center;
-        gap: 6px;
-        box-shadow: 1px 1px 2px 2px rgb(0 185 7 / 41%);
-    }
-
-    .mini-divider{
-        border: none;
-        width: 90%;
-        border-top: 1px solid #ccc;
-    }
-
-
-    .right-section{
-        margin : 10px;
-        width: 80%;
-        padding: 30px;
-    }
-
-    .reading-status-box {
-    height: 300px;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-    border: 1px solid #e0e0e0;
-
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    min-width: 500px;
-    min-width: 250px;
-
-    width: 80%;
-    margin: auto;
-    }
-
-    .user-profile {
-        height: 200px;
-        border-bottom: 1px solid;
-        display: grid;
-        width: 100%;
-        justify-items: center;
-        align-items: center;
-        height: fit-content;
-        padding: 15px 0px;
-    }
-
-
-    .music-player,
-    .book-section {
-        margin-top: 20px;
-    }
-
-    .music-section{
-        align-items: center;
-        justify-content: center;
-    }
-
-    .music-player {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        margin-left: 40px;
-        margin-top: 50px;
-    }
-
-    .reading-status ul,
-    .book-section ul {
-    list-style: none;
-    padding: 0;
-    }
-
-    progress {
+.minihome-section{
     width: 100%;
-    margin: 5px 0;
-    }
+    display: flex;
+    margin: 20px;
+    border: 1px solid #cecece52;
+    border-radius: 20px;
+    padding: 30px 10px;
+    background-color: #fffffb;
+}
 
-    .vertical-line {
-        background-color: #ccc;
-        grid-column: 2 / 3;
-        grid-row: 1 / 4;
-        width: 2px;
-    }
+.book-section{
+    align-items: flex-start;
+}
 
-
-
-    .book-covers {
-        display: flex;
-        gap: 20px;
-    }
-
-
-
-    .book-item {
-        text-align: center;
-        display: flex;
-        flex-flow: column;
-    }
-
-    .book-cover {
-        width: 150px;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-left: 19px;
-    }
+.left-section,
+.right-section {
+display: flex;
+flex-direction: column;
+background: white;
+border: 1px solid #cecece52;
+border-radius: 30px;
+}
 
 
+.left-section {
+    align-items: center;
+    gap: 20px;
+    margin: 10px;
+    padding: 10px;
+}
 
-    .book-info {
-        margin-top: 10px;
-        font-size: 14px;
-        display: inline-flex;
-        width: 100%;
-        align-items: center;
-        gap: 7px;
-    }
+.home-user-profile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    margin: 10px 20px;
+}
 
-    .track-info {
-        margin-left: 20px;
-    }
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
 
-    .controls {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 20px;
-    }
+.avatar {
+    width: 100px;
+    height: 100px;
+    background-color: #ddd;
+    border-radius: 50%;
+}
 
-    .control-button {
-        width: 25px;
-        height: 25px;
-        cursor: pointer;
-    }
+.status-card {
+    display: flex;
+    gap: 15px;
+    margin-left: 15px;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.most-read-month,
+.yearly-read {
+    display: flex;
+    width: 142px;
+    height: 85px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 20px;
+    box-sizing: border-box;
+    flex-flow: column;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 1px 1px 2px 2px rgb(0 185 7 / 41%);
+}
+
+.mini-divider{
+    border: none;
+    width: 90%;
+    border-top: 1px solid #ccc;
+}
 
 
-    .music-progress {
-        height: 8px;
-        margin: 10px 0;
-        border-radius: 5px;
-    }
+.right-section{
+    margin : 10px;
+    width: 80%;
+    padding: 30px;
+}
 
-    .vr.full-height {
-        height: 100%;
-        background-color: #ccc;
-        width: 2px;
-    }
+.reading-status-box {
+height: 300px;
+background-color: #f9f9f9;
+padding: 20px;
+border-radius: 8px;
 
-    .book-progress {
-        margin: 0; /* 개별 요소 간 여백 제거 */
-        padding: 10px 0; /* 내부 패딩 추가 */
-        border-bottom: 1px solid #e0e0e0; /* 구분선 추가 */
-    }
+overflow-y: auto;
+overflow-x: hidden;
+border: 1px solid #e0e0e0;
 
-    .book-progress:last-child {
-        border-bottom: none; /* 마지막 요소 구분선 제거 */
-    }
+display: flex;
+flex-direction: column;
+gap: 20px;
+min-width: 500px;
+min-width: 250px;
 
-    .progress-wrapper {
-        position: relative;
-        margin-top: 10px;
-        width: 100%;
-        height: 12px;
-        margin-bottom: 18px;
-    }
+width: 80%;
+margin: auto;
+}
 
-    .book-title {
-        margin: 0;
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
+.user-profile {
+    height: 200px;
+    border-bottom: 1px solid;
+    display: grid;
+    width: 100%;
+    justify-items: center;
+    align-items: center;
+    height: fit-content;
+    padding: 15px 0px;
+}
 
-    .book-start-date {
-        margin: 0;
-        font-size: 14px;
-        color: #666;
-    }
 
-    .goal-progress {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 15px;
-        background-color: rgb(2, 77, 42);
-        border-radius: 6px;
-        z-index: 1;
-    }
+.music-player,
+.book-section {
+    margin-top: 20px;
+}
 
-    .current-progress {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 15px;
-        background-color: rgb(171, 235, 171);
-        border-radius: 6px;
-        z-index: 2;
-    }
+.music-section{
+    align-items: center;
+    justify-content: center;
+}
 
-    .progress-percentage {
-    font-size: 16px;
+.music-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin-left: 40px;
+    margin-top: 50px;
+}
+
+.reading-status ul,
+.book-section ul {
+list-style: none;
+padding: 0;
+}
+
+progress {
+width: 100%;
+margin: 5px 0;
+}
+
+.vertical-line {
+    background-color: #ccc;
+    grid-column: 2 / 3;
+    grid-row: 1 / 4;
+    width: 2px;
+}
+
+
+
+.book-covers {
+    display: flex;
+    gap: 20px;
+}
+
+
+
+.book-item {
+    text-align: center;
+    display: flex;
+    flex-flow: column;
+}
+
+.book-cover {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-left: 19px;
+}
+
+
+
+.book-info {
+    margin-top: 10px;
+    font-size: 14px;
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    gap: 7px;
+}
+
+.track-info {
+    margin-left: 20px;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.control-button {
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+}
+
+
+.music-progress {
+    height: 8px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.vr.full-height {
+    height: 100%;
+    background-color: #ccc;
+    width: 2px;
+}
+
+.book-progress {
+    margin: 0; /* 개별 요소 간 여백 제거 */
+    padding: 10px 0; /* 내부 패딩 추가 */
+    border-bottom: 1px solid #e0e0e0; /* 구분선 추가 */
+}
+
+.book-progress:last-child {
+    border-bottom: none; /* 마지막 요소 구분선 제거 */
+}
+
+.progress-wrapper {
+    position: relative;
+    margin-top: 10px;
+    width: 100%;
+    height: 12px;
+    margin-bottom: 18px;
+}
+
+.book-title {
+    margin: 0;
+    font-size: 18px;
     font-weight: bold;
-    color: #666;
-    }
+    margin-bottom: 5px;
+}
 
-    .full-progress{
-        top: 0;
-        left: 0;
-        height: 15px;
-        background-color: #D9D9D9;
-        border-radius: 6px;
-    }
-
-    .page-info {
+.book-start-date {
+    margin: 0;
     font-size: 14px;
     color: #666;
-    }
+}
 
-    .music-title{
-        margin: 20px 0;
-        font-size: x-large;
-    }
+.goal-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: rgb(2, 77, 42);
+    border-radius: 6px;
+    z-index: 1;
+}
 
-    .title-header {
-        margin-bottom: 20px;
-        margin-top: 20px;
-        font-size: x-large;
-    }
+.current-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: rgb(171, 235, 171);
+    border-radius: 6px;
+    z-index: 2;
+}
 
-    .progress-info{
-        display: inline-flex;
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 5px;
-    }
+.progress-percentage {
+font-size: 16px;
+font-weight: bold;
+color: #666;
+}
 
-    .more-wrapper,
-    .track-title {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+.full-progress{
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: #D9D9D9;
+    border-radius: 6px;
+}
 
-    .sm-images{
-        width: 15px;
-        height: 15px;
-        margin-right: 5px;
-        cursor: pointer;
-    }
+.page-info {
+font-size: 14px;
+color: #666;
+}
 
-    .more-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        cursor: pointer;
-        gap: 5px;
-        font-size: 14px;
-    }
+.music-title{
+    margin: 20px 0;
+    font-size: x-large;
+}
 
-    .music-more {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 5px;
-        font-size: 14px;
-        cursor: pointer;
-        margin-top: -15px;
-        width: 100%;
-    }
-
-    .more-wrapper.music-more {
-        padding-right: 20px;
-    }
-
-    .reading-status {
-    height: 436px;
-    position: relative;
-    background: #ffffff;
-    width: 611px;
-    padding: 20px;
-    border-radius: 10px;
-    }
-
-    .profile-image {
-    width: 129px;
-    height: 159px;
-    object-fit: cover;
+.title-header {
     margin-bottom: 20px;
-    }
+    margin-top: 20px;
+    font-size: x-large;
+}
+
+.progress-info{
+    display: inline-flex;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 5px;
+}
+
+.more-wrapper,
+.track-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sm-images{
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.more-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    cursor: pointer;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.music-more {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: -15px;
+    width: 100%;
+}
+
+.more-wrapper.music-more {
+    padding-right: 20px;
+}
+
+.reading-status {
+height: 436px;
+position: relative;
+background: #ffffff;
+width: 611px;
+padding: 20px;
+border-radius: 10px;
+}
+
+.profile-image {
+width: 129px;
+height: 159px;
+object-fit: cover;
+margin-bottom: 20px;
+}
 
 
 
-    .card-title {
-    font-size: 16px;
-    font-weight: 400;
-    color: #000000;
-    }
+.card-title {
+font-size: 16px;
+font-weight: 400;
+color: #000000;
+}
 
-    .card-status {
+.card-status {
+font-size: 18px;
+font-weight: 400;
+color: #000000;
+font-weight: bold;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 100%;
+    background-color: #fffdf1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.empty{
+    text-align: center;
     font-size: 18px;
-    font-weight: 400;
-    color: #000000;
+    color: #909090;
+
+}
+
+.userNm{
+    font-size: 18px;
+    margin-left: 2px;
     font-weight: bold;
-    }
+}
 
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 60px;
-        height: 100%;
-        background-color: #fffdf1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 0;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-    }
+.book-icon {
+    cursor: pointer;
+}
 
-    .empty{
-        text-align: center;
-        font-size: 18px;
-        color: #909090;
+.reading-book-grid {
+    display: grid;
+    justify-items: flex-start;
+    gap: 4px;
+}
 
-    }
+.reading-book-grid span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 150px;
+}
 
-    .userNm{
-        font-size: 18px;
-        margin-left: 2px;
-        font-weight: bold;
-    }
+.reading-book-grid span:first-child {
+    font-weight: bold;
+    color: black;
+    font-size: 15px;
+}
 
-    .book-icon {
-        cursor: pointer;
-    }
+.user-profile-box {
+    display: grid;
+    justify-items: center;
+    padding: 20px;
+    box-shadow: 1px 1px 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 17px;
+}
 
-    .reading-book-grid {
-        display: grid;
-        justify-items: flex-start;
-        gap: 4px;
-    }
+.reading-count, .complete-count {
+    display: flex;
+    width: 200px;
+    align-items: center;
+    gap: 5px;
+    padding: 6px;
+}
 
-    .reading-book-grid span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-        max-width: 150px;
-    }
+.reading-count img, .complete-count img{
+    width: 25px;
+    height: 25px;
+}
 
-    .reading-book-grid span:first-child {
-        font-weight: bold;
-        color: black;
-        font-size: 15px;
-    }
+.complete-button {
+    padding: 5px 9px;
+    font-size: 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.goal-bar{
+    width: 30px;
+    height: 10px;
+    background-color: rgb(2, 77, 42);
+}
 
-    .user-profile-box {
-        display: grid;
-        justify-items: center;
-        padding: 20px;
-        box-shadow: 1px 1px 1px 2px rgba(0, 0, 0, 0.1);
-        border-radius: 17px;
-    }
+.current-bar{
+    width: 30px;
+    height: 10px;
+    background-color: rgb(171, 235, 171);
+}
+/* .goal{
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    background-color: rgb(2, 77, 42);
+    border-radius: 6px;
+    z-index: 1;
+}
+.current{
+    height: 15px;
+    background-color: rgb(171, 235, 171);
+    border-radius: 6px;
+}*/
+.progress-legend {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
 
-    .reading-count, .complete-count {
-        display: flex;
-        width: 200px;
-        align-items: center;
-        gap: 5px;
-        padding: 6px;
-    }
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
 
-    .reading-count img, .complete-count img{
-        width: 25px;
-        height: 25px;
-    }
 
-    .complete-button {
-        padding: 5px 9px;
-        font-size: 15px;
-        border: none;
-        border-radius: 5px;
-        background-color: #4CAF50;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    .current-bar{
-        width: 30px;
-        height: 10px;
-        background-color: rgb(171, 235, 171);
-    }
-    .goal-bar{
-        width: 30px;
-        height: 10px;
-        background-color: rgb(2, 77, 42);
-    }
-    .progress-legend {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 20px;
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .legend-color {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 5px;
-    }
-    </style>
+</style>
