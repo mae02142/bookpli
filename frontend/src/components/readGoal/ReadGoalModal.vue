@@ -232,8 +232,10 @@ const handleAction = async () => {
         }
         // 2. 기간 변경
         else if (
-            formatStartDate !== rbook.value.startDate || formatEndDate !== rbook.value.endDate
+            formatStartDate !== rbook.value.startDate ||
+            formatEndDate !== rbook.value.endDate
         ) {
+            console.log("기간 변경 시작");
             await changeDate(rbook.value, formatStartDate, formatEndDate);
             emitClose();
         } else {
@@ -255,11 +257,6 @@ const setGoal = async (rbook, startDate, endDate, status) => {
         // 날짜 포맷 변환
         const formatStartDate = format(new Date(startDate), "yyyy-MM-dd");
         const formatEndDate = format(new Date(endDate), "yyyy-MM-dd");
-
-        if (!startDate.value || !endDate.value) {
-            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
-            return;
-        }
 
         const requestData = {
             userId: authStore.user.userId,
