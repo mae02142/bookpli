@@ -2,7 +2,7 @@
 <template>
     <div v-if="visible" class="goal-modal-overlay" @click.self="emitClose">
         <div class="goal-modal-content">
-            
+           <div class="book-container">
             <div class="book-section">
                 <img class="bookgoal-cover" :src="rbook.cover" alt="Book Cover" />
                 <div class="title">{{rbook.title}}</div>
@@ -12,7 +12,8 @@
                     <span class="reading-status-text">읽고 있는 책</span>
             </div>
         </div>
-
+    
+<div class="book-date-active">
         <div class="date-section">
             <div class="date-status"  v-if="isDateSelected || rbook.status === 'reading'" >독서상태</div>
             <div class="date-row-status"  v-if="isDateSelected || rbook.status === 'reading'">
@@ -72,6 +73,8 @@
             </div>
             <p class="progress-percentage">{{ progressPercentage || 0 }}%</p>
         </div>
+    </div>
+    </div>
         <span class="button-container">
             <button class="confirm-button" @click="handleAction">확인</button>
             <button class="cancel-button" @click="emitClose" >닫기</button>
@@ -422,7 +425,14 @@ margin-top: 10px;
 display: flex;
 flex-direction: column;
 align-items: center;
-margin-top: 10px;
+justify-content: center;
+gap: 10px;
+}
+.book-container{
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+    padding : 10px;
 }
 
 .bookgoal-cover {
@@ -435,6 +445,11 @@ object-fit: cover;
 font-size: 13px;
 color: #757575;
 margin-top: 7px;
+}
+
+.book-date-active{
+    display: flex;
+    flex-direction: column;
 }
 
 .reading-status {
@@ -461,8 +476,8 @@ color: #000000;
 
 .date-section {
 margin: 15px auto;
-width: 80%;
-max-width: 800px;
+width: 100%;
+min-width: 400px;
 }
 
 .date-status{
@@ -544,9 +559,9 @@ color: #000000;
 }
 
 .progress-section {
-margin: 40px auto;
-width: 80%;
-max-width: 800px;
+margin: 10px auto;
+width: 100%;
+min-width: 400px;
 }
 
 .progress-header {
@@ -663,9 +678,9 @@ font-size: 14px;
     background: #fff;
     padding: 20px;
     border-radius: 10px;
-    width: 60%;
+    width: 80%;
     height: auto;
-    max-width: 600px;
+    max-width: 700px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
     justify-content: center;
