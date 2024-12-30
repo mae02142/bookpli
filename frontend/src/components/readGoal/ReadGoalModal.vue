@@ -114,7 +114,6 @@ watch(
     () => props.rbook,
     (newVal) => {
         localRbook.value = { ...newVal }; 
-        console.log("rbook 데이터 변경 감지:", localRbook.value);
     },
     { deep: true, immediate: true }
 );
@@ -231,16 +230,13 @@ const handleAction = async () => {
         // 현재 상태와 변경 사항 확인
         const currentStatus = rbook.value.status || "wished"; 
         const selectedStatus = radioSelect.value; 
-        console.log("현재 상태:", currentStatus, "선택된 상태:", selectedStatus);
 
         // 1. 상태 변경 - 독서 목표 설정
         if (currentStatus !== selectedStatus) {
             if (selectedStatus === "reading") {
-                console.log("독서 목표 설정 시작");
                 await setGoal(rbook.value, formatStartDate, formatEndDate, selectedStatus);
                 emitClose();
             } else if (selectedStatus === "wished") {
-                console.log("독서 중 해제 시작");
                 await dropReading(rbook.value);
                 emitClose();
             }
@@ -250,7 +246,6 @@ const handleAction = async () => {
             formatStartDate !== rbook.value.startDate ||
             formatEndDate !== rbook.value.endDate
         ) {
-            console.log("기간 변경 시작");
             await changeDate(rbook.value, formatStartDate, formatEndDate);
             emitClose();
         } else {
@@ -280,7 +275,6 @@ const setGoal = async (rbook, startDate, endDate, status) => {
             startDate: format(new Date(startDate), "yyyy-MM-dd"),
             endDate: format(new Date(endDate), "yyyy-MM-dd"),
         };
-        console.log("setGoal 요청 데이터:", requestData);
 
         // API 요청
         const response = await apiClient.put(
@@ -293,10 +287,6 @@ const setGoal = async (rbook, startDate, endDate, status) => {
                 },
             }
         );
-        console.log("setGoal 요청 데이터:", requestData);
-
-
-        console.log("setGoal 응답:", response.data);
         utilModalStore.showModal("독서 목표 설정", `"${rbook.title}" 목표가 설정되었습니다.`, "success");
 
         // 상태 업데이트
@@ -375,7 +365,6 @@ const loadUserGoalExist = async () => {
         // 상태 업데이트
         rbook.value.status = bookInLibrary.value?.status || "wished";
         radioSelect.value = rbook.value.status; // 초기값 동기화
-        console.log("도서 상태 확인:", rbook.value.status);
     } catch (error) {
         console.error("목록에서 책 상태 가져오기 오류:", error);
         bookInLibrary.value = {};
@@ -390,12 +379,13 @@ onMounted(async () => {
     
     if (!bookFromStore || !bookFromStore.isbn13) {
         console.error("초기화 실패: 도서 정보 없음", bookFromStore);
-        return;
+        // return;
+    } else {
+        rbook.value = { ...bookFromStore };
+        console.log("초기 rbook 값:", rbook.value);
     }
     
     // rbook 데이터 복사
-    rbook.value = { ...bookFromStore };
-    console.log("초기 rbook 값:", rbook.value);
 
     // 사용자 독서 상태 로드
     await loadUserGoalExist();

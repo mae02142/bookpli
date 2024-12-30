@@ -166,7 +166,6 @@ const closeModal = (updatedBook) => {
     if (updatedBook) {
         // 상위 컴포넌트 데이터 동기화
         Object.assign(book.value, updatedBook);
-        console.log("closeModal 후 데이터 확인:", book.value);
     }
     showModal.value = false; // 모달 닫기
 };
@@ -174,7 +173,6 @@ const closeModal = (updatedBook) => {
 const updateBookInStore = (updatedBook) => {
     // Pinia 상태 업데이트
     bookStore.setbook(updatedBook);
-    console.log("updateBookInStore 동기화 완료:", bookStore.rbook);
 };
 
 // 도서 상세 정보 로드
@@ -214,10 +212,10 @@ const checkLibraryStatus = async () => {
                 isbn13: book.value.isbn13, // 최소한의 데이터 설정
                 title: book.value.title,
                 cover: book.value.cover,
+                author: book.value.author,
+                startindex: book.value.startindex,
             }; 
         }
-
-        console.log("checkLibraryStatus 결과:", bookInLibrary.value);
     } catch (error) {
         console.error("내 서재 상태 확인 오류:", error);
         isInLibrary.value = false;
@@ -229,7 +227,7 @@ const checkLibraryStatus = async () => {
 // 도서 추가
 const handleAddBook = async () => {
     try {
-        const response = await apiClient.post(`/api/library/${isbn13}`);
+        const response = await apiClient.post(`/api/library/${isbn13.value}`);
         bookInLibrary.value = response.data.data;
         isInLibrary.value = true;
         libraryId.value = bookInLibrary.value.libraryId;
@@ -266,7 +264,6 @@ const likeordislike = async () => {
         const likedId = response.data.data;
         bookLikedId.value = likedId;
         isLiked.value = !!likedId;
-        console.log("좋아요 번호 확인 : ", bookLikedId.value)
     } catch (error) {
         console.error("찜한 도서 확인 중 오류 발생:", error.message || error);
     }
