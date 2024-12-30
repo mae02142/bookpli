@@ -289,8 +289,7 @@ export default {
   
   .review-image {
     width: 120px;
-    height: 140px;
-    border: 1px solid #c0c0c0;
+    border: 1px solid #dddddd;
     border-radius: 5px;
   }
   
