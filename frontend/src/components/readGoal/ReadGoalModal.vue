@@ -112,7 +112,7 @@ const rbook= computed(() => bookStore.rbook);
 
 
 
-const emit= defineEmits(["close","dropReading","updateRbook"]);
+const emit= defineEmits(["close","updateRbook"]);
 const emitClose= () => {
     emit("close");
 };
@@ -198,10 +198,10 @@ const handleAction = async () => {
             return;
         }
 
-        if (!startDate.value || !endDate.value) {
-            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
-            return;
-        }
+        // if (!startDate.value || !endDate.value) {
+        //     utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
+        //     return;
+        // }
 
         // 날짜 검증 추가
         if (new Date(startDate.value) > new Date(endDate.value)) {
@@ -343,6 +343,8 @@ const dropReading = async (rbook) => {
         rbook.status = "wished";
         rbook.startDate = '';
         rbook.endDate = null;
+
+        emit("dropReading", rbook.value);
 
     } catch (error) {
         console.error("dropReading 에러:", error.response?.data || error.message);

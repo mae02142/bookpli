@@ -298,6 +298,7 @@ try {
 
     const closeModal = () => {
         showModal.value = false;
+        
     };
 
     // 독서 진행률 계산
@@ -441,12 +442,45 @@ const loadReadList = async (isbn13) => {
     };
 
     // ReadGoalModal에서 삭제된 도서를 readList에서 제거
-    const updateReadList = (isbn13) => {
+    import { nextTick } from "vue";
+
+    const updateReadList = async (isbn13) => {
+    try {
+        // 1. 로컬 상태에서 즉시 삭제
         const index = readList.value.findIndex(book => book.isbn13 === isbn13);
         if (index !== -1) {
-            readList.value.splice(index, 1);
+            readList.value.splice(index, 1); // 즉시 상태 업데이트
         }
-    };
+
+        // 2. 최신 데이터 동기화
+        const response = await apiClient.get(`/api/miniroom/user/${authStore.user.userId}/book`, {
+            params: { status: 'reading' },
+        });
+
+        // 3. 반응형 배열로 업데이트
+        readList.value = response.data || []; // 최신 데이터 적용
+
+        // 4. 상태 재계산 및 UI 업데이트
+        calculateCompletedStats();
+        calculateMonthStatus();
+
+        // 5. 모달 상태 초기화 및 닫기
+        if (rbook.value.isbn13 === isbn13) {
+            rbook.value = {};
+            closeModal();
+        }
+
+    } catch (error) {
+        console.error('도서 삭제 후 업데이트 실패:', error);
+    }
+};
+
+updateReadList(rbook.isbn13).then(() => {
+    // DOM 업데이트가 끝날 때까지 기다림
+    nextTick(() => {
+        console.log("업데이트된 readList:", readList.value); // 디버깅
+    });
+});
 
 
     // 독서 기록 저장
@@ -550,6 +584,7 @@ const loadReadList = async (isbn13) => {
         console.error("사용자 정보 요청 실패:", error);
       }
     };
+
 
     // 컴포넌트 초기화
     onMounted(async () => {
