@@ -147,7 +147,7 @@ watch(
         localRbook.value = { ...newVal }; 
         // startDate.value = ''; 
         // endDate.value = '';  
-        console.log("rbook 데이터 변경 감지:", localRbook.value.data);
+        console.log("rbook 데이터 변경 감지:", localRbook.value);
     },
     { deep: true, immediate: true }
 );
@@ -195,6 +195,11 @@ const handleAction = async () => {
         // 검증: ISBN 및 날짜 값 확인
         if (!rbook.value || !rbook.value.isbn13) {
             utilModalStore.showModal("오류 발생", "도서 정보가 누락되었습니다.", "error");
+            return;
+        }
+
+        if (!startDate.value || !endDate.value) {
+            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
             return;
         }
 
