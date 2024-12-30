@@ -148,6 +148,16 @@ import Profile from "@/assets/icons/profile.png"
             commentContent : userComment.value,
             postId : props.postId,
           };
+
+          if(newComment.commentContent === ""){
+            utilModalStore.showModal(
+              '경고',
+              '글을 등록할 때 최소 1글자 이상 입력하세요',
+              'alert'
+            );
+            return ;
+          }
+
         try{
           const response = await apiClient.post(`/api/comment/insert`,newComment);
           if(response.status ==200){

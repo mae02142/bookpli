@@ -142,6 +142,7 @@
   import PostForm from "@/components/bookclub/PostForm.vue";
   import Comment from "@/components/bookclub/Comment.vue";
   import { useConfirmModalStore } from "@/stores/utilModalStore";
+  import { useUtilModalStore } from "@/stores/utilModalStore";
   
   export default {
      props: {
@@ -163,6 +164,7 @@
         getComments();
       })
     
+      const utilModalStore = useUtilModalStore();
       const serverComments = ref([]);   //서버에서 받아온 데이터
       const comments = ref([]);     // 서버에서 받아온 데이터에 추가적인 상태 값을 포함시킴
       
@@ -290,6 +292,15 @@
             commentDate : editComment.value.commentDate
           }
           
+          if(comment.commentContent === ""){
+            utilModalStore.showModal(
+              '경고',
+              '글을 작성하려면 최소 1글자 이상 입력해주세요',
+              'alert'
+            );
+            return;
+          }
+          
           try {
             const response =  await apiClient.put("/api/comment/edit", comment);
                 if(response.status ==200){
@@ -299,6 +310,7 @@
                     comments.value[index] = {...comments.value[index],...comment};
                   }
                   editingId.value = null;
+                  showBtn.value[index] = false;
                 }
             } catch (error) {
                 console.error("서버 동기화 실패", error);
@@ -326,7 +338,8 @@
                       const index = comments.value.findIndex((item)=> item.commentId == commentId);
                       if(index !== -1){
                         comments.value.splice(index, 1); // 리뷰 삭제
-                      }     
+                      }
+                      showBtn.value[index] = false;      
                     }
                 }catch(error){
                     console.error(error,'오류 발생');

@@ -70,11 +70,6 @@ const router = createRouter({
           path: "minihome",
           component: () => import("@/views/miniroom/MiniHome.vue"),
         },
-        {
-          path: "goal/:isbn13",
-          meta: { requiresAuth: true },
-          component: () => import("@/views/miniroom/ReadingGoal.vue"),
-        },
       ],
     },
 
