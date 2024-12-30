@@ -65,11 +65,6 @@
         </div>
 
         </div>
-        <!-- <ReadGoalModal
-            :visible="showModal"
-            :rbook="bookInLibrary"
-            @close="closeModal"
-        /> -->
 
         <!-- 추천 도서 및 리뷰 섹션 -->
         <div class="recommendations">
@@ -229,7 +224,7 @@ const checkLibraryStatus = async () => {
 // 도서 추가
 const handleAddBook = async () => {
     try {
-        const response = await apiClient.post(`/api/library/${isbn13}`);
+        const response = await apiClient.post(`/api/library/${isbn13.value}`);
         bookInLibrary.value = response.data.data;
         isInLibrary.value = true;
         libraryId.value = bookInLibrary.value.libraryId;
