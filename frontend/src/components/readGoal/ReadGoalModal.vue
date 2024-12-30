@@ -147,7 +147,7 @@ watch(
         localRbook.value = { ...newVal }; 
         // startDate.value = ''; 
         // endDate.value = '';  
-        console.log("rbook 데이터 변경 감지:", localRbook.value);
+        console.log("rbook 데이터 변경 감지:", localRbook.value.data);
     },
     { deep: true, immediate: true }
 );
@@ -211,8 +211,12 @@ const handleAction = async () => {
         }
 
         // 날짜 포맷 변환
-        const formatStartDate = format(new Date(startDate.value), "yyyy-MM-dd");
-        const formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
+        let formatStartDate =null;
+        let formatEndDate = null;
+        if(startDate.value && endDate.value){
+            formatStartDate = format(new Date(startDate.value), "yyyy-MM-dd");
+            formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
+        }
 
         // 현재 상태와 변경 사항 확인
         const currentStatus = rbook.value.status || "wished"; 
@@ -337,7 +341,7 @@ const dropReading = async (rbook) => {
 
         // 상태 초기화
         rbook.status = "wished";
-        rbook.startDate = null;
+        rbook.startDate = '';
         rbook.endDate = null;
 
     } catch (error) {

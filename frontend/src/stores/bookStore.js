@@ -11,7 +11,6 @@ export const useBookStore = defineStore('bookStore',() =>{
     const setbook = (book) =>{
         if(book && book.isbn13){
             rbook.value={...book};
-            console.log("작가와 페이지수 확인",book.value.data);
             isDataLoaded.value = true;
         }else{
             rbook.value= {};
