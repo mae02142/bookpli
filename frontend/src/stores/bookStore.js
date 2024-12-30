@@ -1,10 +1,12 @@
 import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import {ref, computed} from 'vue';
 
 export const useBookStore = defineStore('bookStore',() =>{
 
     const rbook = ref({});
     const isDataLoaded = ref(false); 
+
+    const bookDetails = computed(() => rbook.value);
 
     const setbook = (book) =>{
         if(book && book.isbn13){

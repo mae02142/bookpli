@@ -110,14 +110,6 @@ const props = defineProps({
 const localRbook = ref({ ...props.rbook });
 const rbook= computed(() => bookStore.rbook);
 
-watch(
-    () => props.rbook,
-    (newVal) => {
-        localRbook.value = { ...newVal }; 
-        console.log("rbook 데이터 변경 감지:", localRbook.value);
-    },
-    { deep: true, immediate: true }
-);
 
 
 const emit= defineEmits(["close","dropReading","updateRbook"]);
@@ -133,48 +125,42 @@ const book =ref(
 const updateStartDate = (value) => {
     startDate.value = value; 
     rbook.startDate= format(new Date(value),'yyyy-MM-dd');
-
-    // if(endDate.value && new Date(endDate.value)){
-    //     const utilModalStore= useUtilModalStore();
-    //     utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다. 종료일을 다시 선택해주세요.", "error");
-    //     startDate.value=null;
-    //     rbook.startDate=null;
-    //     return;
-    // }
+    
     checkDateSelection();
 };
 const updateEndDate = (value) => {
     endDate.value = value;
     rbook.endDate= format(new Date(value),'yyyy-MM-dd');
-
-    // if(startDate.value && new Date(startDate.value)){
-    //     const utilModalStore= useUtilModalStore();
-    //     utilModalStore.showModal("날짜 선택 오류", "종료일은 시작일보다 빠를 수 없습니다. 시작일을 다시 선택해주세요.", "error");
-    //     endDate.value=null;
-    //     rbook.endDate=null;
-    //     return;
-    // }
-
+    
     checkDateSelection();
 };
 
 const checkDateSelection = () => {
     isDateSelected.value = !!(startDate.value && endDate.value); 
 };
-const startDate = ref(null);
-const endDate = ref(null);
+const startDate = ref('');
+const endDate = ref('');
 const radioSelect= ref("");
 
+watch(
+    () => props.rbook,(newVal) => {
+        localRbook.value = { ...newVal }; 
+        // startDate.value = ''; 
+        // endDate.value = '';  
+        console.log("rbook 데이터 변경 감지:", localRbook.value.data);
+    },
+    { deep: true, immediate: true }
+);
 // 내 서재 상태 확인
 const checkLibraryStatus = async () => {
     try {
         const response = await apiClient.get(`/api/library/${authStore.user.userId}/${rbook.value.isbn13}`);
-
+        
         const libraryItems = Array.isArray(response.data.data) 
-            ? response.data.data 
-            : (response.data.data ? [response.data.data] : []); 
+        ? response.data.data 
+        : (response.data.data ? [response.data.data] : []); 
         const existingBook = libraryItems.find((item) => item.isbn13 === book.value.isbn13);
-
+        
         if (existingBook) {
             isInLibrary.value = true;
             libraryId.value = existingBook.libraryId;
@@ -212,11 +198,6 @@ const handleAction = async () => {
             return;
         }
 
-        if (!startDate.value || !endDate.value) {
-            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
-            return;
-        }
-
         // 날짜 검증 추가
         if (new Date(startDate.value) > new Date(endDate.value)) {
             utilModalStore.showModal("날짜 선택 오류", "시작일은 종료일보다 늦을 수 없습니다.", "error");
@@ -225,8 +206,12 @@ const handleAction = async () => {
         }
 
         // 날짜 포맷 변환
-        const formatStartDate = format(new Date(startDate.value), "yyyy-MM-dd");
-        const formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
+        let formatStartDate =null;
+        let formatEndDate = null;
+        if(startDate.value && endDate.value){
+            formatStartDate = format(new Date(startDate.value), "yyyy-MM-dd");
+            formatEndDate = format(new Date(endDate.value), "yyyy-MM-dd");
+        }
 
         // 현재 상태와 변경 사항 확인
         const currentStatus = rbook.value.status || "wished"; 
@@ -247,10 +232,8 @@ const handleAction = async () => {
         }
         // 2. 기간 변경
         else if (
-            formatStartDate !== rbook.value.startDate ||
-            formatEndDate !== rbook.value.endDate
+            formatStartDate !== rbook.value.startDate || formatEndDate !== rbook.value.endDate
         ) {
-            console.log("기간 변경 시작");
             await changeDate(rbook.value, formatStartDate, formatEndDate);
             emitClose();
         } else {
@@ -272,6 +255,11 @@ const setGoal = async (rbook, startDate, endDate, status) => {
         // 날짜 포맷 변환
         const formatStartDate = format(new Date(startDate), "yyyy-MM-dd");
         const formatEndDate = format(new Date(endDate), "yyyy-MM-dd");
+
+        if (!startDate.value || !endDate.value) {
+            utilModalStore.showModal("오류 발생", "시작일과 종료일을 선택해주세요.", "error");
+            return;
+        }
 
         const requestData = {
             userId: authStore.user.userId,
@@ -351,7 +339,7 @@ const dropReading = async (rbook) => {
 
         // 상태 초기화
         rbook.status = "wished";
-        rbook.startDate = null;
+        rbook.startDate = '';
         rbook.endDate = null;
 
     } catch (error) {
@@ -401,8 +389,8 @@ onMounted(async () => {
     await loadUserGoalExist();
 
     // 날짜 초기화
-    startDate.value = rbook.value.startDate || null;
-    endDate.value = rbook.value.endDate || null;
+    startDate.value = '';
+    endDate.value = '';
 
     // 진행률 초기화
     const savedProgress = progressStore.getProgress(rbook.value.isbn13);

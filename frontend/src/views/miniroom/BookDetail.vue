@@ -65,11 +65,7 @@
         </div>
 
         </div>
-        <!-- <ReadGoalModal
-            :visible="showModal"
-            :rbook="bookInLibrary"
-            @close="closeModal"
-        /> -->
+
 
         <!-- 추천 도서 및 리뷰 섹션 -->
         <div class="recommendations">
@@ -152,7 +148,7 @@ const openModal = async () => {
             // Pinia 상태 업데이트
             bookStore.setbook({ ...bookInLibrary.value });
 
-            console.log("Pinia 저장된 rbook:", bookStore.rbook);
+            console.log("Pinia 저장된 rbook:", bookStore.rbook.data);
             showModal.value = true;
         } else {
             console.error("도서정보가 없습니다.", bookInLibrary.value);
@@ -211,9 +207,11 @@ const checkLibraryStatus = async () => {
             isInLibrary.value = false;
             libraryId.value = null;
             bookInLibrary.value = {
-                isbn13: book.value.isbn13, // 최소한의 데이터 설정
+                isbn13: book.value.isbn13, 
                 title: book.value.title,
                 cover: book.value.cover,
+                author: book.value.author,
+                startindex: book.value.startindex,
             }; 
         }
 
@@ -229,7 +227,7 @@ const checkLibraryStatus = async () => {
 // 도서 추가
 const handleAddBook = async () => {
     try {
-        const response = await apiClient.post(`/api/library/${isbn13}`);
+        const response = await apiClient.post(`/api/library/${isbn13.value}`);
         bookInLibrary.value = response.data.data;
         isInLibrary.value = true;
         libraryId.value = bookInLibrary.value.libraryId;
