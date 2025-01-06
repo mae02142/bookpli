@@ -1,0 +1,85 @@
+[33m78e8ccd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/mypage[m[33m)[m HEAD@{0}: pull origin develop: Merge made by the 'ort' strategy.
+[33md1060f3[m HEAD@{1}: pull origin develop: Merge made by the 'ort' strategy.
+[33m866de92[m HEAD@{2}: pull origin develop: Merge made by the 'ort' strategy.
+[33md14d62a[m HEAD@{3}: commit (merge): 충돌 해결
+[33meaff6ac[m HEAD@{4}: commit: 최종 pr
+[33m8c89222[m HEAD@{5}: pull origin develop: Fast-forward
+[33md3be430[m[33m ([m[1;31morigin/feature/mypage[m[33m)[m HEAD@{6}: commit: 독서상세모달 기능 삭제
+[33m04f3a8f[m HEAD@{7}: pull origin develop: Fast-forward
+[33mc2d0600[m HEAD@{8}: commit: 도서 상세 페이지의 좋아요 기능과 내 서재 담기/해제 기능 수정
+[33ma96c140[m HEAD@{9}: pull origin develop: Fast-forward
+[33me0a9547[m HEAD@{10}: pull origin develop: Merge made by the 'ort' strategy.
+[33m301dc94[m HEAD@{11}: commit: pull request
+[33m3482431[m HEAD@{12}: commit: 스프링 시큐리티 CustomPrincipal로 변경
+[33mee5d09a[m HEAD@{13}: pull origin develop: Fast-forward
+[33mb6ba929[m HEAD@{14}: pull origin develop: Fast-forward
+[33m88fcc55[m HEAD@{15}: commit: 독서 목표 설정 수정중
+[33m44d6800[m HEAD@{16}: pull origin develop: Merge made by the 'ort' strategy.
+[33m465f0d9[m HEAD@{17}: commit: 일단 최종
+[33mca6397d[m HEAD@{18}: commit: 추천도서 랜더링
+[33mb9538dd[m HEAD@{19}: commit: 좋아요 기능 수정
+[33m7889283[m HEAD@{20}: commit: 일단 저장
+[33m76295ff[m HEAD@{21}: commit: 찜하기 수정
+[33m8cf1f66[m HEAD@{22}: pull origin develop: Merge made by the 'ort' strategy.
+[33m0e847e8[m HEAD@{23}: commit: pull request
+[33m0a79e09[m HEAD@{24}: commit (merge): conflict resolve
+[33m3cf47e1[m HEAD@{25}: commit: 찜하기 기능 수정
+[33mb6bec3f[m HEAD@{26}: commit (merge): pull request
+[33m3ad9a15[m HEAD@{27}: commit: 좋아요 공용기능으로 변경
+[33mb586213[m HEAD@{28}: commit: 시큐리티 수정, user 엔티티에 role 컬럼 추가
+[33mfeb5619[m HEAD@{29}: commit (merge): 충돌 해결
+[33me417b7f[m HEAD@{30}: commit: pull request
+[33m9b37de8[m HEAD@{31}: commit (merge): 충돌 해결
+[33ma1f02f6[m HEAD@{32}: commit: pull request
+[33m542b763[m HEAD@{33}: pull origin develop: Fast-forward
+[33m4410518[m HEAD@{34}: commit: 스프링 시큐리티 수정
+[33m140fa46[m HEAD@{35}: commit: 메인페이지 비로그인시 처리
+[33m40f4b68[m HEAD@{36}: commit: 메인페이지 부트스트랩 적용 및 css 수정
+[33m3cc07f7[m HEAD@{37}: pull origin develop: Merge made by the 'ort' strategy.
+[33m87390e8[m HEAD@{38}: commit: pull request
+[33mcab074e[m HEAD@{39}: pull origin develop: Merge made by the 'ort' strategy.
+[33mb182dbe[m HEAD@{40}: commit: 메인페이지 css 수정
+[33m199c7d2[m HEAD@{41}: commit: 랜덤 닉네임 부여하기
+[33m9ab5edd[m HEAD@{42}: pull origin develop: Merge made by the 'ort' strategy.
+[33m4c413e9[m HEAD@{43}: commit: 도서 상세 보기 페이지 완료
+[33m0ad3005[m HEAD@{44}: commit: 도서 상세페이지 css 수정중
+[33mc46e398[m HEAD@{45}: commit: 도서 상세 페이지 수정
+[33mf71ef74[m HEAD@{46}: pull origin develop: Fast-forward
+[33mda1405e[m HEAD@{47}: commit: MyLibrary 페이지
+[33mc969b09[m HEAD@{48}: commit (merge): 충돌 해결
+[33mb200039[m HEAD@{49}: commit: MyLibrary 기초 작업
+[33m8f433d3[m HEAD@{50}: pull origin develop: Fast-forward
+[33mb5093a2[m HEAD@{51}: commit: MyPlaylist 페이지 완료
+[33ma9a5ba9[m HEAD@{52}: commit: MyPlaylist CRUD
+[33m2c6f2c9[m HEAD@{53}: pull origin develop: Fast-forward
+[33m6bc9be9[m HEAD@{54}: commit: 마이 플레이리스트 페이지
+[33m0f72c8b[m HEAD@{55}: commit: 로그인 구현 변경
+[33m8be5626[m HEAD@{56}: commit (merge): conflict resolve
+[33m661df68[m HEAD@{57}: commit: pull request
+[33me618934[m HEAD@{58}: commit: 내 플레이리스트 불러오기
+[33m81f1e71[m HEAD@{59}: commit: 회원 정보 확인/수정
+[33m4802f3e[m HEAD@{60}: commit: 엔티티 수정
+[33m1e712f6[m HEAD@{61}: pull origin develop: Fast-forward
+[33mde07aba[m HEAD@{62}: commit: 새로고침시 회원정보 초기화되는 현상 수정
+[33m4aed808[m HEAD@{63}: commit: 스포티파이 로그인, 유저정보 피니아 설정
+[33mb896410[m HEAD@{64}: commit: 엔티티 관계매핑 재설정
+[33ma77d4c3[m HEAD@{65}: commit: 엔티티 관계매핑
+[33ma3e26ba[m HEAD@{66}: commit (merge): Entity 초기 설정
+[33mc87d5a3[m HEAD@{67}: commit (merge): 충돌 해결
+[33m88c6b92[m HEAD@{68}: commit: pull request
+[33m3d112ed[m HEAD@{69}: pull origin develop: Fast-forward
+[33m8b22bea[m HEAD@{70}: commit: User 엔티티 수정
+[33m0ea7a03[m HEAD@{71}: pull origin develop: Merge made by the 'ort' strategy.
+[33m61a19ce[m HEAD@{72}: commit: 스포티파이 API 로그인 토큰 저장
+[33m8dd91a1[m HEAD@{73}: pull origin develop: Merge made by the 'ort' strategy.
+[33mcf2fbc9[m HEAD@{74}: commit: merge
+[33m7805631[m HEAD@{75}: commit: 스포티파이 로그인
+[33m2770349[m HEAD@{76}: commit: Header 수정
+[33mb4d76ef[m HEAD@{77}: commit: MyLibrary 페이지 수정
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{78}: checkout: moving from develop to feature/mypage
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{79}: checkout: moving from develop to develop
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{80}: checkout: moving from feature/mypage to develop
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{81}: checkout: moving from develop to feature/mypage
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{82}: checkout: moving from main to develop
+[33m5133e96[m[33m ([m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{83}: pull origin main --allow-unrelated-histories: Merge made by the 'ort' strategy.
+[33m3cc52f6[m HEAD@{84}: commit (initial): 프로젝트 초기 설정
